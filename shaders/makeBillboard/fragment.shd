@@ -1,0 +1,24 @@
+#version 400
+in VertexData
+{
+  vec4 position;
+  vec4 normal;
+  vec4 color;
+  vec3 shadowPos1;
+  vec3 shadowPos2;
+  vec3 shadowPos3;
+  vec2 uv;
+} VertexOut;
+
+layout(location=0) out vec4 fragColor;
+layout(location=1) out vec4 normColor;
+
+uniform sampler2D colormap;
+
+void main()
+{
+  vec4 colour = textureLod(colormap,vec2(VertexOut.uv.x,1-VertexOut.uv.y),0);
+  if (colour.a<0.0001) discard;
+  fragColor = vec4(colour.rgb,1);
+  normColor = vec4(vec3(0.5) + 0.5*VertexOut.normal.xyz,1);
+}

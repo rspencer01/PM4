@@ -1,0 +1,125 @@
+#!/usr/bin/python
+import sys
+from transforms import *
+import numpy as np
+import OpenGL.GL as gl
+import OpenGL.GLU as glu
+import OpenGL.GLUT as glut
+
+program = None
+windowHeight = 512
+windowWidth = 512
+
+def display():
+  camera.render()
+  camera.render('user')
+  Shadows.render()
+  gl.glClear(gl.GL_COLOR_BUFFER_BIT | gl.GL_DEPTH_BUFFER_BIT)
+  gl.glViewport(0,0,windowWidth,windowHeight)
+  projection = perspective( 60.0, windowWidth/float(windowHeight), 0.3, 8000.0 )
+  setUniform('projection',projection)
+  
+  camera.render()
+  setUniform('fogLevel',8.0)
+  setUniform('maxFog',1000.0)
+  
+  Sky.display()
+#  Terrain.display()
+#  Marker.display()
+  #Road.display()
+#  Forest.display(camera.pos)
+  
+  glut.glutSwapBuffers()
+  
+  
+t = 1.0
+def timer(fps):
+  global t
+  t -= 1.0/fps
+  if t<0:
+    glut.glutSetWindowTitle("PM3 "+ str(fps) + " fps")
+    t = 3.0
+#  Marker.timeUpdate(1.0/fps)
+  s = 80000
+  if 'w' in keys:
+    camera.move(s * 1.0/fps)
+  if 's' in keys:
+    camera.move(s * -1.0/fps)
+  if 'e' in keys:
+    camera.rotUpDown(1.5/fps)
+  if 'q' in keys:
+    camera.rotUpDown(-1.5/fps)
+  if 'a' in keys:
+    camera.rotLeftRight(-1.5/fps)
+  if 'd' in keys:
+    camera.rotLeftRight(1.5/fps)
+  glut.glutTimerFunc(1000/fps, timer, fps)
+  glut.glutPostRedisplay()
+
+def reshape(width,height):
+  global windowHeight,windowWidth
+  windowHeight = height
+  windowWidth = width
+
+keys = set()
+def keyboard(key,x,y):
+  if key=='\033':
+    #    Shadows.cleanup()
+    sys.exit(0)
+  if key=='p':
+    print camera.pos
+  keys.add(key)
+def keyboardUp(key,x,y):
+  keys.remove(key)
+def mouse(button,state,x,y):
+  print button,state,x,y
+
+glut.glutInit()
+glut.glutInitDisplayMode(glut.GLUT_DOUBLE | glut.GLUT_RGBA | glut.GLUT_DEPTH)
+glut.glutInitWindowSize(512,512);
+glut.glutCreateWindow("PM4")
+gl.glEnable(gl.GL_DEPTH_TEST)
+gl.glPolygonMode(gl.GL_FRONT,gl.GL_FILL );
+#gl.glPolygonMode(gl.GL_FRONT_AND_BACK,gl.GL_LINE );
+gl.glEnable(gl.GL_TEXTURE_2D)
+gl.glEnable(gl.GL_BLEND)
+gl.glBlendFunc(gl.GL_SRC_ALPHA, gl.GL_ONE_MINUS_SRC_ALPHA);
+glut.glutReshapeFunc(reshape)
+glut.glutDisplayFunc(display)
+glut.glutKeyboardFunc(keyboard)
+glut.glutMouseFunc(mouse)
+glut.glutKeyboardUpFunc(keyboardUp)
+glut.glutTimerFunc(1000/60, timer, 60)
+
+from Shaders import *
+from Camera import Camera
+#import Marker
+import Terrain
+import Sky
+import noiseG
+#import Road
+gl.glClear(gl.GL_COLOR_BUFFER_BIT | gl.GL_DEPTH_BUFFER_BIT)
+projection = perspective( 60.0, 1, 0.3, 8000.0 )
+setUniform('projection',projection)
+setUniform('fogLevel',8.0)
+setUniform('maxFog',1000.0)
+#import Forest
+
+import Shadows
+
+print "Initialisation finished."
+
+camera = Camera(np.array([0.,20.0,-100]))
+camera.rotLeftRight(-3.141592/2*0)
+camera.render()
+Shadows.lockCam = camera
+#camera.locked = True
+#for i in xrange(-10,10):
+#  for j in xrange(-10,10):
+#    Marker.addMarker(400*np.array([i,0,j]))
+#Marker.freeze()
+    
+noiseG.load(setUniform)
+
+reshape(glut.glutGet(glut.GLUT_WINDOW_WIDTH),glut.glutGet(glut.GLUT_WINDOW_HEIGHT))
+glut.glutMainLoop()

@@ -1,0 +1,16 @@
+#version 140
+uniform mat4 model;
+uniform mat4 View;
+uniform mat4 projection;
+uniform float scale;
+uniform vec3 camera;
+in vec3 position;
+in vec2 uv;
+out vec3 pos;
+out vec2 tex;
+void main()
+{
+  gl_Position = projection* View * model* vec4( position,1.0);
+  pos = (model * vec4(position,1.0)).xyz;
+  tex = uv;
+}

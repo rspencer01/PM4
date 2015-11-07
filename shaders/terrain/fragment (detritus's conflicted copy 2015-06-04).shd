@@ -1,0 +1,73 @@
+in vec3 pos;
+in vec3 shadowPos1;
+in vec3 shadowPos2;
+in vec3 shadowPos3;
+in float shadowDepth;
+in vec3 norm;
+
+uniform sampler2D heightmap;
+
+uniform vec3 sunDirection;
+uniform vec3 CameraPosition;
+uniform sampler2D shadowTexture1;
+uniform sampler2D shadowTexture2;
+uniform sampler2D shadowTexture3;
+uniform sampler2D noise;
+
+float maxFog = 3000.0;
+float fogLevel = 1;
+
+float light()
+{
+  float diff = 0.2 * dot(sunDirection,normalize(texture(heightmap,(pos.xz+4000)/8000).xyz));
+  float ambi = 0.2;
+  float shadow = 0;
+  if ((shadowPos1.x<1.0) && (shadowPos1.x>0)&&(shadowPos1.y<1.0) && (shadowPos1.y>0))
+  {
+     if (shadowPos1.z-texture(shadowTexture1,shadowPos1.xy).z > 0.0001)
+          shadow =1;
+  }
+  else
+  {
+    if ((shadowPos2.x<1.0) && (shadowPos2.x>0)&&(shadowPos2.y<1.0) && (shadowPos2.y>0))
+    {
+       if (shadowPos2.z-texture(shadowTexture2,shadowPos2.xy).z > 0.001)
+            shadow =1;
+    }
+    else
+    {
+      if ((shadowPos3.x<1.0) && (shadowPos3.x>0)&&(shadowPos3.y<1.0) && (shadowPos3.y>0))
+         if (shadowPos3.z-texture(shadowTexture3,shadowPos3.xy).z > 0.001)
+              shadow =1;
+    }
+  }
+  return ambi + max(0,diff)*(1-shadow);
+}
+
+float fog()
+{
+  return (exp(length(pos-CameraPosition)/maxFog*fogLevel)-1)/(exp(fogLevel)-1);
+}
+
+vec3 color()
+{
+  return vec3(1);
+  if (pos.y > 180)
+    return vec3(1);
+  if (norm.y<0.7)
+    return vec3(0.7,0.5,0.55);
+  return vec3(0.1,0.5,0.2);
+}
+
+
+void main()
+{
+  float f = fog();
+  gl_FragColor = vec4(
+  light()*(1-f)*color(),
+  1); 
+ //if ((shadowPos.x<1.0) && (shadowPos.x>0)&&(shadowPos.y<1.0) && (shadowPos.y>0))
+  //gl_FragColor = vec4((shadowDepth-texture(shadowTexture,shadowPos).z)*10  +0.5,0,0,1);
+  //gl_FragColor = vec4((shadowDepth-1)*10  +0.5,0,0,1);
+  //gl_FragColor = vec4((texture(shadowTexture,shadowPos).z-1)*10  +0.5,0,0,1);
+} 

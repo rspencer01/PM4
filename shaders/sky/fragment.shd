@@ -1,0 +1,103 @@
+#version 140
+in vec4 pos;
+uniform mat4 view;
+uniform vec3 CameraPosition;
+uniform vec3 sunDirection;
+vec3 sunIntensity = vec3(10);
+vec3 betar = vec3(5.5e-6,13.0e-6,22.4e-6);
+vec3 betam = vec3(21e-6);
+
+float Re = 6360e3;
+float Ra = 6420e3;
+float Hr = 8e3;
+float Hm = 1.2e3;
+int numInt = 20;
+
+void main()
+{
+  vec3 direction = normalize(pos.xyz);
+  float theta = atan(direction.y,length(direction.xz));
+  float lightTheta = atan(sunDirection.y,length(sunDirection.xz));
+
+  float height = Re+CameraPosition.y;
+  float r = -height*sin(theta) + sqrt(height*height*(sin(theta)*sin(theta)-1)+Ra*Ra);
+
+  vec3 Pc = vec3(0,height,0); 
+  float r2 = -height*sin(theta) - sqrt(height*height*(sin(theta)*sin(theta)-1)+Ra*Ra);
+  if (r2>0)
+  {
+    Pc = Pc + direction * r2;  
+    r = 2 * sqrt(height*height*(sin(theta)*sin(theta)-1)+Ra*Ra);
+  }
+  vec3 Pa = Pc + direction * r; 
+
+  if ( height*height*(sin(theta)*sin(theta) - 1) + Re*Re > 0)
+  {
+    if (-height * sin(theta) - sqrt(height*height*(sin(theta)*sin(theta) - 1) + Re*Re) > 0)
+    { 
+      Pa = vec3(0,height,0) + direction * (- height * sin(theta) - sqrt(height*height*(sin(theta)*sin(theta) - 1) + Re*Re));
+    }
+  }
+
+  float ds = r/numInt;
+  float mu = dot(sunDirection,direction);
+  float g = 0.76;
+  float phaseR = 3.0/(16*3.141592)*(1+mu*mu);
+  float phaseM = 3.0/(8*3.141592)*((1-g*g)*(1+mu*mu))/((2+g*g)*pow(1+g*g-2*g*mu,1.5));
+
+  vec3 raleigh = vec3(0);
+  vec3 mie = vec3(0);
+
+  vec3 opticalDepthR = vec3(0);
+  vec3 opticalDepthM = vec3(0);
+
+  for (int i = 0;i<=numInt;i++)
+  {
+    vec3 P = mix(Pc,Pa,float(i)/numInt);
+    float lightHeight = length(P);
+    float lightR = -lightHeight*sin(lightTheta) + sqrt(lightHeight*lightHeight*(sin(lightTheta)*sin(lightTheta)-1)+Ra*Ra);
+    vec3 Ps = P + lightR * sunDirection; 
+
+    float hr = exp(-(lightHeight-Re)/Hr) * ds;
+    float hm = exp(-(lightHeight-Re)/Hm) * ds;
+
+    opticalDepthR += hr;
+    opticalDepthM += hm;
+    
+    vec3 opticalDepthLightR = vec3(0);
+    vec3 opticalDepthLightM = vec3(0);
+    float opticalDepthDs = lightR/numInt;
+    int j;
+    for (j = 0;j<=numInt;j++)
+    {
+      vec3 Pq = mix(P,Ps,float(j)/numInt);
+      float h = length(Pq) - Re;
+      if (h<0) break;
+      int mult = 1;
+      if (j>0 && j<numInt)
+      {
+        mult = 2 + (2 * (j-1)%2);
+      }
+      opticalDepthLightR += mult*exp(-h/Hr)*opticalDepthDs/3.0;
+      opticalDepthLightM += mult*exp(-h/Hm)*opticalDepthDs/3.0;
+    }
+    if (j==numInt+1)
+    {
+
+      vec3 tau = betar * (opticalDepthLightR + opticalDepthR) + betam * 1.1 * (opticalDepthLightM + opticalDepthM);
+
+      int mult = 1;
+      if (i>0 && i<numInt)
+      {
+        mult = 2 + (2 * (i-1)%2);
+      }
+
+      raleigh += mult * exp(-tau) * hr / 3.0;
+      mie += mult * exp(-tau) * hm / 3.0;
+    }
+  }
+  raleigh *= phaseR * betar;
+  mie *= phaseM * betam;
+
+  gl_FragColor = vec4(sunIntensity*(raleigh + mie),1);
+}
