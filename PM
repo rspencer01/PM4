@@ -18,6 +18,7 @@ def display():
   gl.glViewport(0,0,windowWidth,windowHeight)
   projection = perspective( 60.0, windowWidth/float(windowHeight), 0.3, 8000.0 )
   setUniform('projection',projection)
+  setUniform('aspectRatio',windowWidth/float(windowHeight))
   
   camera.render()
   setUniform('fogLevel',8.0)

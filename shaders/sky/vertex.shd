@@ -3,10 +3,11 @@ uniform mat4 projection;
 uniform vec3 CameraPosition;
 uniform mat4 View;
 uniform mat4 model;
+uniform float apectRatio;
 in vec3 position;
 out vec4 pos;
 void main()
 {
-  gl_Position = projection*View*model* vec4( position+CameraPosition,1.0);
+  gl_Position = vec4( position,1.0);
   pos = vec4(position,1);
 }
