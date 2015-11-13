@@ -14,12 +14,15 @@ BUMPMAP = gl.GL_TEXTURE5
 BUMPMAP_NUM = 5
 COLORMAP = gl.GL_TEXTURE6
 COLORMAP_NUM = 6
+DEPTHMAP = gl.GL_TEXTURE7
+DEPTHMAP_NUM = 7
 
 
 class Texture:
   def __init__(self,type):
     self.textureType =  type
     self.id = gl.glGenTextures(1)
+    self.size = ()
     
     self.load()
     #gl.glPixelStorei(gl.GL_UNPACK_ALIGNMENT,1)
@@ -30,6 +33,7 @@ class Texture:
   def loadData(self,width,height,data):
     self.load()
     gl.glTexImage2D(gl.GL_TEXTURE_2D, 0 ,gl.GL_RGBA32F, width, height, 0, gl.GL_RGBA, gl.GL_FLOAT, data)
+    self.size = (width,height)
     self.makeMipmap()
   def makeMipmap(self):
     self.load()

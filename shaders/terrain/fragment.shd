@@ -1,8 +1,7 @@
 #version 400
 uniform vec3 sunDirection;
 uniform vec3 CameraPosition;
-uniform sampler2D shadowTexture1;
-uniform sampler2D shadowTexture2;
+uniform sampler2D shadowTexture1; uniform sampler2D shadowTexture2;
 uniform sampler2D shadowTexture3;
 uniform sampler2D noise;
 uniform sampler2D heightmap;
@@ -126,21 +125,10 @@ vec3 color(vec3 norm)
   return  texCol* texAmount  + (1-texAmount)*norCol;
 }
 
-vec3 makeFog(vec3 c)
-{
-  float dist = length(TesselationOut.position.xyz-CameraPosition);
-  float fogAmount = 1.0-exp(-dist * 0.0005);
-  float sunAmount = max( dot( normalize(TesselationOut.position.xyz-CameraPosition) , sunDirection ), 0.0 );
-  vec3  fogColor  = mix( vec3(0.5,0.6,0.7), // bluish
-                         vec3(1.0,0.9,0.7), // yellowish
-                         pow(sunAmount,8.0) );
-  return mix(c,fogColor,fogAmount);
-}
-
 void main()
 {
   vec3 norm = getNormal(TesselationOut.origPosition.xyz);
   gl_FragColor = vec4(
-    makeFog(light(norm)*color(norm)),
+    light(norm)*color(norm),
     1); 
 }

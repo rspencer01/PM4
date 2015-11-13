@@ -1,0 +1,17 @@
+#version 140
+in vec4 pos;
+uniform mat4 view;
+uniform vec3 CameraPosition;
+uniform vec3 CameraDirection;
+uniform vec3 sunDirection;
+uniform float aspectRatio;
+uniform sampler2D colormap;
+uniform sampler2D depthmap;
+uniform float exposure;
+
+void main()
+{
+  vec3 inputColor =textureLod(colormap,pos.xy/2+vec2(0.5),0).rgb; 
+  float maxCol = 1;//+exposure*2;
+  gl_FragColor = vec4((1+inputColor/(maxCol*maxCol))*inputColor/(vec3(1)+inputColor),1);
+}

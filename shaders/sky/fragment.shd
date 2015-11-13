@@ -5,66 +5,112 @@ uniform vec3 CameraPosition;
 uniform vec3 CameraDirection;
 uniform vec3 sunDirection;
 uniform float aspectRatio;
+uniform sampler2D colormap;
+uniform sampler2D depthmap;
 vec3 sunIntensity = vec3(20);
-vec3 betar = vec3(5.8e-6,13.5e-6,33.1e-6);
+vec3 betar = vec3(5.8e-6,1.35e-5,3.31e-5);
 vec3 betam = vec3(21e-6);
 
 float Re = 6360e3;
 float Ra = 6420e3;
 float Hr = 8e3;
-float Hm = 1.0e3;
-int numInt = 16;
+float Hm = 1.2e3;
+float INF = 1e20;
+float g = 0.65;
+int numInt = 26;
+
+bool intersects(vec3 position, vec3 direction, float radius)
+{
+  if (dot(direction,position)*dot(direction,position) - dot(position,position)+radius*radius > 0)
+    return true;
+  return false;
+}
+
+float largestIntersectionDistance(vec3 position, vec3 direction, float radius)
+{
+  return - dot(position,direction) + 
+            sqrt(dot(direction,position)*dot(direction,position) 
+                 - dot(position,position)+radius*radius);
+}
+
+float smallestIntersectionDistance(vec3 position, vec3 direction, float radius)
+{
+  return - dot(position,direction) -
+            sqrt(dot(direction,position)*dot(direction,position) 
+                 - dot(position,position)+radius*radius);
+}
 
 void main()
 {
-  vec3 right = -cross(normalize(CameraDirection),vec3(0,1,0));
-  vec3 up = -cross(right,CameraDirection);
+  vec3 objectColor = texture(colormap,pos.xy/2+vec2(0.5)).xyz; 
+  float z_b = texture(depthmap,pos.xy/2+vec2(0.5)).r;
+  float z_n = 2*z_b - 1;
+  float objectDepth = 2*0.3*8000/(8000+0.3-z_n*(8000-0.3));
+//  if (objectDepth > 7999.99)
+//  {
+    objectDepth = INF;
+//  }
 
-  vec3 direction = normalize(CameraDirection + right * pos.x * aspectRatio / tan(3.141592/3) + up * pos.y / tan(3.141592/3));
+//  vec3 right = -cross(normalize(CameraDirection),vec3(0,1,0));
+//  vec3 up = -cross(right,normalize(CameraDirection));
+
+  //vec3 direction = normalize(normalize(CameraDirection) + right * pos.x * aspectRatio * tan(3.141592/3) + up * pos.y * tan(3.141592/3));
+  vec3 direction = vec3(pos.x,0,pos.y);
+  if (length(direction)>1)
+  {
+    gl_FragColor = vec4(0,0.2,0,1);
+    return;
+  }
+  direction.y = sqrt(1-dot(pos.xy,pos.xy));
   float theta = atan(direction.y,length(direction.xz));
   float lightTheta = atan(sunDirection.y,length(sunDirection.xz));
 
-  float height = Re+CameraPosition.y;
-  float r = -height*sin(theta) + sqrt(height*height*(sin(theta)*sin(theta)-1)+Ra*Ra);
-
+  float height = Re + 1 ;//+CameraPosition.y;
   vec3 Pc = vec3(0,height,0); 
-  float r2 = -height*sin(theta) - sqrt(height*height*(sin(theta)*sin(theta)-1)+Ra*Ra);
+  float r = largestIntersectionDistance(Pc,direction,Ra);
+
+  float r2 = smallestIntersectionDistance(Pc,direction,Ra);
   if (r2>0)
   {
     Pc = Pc + direction * r2;  
-    r = 2 * sqrt(height*height*(sin(theta)*sin(theta)-1)+Ra*Ra);
+    r = largestIntersectionDistance(Pc,direction,Ra) - smallestIntersectionDistance(Pc,direction,Ra);
   }
   vec3 Pa = Pc + direction * r; 
 
-  if ( height*height*(sin(theta)*sin(theta) - 1) + Re*Re > 0)
+  if (intersects(Pc,direction,Re))
   {
-    if (-height * sin(theta) - sqrt(height*height*(sin(theta)*sin(theta) - 1) + Re*Re) > 0)
+    if (smallestIntersectionDistance(Pc,direction,Re) > 0)
     { 
-      Pa = vec3(0,height,0) + direction * (- height * sin(theta) - sqrt(height*height*(sin(theta)*sin(theta) - 1) + Re*Re));
+      Pa = vec3(0,height,0) + direction * smallestIntersectionDistance(Pc,direction,Re);
     }
   }
 
-  float ds = r/numInt;
-  float mu = dot(sunDirection,direction);
-  float g = 0.76;
+  if (length(Pa - vec3(0,height,0)) > objectDepth)
+  {
+    Pa = vec3(0,height,0) + objectDepth * direction;
+  }
+
+  float mu = dot(normalize(sunDirection),normalize(direction));
   float phaseR = 3.0/(16*3.141592)*(1+mu*mu);
-  float phaseM = 3.0/(8*3.141592)*((1-g*g)*(1+mu*mu))/((2+g*g)*pow(1+g*g-2*g*mu,1.5));
+  float phaseM = 3.0/(8*3.141592)*((1-g*g)*(1+mu*mu))/((2+g*g)*pow(1+g*g-2*g*mu, 1.5));
 
   vec3 raleigh = vec3(0);
   vec3 mie = vec3(0);
 
-  vec3 opticalDepthR = vec3(0);
-  vec3 opticalDepthM = vec3(0);
+  float opticalDepthR = 0;
+  float opticalDepthM = 0;
 
-  for (int i = 0;i<=numInt;i++)
+  float ds = length(Pa - Pc) / numInt;
+
+  for (int i = 0;i<numInt;i++)
   {
     vec3 P = mix(Pc,Pa,float(i)/numInt);
-    float lightHeight = length(P);
-    float lightR = -lightHeight*sin(lightTheta) + sqrt(lightHeight*lightHeight*(sin(lightTheta)*sin(lightTheta)-1)+Ra*Ra);
+    float lightHeight = length(P) - Re;
+    float lightR = largestIntersectionDistance(P,sunDirection,Ra);
     vec3 Ps = P + lightR * sunDirection; 
 
-    float hr = exp(-(lightHeight-Re)/Hr) * ds;
-    float hm = exp(-(lightHeight-Re)/Hm) * ds;
+    float hr = exp(-lightHeight/Hr) * ds;
+    float hm = exp(-lightHeight/Hm) * ds;
 
     opticalDepthR += hr;
     opticalDepthM += hm;
@@ -73,36 +119,30 @@ void main()
     vec3 opticalDepthLightM = vec3(0);
     float opticalDepthDs = lightR/numInt;
     int j;
-    for (j = 0;j<=numInt;j++)
+    for (j = 0;j<numInt;j++)
     {
       vec3 Pq = mix(P,Ps,float(j)/numInt);
       float h = length(Pq) - Re;
       if (h<0) break;
-      int mult = 1;
-      if (j>0 && j<numInt)
-      {
-        mult = 2 + (2 * (j-1)%2);
-      }
-      opticalDepthLightR += mult*exp(-h/Hr)*opticalDepthDs/3.0;
-      opticalDepthLightM += mult*exp(-h/Hm)*opticalDepthDs/3.0;
+      opticalDepthLightR += exp(-h/Hr)*opticalDepthDs;
+      opticalDepthLightM += exp(-h/Hm)*opticalDepthDs;
     }
-    if (j==numInt+1)
+    if (j==numInt)
     {
-
       vec3 tau = betar * (opticalDepthLightR + opticalDepthR) + betam * 1.1 * (opticalDepthLightM + opticalDepthM);
 
-      int mult = 1;
-      if (i>0 && i<numInt)
-      {
-        mult = 2 + (2 * (i-1)%2);
-      }
-
-      raleigh += mult * exp(-tau) * hr / 3.0;
-      mie += mult * exp(-tau) * hm / 3.0;
+      raleigh += exp(-tau) * hr;
+      mie += exp(-tau) * hm;
     }
   }
   raleigh *= phaseR * betar;
   mie *= phaseM * betam;
 
-  gl_FragColor = vec4(sunIntensity*(raleigh + mie),1);
+  vec3 atmosphereColor = sunIntensity*(raleigh + mie);
+
+  if (objectDepth > 7999.99)
+    if (mu > 0.99995792)
+      atmosphereColor = sunIntensity * exp(-opticalDepthR * betar);
+
+  gl_FragColor = vec4(atmosphereColor + objectColor, 1);
 }

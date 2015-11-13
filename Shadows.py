@@ -37,6 +37,13 @@ for i in range(1,4):
   gl.glBindFramebuffer(gl.GL_FRAMEBUFFER,frameBuffers[i] );
 
   textures[i-1].load()
+  gl.glTexParameteri(gl.GL_TEXTURE_2D, gl.GL_TEXTURE_WRAP_S, gl.GL_REPEAT)
+  gl.glTexParameteri(gl.GL_TEXTURE_2D, gl.GL_TEXTURE_WRAP_T, gl.GL_REPEAT)
+  gl.glTexParameteri(gl.GL_TEXTURE_2D, gl.GL_TEXTURE_MAG_FILTER, gl.GL_NEAREST)
+  gl.glTexParameteri(gl.GL_TEXTURE_2D, gl.GL_TEXTURE_MIN_FILTER, gl.GL_NEAREST)    
+  gl.glTexParameteri(gl.GL_TEXTURE_2D, gl.GL_TEXTURE_COMPARE_FUNC,gl.GL_LEQUAL)
+  gl.glTexParameteri(gl.GL_TEXTURE_2D, gl.GL_TEXTURE_COMPARE_MODE,gl.GL_NONE)
+
   gl.glTexImage2D(gl.GL_TEXTURE_2D, 0,gl.GL_DEPTH_COMPONENT32, shadowSize, shadowSize, 0,gl.GL_DEPTH_COMPONENT, gl.GL_FLOAT, None)
   gl.glFramebufferTexture(gl.GL_FRAMEBUFFER, gl.GL_DEPTH_ATTACHMENT, textures[i-1].id, 0)
   gl.glDrawBuffer(gl.GL_NONE)
@@ -53,9 +60,8 @@ count = 0
 
 def render():
   global count,sunTheta
-  sunTheta = count/150.0
+  sunTheta = 0.6+np.cos(-0.4+count/50.0)
   sunPhi = 3.14159
-  print sunTheta
   shadowTexture1.load()
   shadowCamera.direction = np.array([0.,0.,1.])
   shadowCamera.theta = 0
@@ -73,7 +79,7 @@ def render():
   gl.glViewport(0,0,shadowSize,shadowSize)
 
   for i in range(3):
-    if count%(40**(i+1))!=0:
+    if count%(200**(i+1))!=0:
       continue
     gl.glBindFramebuffer(gl.GL_FRAMEBUFFER,frameBuffers[i+1] );
     gl.glClear(gl.GL_COLOR_BUFFER_BIT|gl.GL_DEPTH_BUFFER_BIT);
