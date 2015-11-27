@@ -13,6 +13,9 @@ print "Initialising Shadows"
 
 shadowSize = 2048*4
 
+sunDeclination = 22/180.0*3.141592
+latitude = 3.1415/4
+print "SUNDATA",sunDeclination,latitude
 sunTheta = 5*3.1415/16
 sunPhi = 0
 
@@ -52,7 +55,7 @@ for i in range(1,4):
   gl.glBindFramebuffer(gl.GL_FRAMEBUFFER, 0);
     
 
-
+print "Shadow Textures",map(lambda x: x.id,textures)
 
 lockCam = None
 
@@ -60,8 +63,13 @@ count = 0
 
 def render():
   global count,sunTheta
-  sunTheta = 0.6+np.cos(-0.4+count/50.0)
-  sunPhi = 3.14159
+  # Get this right some day
+  #sunTheta = np.arccos(np.sin(sunDeclination)*np.sin(latitude) + np.cos(sunDeclination) * np.cos(count/200.0) * np.cos(latitude))
+  #sunPhi = np.arcsin(-np.sin(count/200.0)*np.cos(sunDeclination)/np.cos(sunTheta))
+  #print sunTheta, sunPhi,-np.sin(count/200.0)*np.cos(sunDeclination)/np.cos(sunTheta)
+  #print "Sun",sunTheta,np.cos(sunDeclination), np.cos(count/10.0) , np.cos(latitude)
+  sunTheta = count/100.0+0.005
+  print sunTheta
   shadowTexture1.load()
   shadowCamera.direction = np.array([0.,0.,1.])
   shadowCamera.theta = 0
