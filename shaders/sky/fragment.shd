@@ -8,6 +8,7 @@ uniform float aspectRatio;
 uniform sampler2D colormap;
 uniform sampler2D depthmap;
 uniform sampler2D opticaldepthmap;
+uniform sampler2D nightSkymap;
 vec3 sunIntensity = vec3(20);
 vec3 betar = vec3(5.8e-6,1.35e-5,3.31e-5);
 vec3 betam = vec3(21e-6);
@@ -48,22 +49,46 @@ void main()
   float z_b = texture(depthmap,pos.xy/2+vec2(0.5)).r;
   float z_n = 2*z_b - 1;
   float objectDepth = 2*0.3*8000/(8000+0.3-z_n*(8000-0.3));
-//  if (objectDepth > 7999.99)
-//  {
+  //if (objectDepth > 7999.99)
+  {
     objectDepth = INF;
-//  }
+  }
 
 //  vec3 right = -cross(normalize(CameraDirection),vec3(0,1,0));
 //  vec3 up = -cross(right,normalize(CameraDirection));
 
   //vec3 direction = normalize(normalize(CameraDirection) + right * pos.x * aspectRatio * tan(3.141592/3) + up * pos.y * tan(3.141592/3));
+
   vec3 direction = vec3(pos.x,0,pos.y);
   if (length(direction)>1)
   {
     gl_FragColor = vec4(0,0.2,0,1);
     return;
   }
+  
   direction.y = sqrt(1-dot(pos.xy,pos.xy));
+
+  float sunTheta = atan(normalize(sunDirection).z,normalize(sunDirection).y); 
+  vec3 celestialDirection = vec3(
+                                direction.y*cos(sunTheta) + direction.z*sin(sunTheta),
+                                direction.x,
+                                direction.z*cos(sunTheta) - direction.y*sin(sunTheta));
+  vec2 celestialMap;
+  if (celestialDirection.y>0) 
+  {
+    celestialMap = normalize(vec2(celestialDirection.z,celestialDirection.x))*acos(celestialDirection.y)/3.141592*2;
+    celestialMap = 0.25*celestialMap + vec2(0.25,0.5);
+  }
+  else
+  {
+    celestialMap = normalize(vec2(celestialDirection.z,celestialDirection.x))*acos(-celestialDirection.y)/3.141592*2;
+    celestialMap = 0.25*celestialMap + vec2(0.75,0.5);
+  }
+  float celestialAmount = max(0,(0.4-dot(sunDirection,vec3(0,1,0)))/1.4);
+  vec3 celestialColor = textureLod(nightSkymap,celestialMap,0).rgb * celestialAmount;
+  if (objectDepth >= INF-1)
+    objectColor = celestialColor;
+
   float theta = atan(direction.y,length(direction.xz));
   float lightTheta = atan(sunDirection.y,length(sunDirection.xz));
 
@@ -104,9 +129,9 @@ void main()
 
   float ds = length(Pa - Pc) / numInt;
 
-  for (int i = 0;i<numInt;i++)
+  for (int i = 1;i<numInt-1;i++)
   {
-    vec3 P = mix(Pc,Pa,float(i+1)/numInt);
+    vec3 P = mix(Pc,Pa,float(i)/numInt);
     float lightHeight = length(P) - Re;
     if (lightHeight < 0) break;
     float lightR = largestIntersectionDistance(P,sunDirection,Ra);

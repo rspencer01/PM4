@@ -118,7 +118,6 @@ from Camera import Camera
 import Texture
 #import Marker
 import Terrain
-import Sky
 import noiseG
 #import Road
 gl.glClear(gl.GL_COLOR_BUFFER_BIT | gl.GL_DEPTH_BUFFER_BIT)
@@ -130,6 +129,7 @@ setUniform('maxFog',1000.0)
 
 import Shadows
 import postrender
+import Sky
 
 camera = Camera(np.array([30.,80,480]))
 camera.rotLeftRight(-3.141592/2*0)

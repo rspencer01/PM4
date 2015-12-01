@@ -101,12 +101,16 @@ class Shader(object):
     loc = self.locations[i]
     if loc==-1:
       if not i in self.warned:
-        print "Error setting variable "+i+" in "+self.name+".  Maybe optimised out?"
+        print "Error uniform setting variable "+i+" in "+self.name+".  Maybe optimised out?"
         self.warned.add(i)
       return
     if type(v) == np.ndarray and v.shape == (4,4):
       gl.glUniformMatrix4fv(loc,1,gl.GL_FALSE,v)
       return      
+    if type(v) == np.ndarray and len(v.shape)==2 and v.shape[1]==3:
+      gl.glUniform3fv(loc,v.shape[0],v)
+    if type(v) == np.ndarray and len(v.shape)==2 and v.shape[1]==4:
+      gl.glUniform4fv(loc,v.shape[0],v)
     if type(v) in [float,np.float32,np.float64]:
       gl.glUniform1f(loc,v)
       return

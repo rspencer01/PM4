@@ -1,0 +1,28 @@
+#version 400
+in vec4 pos;
+
+uniform vec4 starPositions[200];
+uniform int hemisphere;
+
+void main()
+{
+  if (length(pos.xy)>1)
+  {
+    gl_FragColor = vec4(1);
+    return;
+  }
+  float theta = length(pos.xy)*3.141592/2;
+  float phi = atan(pos.y,pos.x);
+  vec3 direction = vec3(sin(theta)*cos(phi),hemisphere*cos(theta),sin(theta)*sin(phi));
+  vec3 color = vec3(0);
+  for (int i = 1;i<200;i++)
+  {
+    if (dot(direction,normalize(starPositions[i].xzy)) > 0.99)
+      color += max(vec3(1
+                  -(dot(direction,normalize(starPositions[i].xzy))-1)*
+                  (dot(direction,normalize(starPositions[i].xzy))-1)
+                  *5e12
+                ) * exp(-starPositions[i].a*0.7)*90 , vec3(0));
+  }
+  gl_FragColor = vec4(color,1);
+}
