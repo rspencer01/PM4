@@ -53,44 +53,47 @@ I = [0,1,2, 1,2,3]
 indices = np.array(I,dtype=np.int32)
 
 print "Constructing Night Sky"
-
-framebuffer = gl.glGenFramebuffers(1)
-gl.glBindFramebuffer(gl.GL_FRAMEBUFFER,framebuffer)
-texSize = 2000
 nightSkyTexture = Texture.Texture(Texture.COLORMAP2)
-nightSkyTexture.loadData(2*texSize,texSize,None)
+if not os.path.exists('nightSky.npy'):
+  framebuffer = gl.glGenFramebuffers(1)
+  gl.glBindFramebuffer(gl.GL_FRAMEBUFFER,framebuffer)
+  texSize = 2000
+  nightSkyTexture.loadData(2*texSize,texSize,None)
 
-depthbuffer = gl.glGenRenderbuffers(1)
-gl.glBindRenderbuffer(gl.GL_RENDERBUFFER,depthbuffer)
-gl.glRenderbufferStorage(gl.GL_RENDERBUFFER, gl.GL_DEPTH_COMPONENT,2*texSize,texSize)
-gl.glFramebufferRenderbuffer(gl.GL_FRAMEBUFFER, gl.GL_DEPTH_ATTACHMENT, gl.GL_RENDERBUFFER, depthbuffer)
+  depthbuffer = gl.glGenRenderbuffers(1)
+  gl.glBindRenderbuffer(gl.GL_RENDERBUFFER,depthbuffer)
+  gl.glRenderbufferStorage(gl.GL_RENDERBUFFER, gl.GL_DEPTH_COMPONENT,2*texSize,texSize)
+  gl.glFramebufferRenderbuffer(gl.GL_FRAMEBUFFER, gl.GL_DEPTH_ATTACHMENT, gl.GL_RENDERBUFFER, depthbuffer)
 
-gl.glFramebufferTexture(gl.GL_FRAMEBUFFER,gl.GL_COLOR_ATTACHMENT0,nightSkyTexture.id,0);
+  gl.glFramebufferTexture(gl.GL_FRAMEBUFFER,gl.GL_COLOR_ATTACHMENT0,nightSkyTexture.id,0);
 
-gl.glDrawBuffers(1,[gl.GL_COLOR_ATTACHMENT0])
-glfbo.checkFramebufferStatus()
-shader = getShader('nightSky')
-nightId = shader.setData(data,indices)
-nightSkyTexture.load()
-shader.load()
-gl.glClear(gl.GL_DEPTH_BUFFER_BIT| gl.GL_COLOR_BUFFER_BIT)
-gl.glDisable(gl.GL_DEPTH_TEST)
-nightSkyTexture.loadData(2*texSize,texSize,None)
+  gl.glDrawBuffers(1,[gl.GL_COLOR_ATTACHMENT0])
+  glfbo.checkFramebufferStatus()
+  shader = getShader('nightSky')
+  nightId = shader.setData(data,indices)
+  nightSkyTexture.load()
+  shader.load()
+  gl.glClear(gl.GL_DEPTH_BUFFER_BIT| gl.GL_COLOR_BUFFER_BIT)
+  gl.glDisable(gl.GL_DEPTH_TEST)
+  nightSkyTexture.loadData(2*texSize,texSize,None)
 
-stars = np.loadtxt(open("assets/stars.csv/hygxyz.csv","rb"),delimiter=",",skiprows=1,usecols=(17,18,19,13))
-stars = stars[stars.argsort(0)[:,3]]
+  stars = np.loadtxt(open("assets/stars.csv/hygxyz.csv","rb"),delimiter=",",skiprows=1,usecols=(17,18,19,13))
+  stars = stars[stars.argsort(0)[:,3]]
 
-gl.glClear(gl.GL_COLOR_BUFFER_BIT)
-gl.glBlendFunc(gl.GL_ONE,gl.GL_ONE);
-for i in xrange(len(stars)/200):
-  shader['starPositions'] = stars[200*i:200*(i+1)]
-  gl.glViewport(0,0,texSize,texSize)
-  shader['hemisphere'] = 1
-  shader.draw(gl.GL_TRIANGLES,nightId,1)
-  shader['hemisphere'] = -1
-  gl.glViewport(texSize,0,texSize,texSize)
-  shader.draw(gl.GL_TRIANGLES,nightId,1)
-gl.glBlendFunc(gl.GL_SRC_ALPHA, gl.GL_ONE_MINUS_SRC_ALPHA);
+  gl.glClear(gl.GL_COLOR_BUFFER_BIT)
+  gl.glBlendFunc(gl.GL_ONE,gl.GL_ONE);
+  for i in xrange(len(stars)/200):
+    shader['starPositions'] = stars[200*i:200*(i+1)]
+    gl.glViewport(0,0,texSize,texSize)
+    shader['hemisphere'] = 1
+    shader.draw(gl.GL_TRIANGLES,nightId,1)
+    shader['hemisphere'] = -1
+    gl.glViewport(texSize,0,texSize,texSize)
+    shader.draw(gl.GL_TRIANGLES,nightId,1)
+  gl.glBlendFunc(gl.GL_SRC_ALPHA, gl.GL_ONE_MINUS_SRC_ALPHA);
+  nightSkyTexture.saveToFile('nightSky.npy')
+else:
+  nightSkyTexture.loadFromFile('nightSky.npy')
 
   
 shader = getShader('sky')

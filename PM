@@ -26,7 +26,7 @@ def display():
   
   camera.render()
   
-#  Terrain.display()
+  Terrain.display()
 #  Marker.display()
   #Road.display()
 #  Forest.display(camera.pos)

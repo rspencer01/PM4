@@ -49,24 +49,15 @@ void main()
   float z_b = texture(depthmap,pos.xy/2+vec2(0.5)).r;
   float z_n = 2*z_b - 1;
   float objectDepth = 2*0.3*8000/(8000+0.3-z_n*(8000-0.3));
-  //if (objectDepth > 7999.99)
+  if (objectDepth > 7999.99)
   {
     objectDepth = INF;
   }
 
-//  vec3 right = -cross(normalize(CameraDirection),vec3(0,1,0));
-//  vec3 up = -cross(right,normalize(CameraDirection));
+  vec3 right = -cross(normalize(CameraDirection),vec3(0,1,0));
+  vec3 up = -cross(right,normalize(CameraDirection));
 
-  //vec3 direction = normalize(normalize(CameraDirection) + right * pos.x * aspectRatio * tan(3.141592/3) + up * pos.y * tan(3.141592/3));
-
-  vec3 direction = vec3(pos.x,0,pos.y);
-  if (length(direction)>1)
-  {
-    gl_FragColor = vec4(0,0.2,0,1);
-    return;
-  }
-  
-  direction.y = sqrt(1-dot(pos.xy,pos.xy));
+  vec3 direction = normalize(normalize(CameraDirection) + right * pos.x * aspectRatio * tan(3.141592/6) + up * pos.y * tan(3.141592/6));
 
   float sunTheta = atan(normalize(sunDirection).z,normalize(sunDirection).y); 
   vec3 celestialDirection = vec3(
@@ -92,7 +83,7 @@ void main()
   float theta = atan(direction.y,length(direction.xz));
   float lightTheta = atan(sunDirection.y,length(sunDirection.xz));
 
-  float height = Re + 1 ;//+CameraPosition.y;
+  float height = Re+CameraPosition.y;
   vec3 Pc = vec3(0,height,0); 
   float r = largestIntersectionDistance(Pc,direction,Ra);
 
@@ -129,7 +120,7 @@ void main()
 
   float ds = length(Pa - Pc) / numInt;
 
-  for (int i = 1;i<numInt-1;i++)
+  for (int i = 2;i<numInt-2;i++)
   {
     vec3 P = mix(Pc,Pa,float(i)/numInt);
     float lightHeight = length(P) - Re;

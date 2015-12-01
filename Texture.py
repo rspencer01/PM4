@@ -1,4 +1,5 @@
 import OpenGL.GL as gl
+import numpy as np
 
 HEIGHTMAP = gl.GL_TEXTURE0
 HEIGHTMAP_NUM = 0
@@ -43,6 +44,13 @@ class Texture:
   def load(self):
     gl.glActiveTexture(self.textureType)
     gl.glBindTexture(gl.GL_TEXTURE_2D, self.id)
+  def saveToFile(self,fileName):
+    self.load()
+    data = gl.glGetTexImage(gl.GL_TEXTURE_2D,0,gl.GL_RGBA,gl.GL_FLOAT)
+    np.save(fileName,data)
+  def loadFromFile(self,fileName):
+    data = np.load(fileName)
+    self.loadData(data.shape[0],data.shape[1],data)
   def __del__(self):
     print "Freeing texture",self.id
     gl.glDeleteTextures(self.id)
