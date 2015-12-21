@@ -21,8 +21,8 @@ void main()
       color += max(vec3(1
                   -(dot(direction,normalize(starPositions[i].xzy))-1)*
                   (dot(direction,normalize(starPositions[i].xzy))-1)
-                  *5e12
-                ) * exp(-starPositions[i].a*0.7)*90 , vec3(0));
+                  *5e13
+                ) * exp(-starPositions[i].a*0.7)*120 , vec3(0));
   }
   gl_FragColor = vec4(color,1);
 }

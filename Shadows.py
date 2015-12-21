@@ -11,11 +11,10 @@ import transforms
 
 print "Initialising Shadows"
 
-shadowSize = 2048*4
+shadowSize = 2048
 
 sunDeclination = 22/180.0*3.141592
 latitude = 3.1415/4
-print "SUNDATA",sunDeclination,latitude
 sunTheta = 5*3.1415/16
 sunPhi = 0
 
@@ -55,8 +54,6 @@ for i in range(1,4):
   gl.glBindFramebuffer(gl.GL_FRAMEBUFFER, 0);
     
 
-print "Shadow Textures",map(lambda x: x.id,textures)
-
 lockCam = None
 
 count = 0
@@ -64,12 +61,7 @@ count = 0
 def render():
   global count,sunTheta
   # Get this right some day
-  #sunTheta = np.arccos(np.sin(sunDeclination)*np.sin(latitude) + np.cos(sunDeclination) * np.cos(count/200.0) * np.cos(latitude))
-  #sunPhi = np.arcsin(-np.sin(count/200.0)*np.cos(sunDeclination)/np.cos(sunTheta))
-  #print sunTheta, sunPhi,-np.sin(count/200.0)*np.cos(sunDeclination)/np.cos(sunTheta)
-  #print "Sun",sunTheta,np.cos(sunDeclination), np.cos(count/10.0) , np.cos(latitude)
   sunTheta = count/100.0+0.005
-  print sunTheta
   shadowTexture1.load()
   shadowCamera.direction = np.array([0.,0.,1.])
   shadowCamera.theta = 0
@@ -77,7 +69,7 @@ def render():
   shadowCamera.rotUpDown(sunTheta)
   shadowCamera.rotLeftRight(sunPhi)
   sunDirection = shadowCamera.direction
-  shadowCamera.pos = lockCam.pos - 7000*sunDirection*np.array((-1,1,1))
+  shadowCamera.pos = lockCam.pos - 10000*sunDirection*np.array((-1,1,1))
   Shaders.setUniform('sunDirection',sunDirection*np.array((1,1,-1)))
   shadowCamera.update()
   shadowCamera.render()
@@ -87,22 +79,21 @@ def render():
   gl.glViewport(0,0,shadowSize,shadowSize)
 
   for i in range(3):
-    if count%(200**(i+1))!=0:
-      continue
     gl.glBindFramebuffer(gl.GL_FRAMEBUFFER,frameBuffers[i+1] );
     gl.glClear(gl.GL_COLOR_BUFFER_BIT|gl.GL_DEPTH_BUFFER_BIT);
-    width = 50 * 15**i
-    projection = transforms.ortho(-width,width,-width,width, 0, 9000.0 )
+    width = 50 * 12**i
+    projection = transforms.ortho(-width,width,-width,width, 0, 20000.0 )
     Shaders.setUniform('projection',projection)
     Shaders.setUniform('shadowProjection'+str(i+1),projection)
+    Shaders.setUniform('shadowLevel',i)
     shadowCamera.render('shadow'+str(i+1))
-
   
     Terrain.display()
     #Marker.display()
     #Forest.display(lockCam.pos)
 
     textures[i].makeMipmap()
+  Shaders.setUniform('shadowLevel',-1)
     
   gl.glBindFramebuffer(gl.GL_FRAMEBUFFER, 0);
   

@@ -9,6 +9,7 @@ uniform vec3 CameraDirection;
 // The user camera
 uniform vec3 userCameraPosition;
 uniform vec3 userCameraDirection;
+uniform int shadowLevel;
 
 in vec3 pos[];
 
@@ -20,6 +21,9 @@ uniform sampler2D noise;
 
 int detailLevel(vec3 position)
 {
+  if (shadowLevel==0) return 1;
+  if (shadowLevel==1) return 1;
+  if (shadowLevel==2) return 1;
   float dist = length(userCameraPosition.xz - position.xz);
   if (dist < 200)
     return 100;

@@ -20,7 +20,7 @@ float Hr = 8e3;
 float Hm = 1.2e3;
 float INF = 1e20;
 float g = 0.65;
-int numInt = 100;
+int numInt = 70;
 
 bool intersects(vec3 position, vec3 direction, float radius)
 {
@@ -45,8 +45,8 @@ float smallestIntersectionDistance(vec3 position, vec3 direction, float radius)
 
 void main()
 {
-  vec3 objectColor = texture(colormap,pos.xy/2+vec2(0.5)).xyz; 
-  float z_b = texture(depthmap,pos.xy/2+vec2(0.5)).r;
+  vec3 objectColor = textureLod(colormap,pos.xy/2+vec2(0.5),0).xyz; 
+  float z_b = textureLod(depthmap,pos.xy/2+vec2(0.5),0).r;
   float z_n = 2*z_b - 1;
   float objectDepth = 2*0.3*8000/(8000+0.3-z_n*(8000-0.3));
   if (objectDepth > 7999.99)

@@ -16,7 +16,6 @@ if not os.path.exists('opdepth.npy'):
   opdepth = np.zeros((N*16,N,4),dtype=np.float32)
 
   for j,theta in enumerate(np.arange(0,np.pi*0.75,np.pi*0.75/N)):
-    print j
     for k,altitudeP in enumerate(np.arange(Re,Ra,(Ra-Re)/(N*16))):
       altitude = Re + ((altitudeP-Re)/(Ra-Re))**3*(Ra-Re)
       P = altitude * np.array([np.sin(theta), np.cos(theta)])
@@ -27,7 +26,7 @@ if not os.path.exists('opdepth.npy'):
           opdepth[k][j] = [-1,-1,0,0]
           continue
       r = (Ra**2-P[0]**2)**0.5-P[1]
-      nn = 100
+      nn = 200
       dx = r/nn
       opdepthR = 0;
       opdepthM = 0;
@@ -57,7 +56,7 @@ nightSkyTexture = Texture.Texture(Texture.COLORMAP2)
 if not os.path.exists('nightSky.npy'):
   framebuffer = gl.glGenFramebuffers(1)
   gl.glBindFramebuffer(gl.GL_FRAMEBUFFER,framebuffer)
-  texSize = 2000
+  texSize = 2500
   nightSkyTexture.loadData(2*texSize,texSize,None)
 
   depthbuffer = gl.glGenRenderbuffers(1)
@@ -82,7 +81,10 @@ if not os.path.exists('nightSky.npy'):
 
   gl.glClear(gl.GL_COLOR_BUFFER_BIT)
   gl.glBlendFunc(gl.GL_ONE,gl.GL_ONE);
+  print "=="*20
   for i in xrange(len(stars)/200):
+    if (i%(len(stars)/4000)==0):
+      print '*',
     shader['starPositions'] = stars[200*i:200*(i+1)]
     gl.glViewport(0,0,texSize,texSize)
     shader['hemisphere'] = 1
@@ -90,6 +92,7 @@ if not os.path.exists('nightSky.npy'):
     shader['hemisphere'] = -1
     gl.glViewport(texSize,0,texSize,texSize)
     shader.draw(gl.GL_TRIANGLES,nightId,1)
+  print
   gl.glBlendFunc(gl.GL_SRC_ALPHA, gl.GL_ONE_MINUS_SRC_ALPHA);
   nightSkyTexture.saveToFile('nightSky.npy')
 else:
