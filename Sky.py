@@ -22,9 +22,9 @@ if not os.path.exists('opdepth.npy'):
       #P = altitude * np.array([(1-costheta**2)**0.5, costheta])
       if np.cos(theta)<0:
       #if costheta<0:
-        if (P[0] < Re):
+        if (P[0] <= Re):
           opdepth[k][j] = [-1,-1,0,0]
-          continue
+      #    continue
       r = (Ra**2-P[0]**2)**0.5-P[1]
       nn = 200
       dx = r/nn
@@ -102,8 +102,8 @@ else:
 shader = getShader('sky')
 renderID = shader.setData(data,indices)
 def display(colorTexture,depthTexture):
-  gl.glDisable(gl.GL_DEPTH_TEST)
-  gl.glDepthMask(False)
+  #gl.glDisable(gl.GL_DEPTH_TEST)
+  #gl.glDepthMask(False)
   depthTexture.load()
   colorTexture.load()
   nightSkyTexture.load();
@@ -115,5 +115,5 @@ def display(colorTexture,depthTexture):
   shader['nightSkymap'] = Texture.COLORMAP2_NUM
   shader['opticaldepthmap'] = Texture.BUMPMAP_NUM
   shader.draw(gl.GL_TRIANGLES,renderID,1)
-  gl.glEnable(gl.GL_DEPTH_TEST)
-  gl.glDepthMask(True)
+  #gl.glEnable(gl.GL_DEPTH_TEST)
+  #gl.glDepthMask(True)

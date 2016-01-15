@@ -8,6 +8,10 @@ uniform sampler2D heightmap;
 uniform sampler2D bumpmap;
 uniform sampler2D colormap;
 
+layout(location=0) out vec4 fragColor;
+layout(location=1) out vec4 fragNorm;
+layout(location=2) out vec4 fragPos;
+
 in TesselationData
 {
   vec4 position;
@@ -16,43 +20,6 @@ in TesselationData
   vec3 shadowPos2;
   vec3 shadowPos3;
 } TesselationOut;
-
-float light(vec3 normal)
-{
-  float diff = 0.6 * dot(sunDirection,normal.xyz);
-  float ambi = 0.4;
-  float shadow = 0;
-  if ((TesselationOut.shadowPos1.x<1.0) && 
-      (TesselationOut.shadowPos1.x>0) &&
-      (TesselationOut.shadowPos1.y<1.0) &&
-      (TesselationOut.shadowPos1.y>0))
-  {
-     if (TesselationOut.shadowPos1.z-textureLod(shadowTexture1,TesselationOut.shadowPos1.xy,0).z > 0.0001)
-          shadow =1;
-  }
-  else
-  {
-    if ((TesselationOut.shadowPos2.x<1.0) && (TesselationOut.shadowPos2.x>0)&&(TesselationOut.shadowPos2.y<1.0) && (TesselationOut.shadowPos2.y>0))
-    {
-       if (TesselationOut.shadowPos2.z-textureLod(shadowTexture2,TesselationOut.shadowPos2.xy,0).z > 0.001)
-            shadow =1;
-    }
-    else
-    {
-      if ((TesselationOut.shadowPos3.x<1.0) && (TesselationOut.shadowPos3.x>0)&&(TesselationOut.shadowPos3.y<1.0) && (TesselationOut.shadowPos3.y>0))
-         if (TesselationOut.shadowPos3.z-textureLod(shadowTexture3,TesselationOut.shadowPos3.xy,0).z > 0.001)
-              shadow =1;
-    }
-  }
-
-  vec3 r = normalize(CameraPosition-TesselationOut.position.xyz);
-  float d = dot(sunDirection,normal.xyz);
-  vec3 h = sunDirection - (d * normal.xyz);
-  vec3 q = (d * normal.xyz) - h;
-  float spec = pow(max(0,dot(q,r)),1000.);
-
-  return ambi + max(0,diff)*(1-shadow/2);
-}
 
 vec4 scaleT(vec4 v,float f)
 {
@@ -128,7 +95,9 @@ vec3 color(vec3 norm)
 void main()
 {
   vec3 norm = getNormal(TesselationOut.origPosition.xyz);
-  gl_FragColor = vec4(
-    light(norm)*color(norm),
+  fragColor = vec4(
+    color(norm),
     1); 
+  fragNorm = vec4(norm,1);
+  fragPos = TesselationOut.position;
 }

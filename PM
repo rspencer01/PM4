@@ -29,23 +29,21 @@ def display():
   Terrain.display()
 #  Marker.display()
   #Road.display()
-#  Forest.display(camera.pos)
-
+  Forest.display(camera.pos)
   gl.glBindFramebuffer(gl.GL_FRAMEBUFFER, displayFBOs[1])
   gl.glClear(gl.GL_DEPTH_BUFFER_BIT | gl.GL_COLOR_BUFFER_BIT)
   gl.glViewport(0,0,windowWidth,windowHeight)
+  postrender.lighting(displayColorTextures[0],displaySecondaryColorTextures[0],displayAuxColorTextures[0],displayDepthTextures[0])
 
-  Sky.display(displayColorTextures[0],displayDepthTextures[0])
-
-  #gl.glBindFramebuffer(gl.GL_FRAMEBUFFER, displayFBOs[1])
-  #gl.glClear(gl.GL_DEPTH_BUFFER_BIT | gl.GL_COLOR_BUFFER_BIT)
-  #gl.glViewport(0,0,windowWidth,windowHeight)
+  gl.glBindFramebuffer(gl.GL_FRAMEBUFFER, displayFBOs[2])
+  gl.glClear(gl.GL_DEPTH_BUFFER_BIT | gl.GL_COLOR_BUFFER_BIT)
+  gl.glViewport(0,0,windowWidth,windowHeight)
+  Sky.display(displayColorTextures[1],displayDepthTextures[1])
 
   gl.glBindFramebuffer(gl.GL_FRAMEBUFFER, 0)
   gl.glClear(gl.GL_COLOR_BUFFER_BIT | gl.GL_DEPTH_BUFFER_BIT)
   gl.glViewport(0,0,windowWidth,windowHeight)
-  
-  postrender.display(displayColorTextures[1],displayDepthTextures[1])
+  postrender.display(displayColorTextures[2],displayDepthTextures[2])
 
   glut.glutSwapBuffers()
   
@@ -58,7 +56,7 @@ def timer(fps):
     glut.glutSetWindowTitle("PM3 "+ str(fps) + " fps")
     t = 3.0
 #  Marker.timeUpdate(1.0/fps)
-  s = 800
+  s = 80
   if 'w' in keys:
     camera.move(s * 1.0/fps)
   if 's' in keys:
@@ -80,6 +78,8 @@ def reshape(width,height):
   windowWidth = width
   for i in xrange(NUMSTAGES):
     displayColorTextures[i].loadData(width,height,None)
+    displaySecondaryColorTextures[i].loadData(width,height,None)
+    displayAuxColorTextures[i].loadData(width,height,None)
     displayDepthTextures[i].load()
     gl.glTexImage2D(gl.GL_TEXTURE_2D, 0,gl.GL_DEPTH_COMPONENT32, width, height, 0,gl.GL_DEPTH_COMPONENT, gl.GL_FLOAT, None)
 
@@ -97,13 +97,16 @@ def mouse(button,state,x,y):
   print button,state,x,y
 
 glut.glutInit()
+
+glut.glutInitContextVersion(4, 2);
+glut.glutInitContextFlags(glut.GLUT_FORWARD_COMPATIBLE);
+glut.glutInitContextProfile(glut.GLUT_CORE_PROFILE);
 glut.glutInitDisplayMode(glut.GLUT_DOUBLE | glut.GLUT_RGBA | glut.GLUT_DEPTH)
 glut.glutInitWindowSize(512,512);
 glut.glutCreateWindow("PM4")
 gl.glEnable(gl.GL_DEPTH_TEST)
-gl.glPolygonMode(gl.GL_FRONT,gl.GL_FILL );
+gl.glPolygonMode(gl.GL_FRONT_AND_BACK,gl.GL_FILL );
 #gl.glPolygonMode(gl.GL_FRONT_AND_BACK,gl.GL_LINE );
-gl.glEnable(gl.GL_TEXTURE_2D)
 gl.glEnable(gl.GL_BLEND)
 gl.glBlendFunc(gl.GL_SRC_ALPHA, gl.GL_ONE_MINUS_SRC_ALPHA);
 glut.glutReshapeFunc(reshape)
@@ -112,6 +115,8 @@ glut.glutKeyboardFunc(keyboard)
 glut.glutMouseFunc(mouse)
 glut.glutKeyboardUpFunc(keyboardUp)
 glut.glutTimerFunc(1000/60, timer, 60)
+
+print "Using OpenGL Version",gl.glGetString(gl.GL_VERSION)
 
 from Shaders import *
 from Camera import Camera
@@ -125,7 +130,7 @@ projection = perspective( 60.0, 1, 0.3, 8000.0 )
 setUniform('projection',projection)
 setUniform('fogLevel',8.0)
 setUniform('maxFog',1000.0)
-#import Forest
+import Forest
 
 import Shadows
 import postrender
@@ -142,9 +147,11 @@ Shadows.lockCam = camera
 #Marker.freeze()
     
 noiseG.load(setUniform)
-NUMSTAGES = 2
+NUMSTAGES = 3
 displayFBOs = [gl.glGenFramebuffers(1) for i in xrange(NUMSTAGES)]
 displayColorTextures = [None for i in xrange(NUMSTAGES)]
+displaySecondaryColorTextures = [None for i in xrange(NUMSTAGES)]
+displayAuxColorTextures = [None for i in xrange(NUMSTAGES)]
 displayDepthTextures = [None for i in xrange(NUMSTAGES)]
 for i in xrange(NUMSTAGES):
   print "Initialising FBO",i+1
@@ -155,8 +162,22 @@ for i in xrange(NUMSTAGES):
   gl.glTexParameteri(gl.GL_TEXTURE_2D, gl.GL_TEXTURE_WRAP_S, gl.GL_REPEAT)
   gl.glTexParameteri(gl.GL_TEXTURE_2D, gl.GL_TEXTURE_WRAP_T, gl.GL_REPEAT)
   gl.glTexParameteri(gl.GL_TEXTURE_2D, gl.GL_TEXTURE_MAG_FILTER, gl.GL_NEAREST)
-  gl.glTexParameteri(gl.GL_TEXTURE_2D, gl.GL_TEXTURE_MIN_FILTER, gl.GL_NEAREST_MIPMAP_NEAREST)    
+  gl.glTexParameteri(gl.GL_TEXTURE_2D, gl.GL_TEXTURE_MIN_FILTER, gl.GL_LINEAR_MIPMAP_LINEAR)    
   displayColorTextures[i].loadData(1,1,None)
+  displaySecondaryColorTextures[i] = Texture.Texture(Texture.COLORMAP2)
+  displaySecondaryColorTextures[i].load()
+  gl.glTexParameteri(gl.GL_TEXTURE_2D, gl.GL_TEXTURE_WRAP_S, gl.GL_REPEAT)
+  gl.glTexParameteri(gl.GL_TEXTURE_2D, gl.GL_TEXTURE_WRAP_T, gl.GL_REPEAT)
+  gl.glTexParameteri(gl.GL_TEXTURE_2D, gl.GL_TEXTURE_MAG_FILTER, gl.GL_NEAREST)
+  gl.glTexParameteri(gl.GL_TEXTURE_2D, gl.GL_TEXTURE_MIN_FILTER, gl.GL_NEAREST_MIPMAP_NEAREST)    
+  displaySecondaryColorTextures[i].loadData(1,1,None)
+  displayAuxColorTextures[i] = Texture.Texture(Texture.COLORMAP3)
+  displayAuxColorTextures[i].load()
+  gl.glTexParameteri(gl.GL_TEXTURE_2D, gl.GL_TEXTURE_WRAP_S, gl.GL_REPEAT)
+  gl.glTexParameteri(gl.GL_TEXTURE_2D, gl.GL_TEXTURE_WRAP_T, gl.GL_REPEAT)
+  gl.glTexParameteri(gl.GL_TEXTURE_2D, gl.GL_TEXTURE_MAG_FILTER, gl.GL_NEAREST)
+  gl.glTexParameteri(gl.GL_TEXTURE_2D, gl.GL_TEXTURE_MIN_FILTER, gl.GL_NEAREST_MIPMAP_NEAREST)    
+  displayAuxColorTextures[i].loadData(1,1,None)
   displayDepthTextures[i] = Texture.Texture(Texture.DEPTHMAP)
   displayDepthTextures[i].load()
   gl.glTexParameteri(gl.GL_TEXTURE_2D, gl.GL_TEXTURE_WRAP_S, gl.GL_REPEAT)
@@ -169,7 +190,9 @@ for i in xrange(NUMSTAGES):
 
   gl.glFramebufferTexture(gl.GL_FRAMEBUFFER, gl.GL_DEPTH_ATTACHMENT, displayDepthTextures[i].id, 0)
   gl.glFramebufferTexture(gl.GL_FRAMEBUFFER,gl.GL_COLOR_ATTACHMENT0, displayColorTextures[i].id, 0);
-  gl.glDrawBuffers(1,[gl.GL_COLOR_ATTACHMENT0])
+  gl.glFramebufferTexture(gl.GL_FRAMEBUFFER,gl.GL_COLOR_ATTACHMENT1, displaySecondaryColorTextures[i].id, 0);
+  gl.glFramebufferTexture(gl.GL_FRAMEBUFFER,gl.GL_COLOR_ATTACHMENT2, displayAuxColorTextures[i].id, 0);
+  gl.glDrawBuffers(3,[gl.GL_COLOR_ATTACHMENT0,gl.GL_COLOR_ATTACHMENT1,gl.GL_COLOR_ATTACHMENT2])
   glfbo.checkFramebufferStatus()
 
 print "Initialisation finished."

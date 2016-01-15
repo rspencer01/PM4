@@ -1,0 +1,83 @@
+#version 400
+in vec4 pos;
+out vec4 fragColor;
+uniform mat4 view;
+uniform vec3 CameraPosition;
+uniform vec3 CameraDirection;
+uniform vec3 sunDirection;
+uniform float aspectRatio;
+
+uniform mat4 shadowProjection1;
+uniform mat4 shadowProjection2;
+uniform mat4 shadowProjection3;
+uniform mat4 shadow1View;
+uniform mat4 shadow2View;
+uniform mat4 shadow3View;
+
+uniform sampler2D colormap;
+uniform sampler2D depthmap;
+uniform sampler2D normmap;
+uniform sampler2D posmap;
+
+uniform sampler2D shadowTexture1; 
+uniform sampler2D shadowTexture2;
+uniform sampler2D shadowTexture3;
+
+uniform float ambientLight;
+uniform float sunLight;
+
+float lighting(vec4 normal, vec4 position)
+{
+  float diffuse = max(0,dot(normal.xyz,sunDirection));
+  if (sunDirection.y<0) diffuse = 0; 
+
+  vec4 temp = shadowProjection1 * shadow1View * position;
+  vec3 shadowPos = (temp.xyz/temp.w)/2+vec3(0.5);
+  if ((shadowPos.x < 1.0) &&
+      (shadowPos.x > 0.0) &&
+      (shadowPos.y < 1.0) &&
+      (shadowPos.y > 0.0))
+  {
+    if (shadowPos.z-textureLod(shadowTexture1,shadowPos.xy,0).x > 0.001)
+      return ambientLight;
+  }
+  else
+  {
+    temp = shadowProjection2 * shadow2View * position;
+    shadowPos = (temp.xyz/temp.w)/2+vec3(0.5);
+    if ((shadowPos.x < 1.0) &&
+        (shadowPos.x > 0.0) &&
+        (shadowPos.y < 1.0) &&
+        (shadowPos.y > 0.0))
+    {
+      if (shadowPos.z-textureLod(shadowTexture2,shadowPos.xy,1).x > 0.001)
+        return ambientLight;
+    }
+    else
+    {
+      temp = shadowProjection3 * shadow3View * position;
+      shadowPos = (temp.xyz/temp.w)/2+vec3(0.5);
+      if ((shadowPos.x < 1.0) &&
+          (shadowPos.x > 0.0) &&
+          (shadowPos.y < 1.0) &&
+          (shadowPos.y > 0.0))
+      {
+        if (shadowPos.z-textureLod(shadowTexture3,shadowPos.xy,0).x > 0.001)
+          return ambientLight;
+      }
+    }
+  }
+
+
+
+  return ambientLight + sunLight * diffuse;
+}
+
+void main()
+{
+  vec3 inputColor = textureLod(colormap,pos.xy/2+vec2(0.5),0).rgb; 
+  vec4 inputNorm = textureLod(normmap,pos.xy/2+vec2(0.5),0); 
+  vec4 inputPos = textureLod(posmap,pos.xy/2+vec2(0.5),0); 
+  fragColor = vec4(lighting(inputNorm,inputPos) * inputColor,1);
+  gl_FragDepth = textureLod(depthmap,pos.xy/2+vec2(0.5),0).r;
+}

@@ -104,7 +104,7 @@ class Tree:
 
   def makeBillboard(self):
     numberOfSwatches = 10
-    texSize = 100
+    texSize = 200
     
     instance = np.zeros(numberOfSwatches,dtype=[('model',np.float32,(4,4))])
     width = self.boundingBox[1][0]-self.boundingBox[0][0]
@@ -182,14 +182,15 @@ class Swatch:
     self.endIndex = startIndex
     self.addTree()
   def addTree(self):
-    for i in xrange(1):
-      for j in xrange(1):
+    for i in xrange(4):
+      for j in xrange(4):
         b = np.eye(4,dtype=np.float32)
         posx = self.posx+i*(8000/numSwatch)/5+random.random()*16-8
         posy = self.posy+j*(8000/numSwatch)/5+random.random()*16-8
         if sum(map(lambda x:x**2,Terrain.getGradAt(-posx,-posy)))>0.4:
           continue;
-        translate(b,-posx,Terrain.getAt(-posx,-posy)[3],-posy)
+#        yrotate(b,random.random()*360)
+        translate(b,-posx,Terrain.getAt(-posx,-posy)[3]+12,-posy)
         tree1.addInstance(b)
         self.endIndex+=1
     

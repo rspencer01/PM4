@@ -5,7 +5,7 @@ import OpenGL.GL as gl
 import Terrain
 import Texture
 #import Marker
-#import Forest 
+import Forest 
 import Shaders
 import transforms
 
@@ -61,7 +61,8 @@ count = 0
 def render():
   global count,sunTheta
   # Get this right some day
-  sunTheta = count/100.0+0.005
+  sunTheta = np.cos(count/200.0)*0.1
+  sunTheta = -count/2000.0+2.005
   shadowTexture1.load()
   shadowCamera.direction = np.array([0.,0.,1.])
   shadowCamera.theta = 0
@@ -69,7 +70,7 @@ def render():
   shadowCamera.rotUpDown(sunTheta)
   shadowCamera.rotLeftRight(sunPhi)
   sunDirection = shadowCamera.direction
-  shadowCamera.pos = lockCam.pos - 10000*sunDirection*np.array((-1,1,1))
+  shadowCamera.pos = lockCam.pos - 4000*sunDirection*np.array((-1,1,1))
   Shaders.setUniform('sunDirection',sunDirection*np.array((1,1,-1)))
   shadowCamera.update()
   shadowCamera.render()
@@ -82,7 +83,7 @@ def render():
     gl.glBindFramebuffer(gl.GL_FRAMEBUFFER,frameBuffers[i+1] );
     gl.glClear(gl.GL_COLOR_BUFFER_BIT|gl.GL_DEPTH_BUFFER_BIT);
     width = 50 * 12**i
-    projection = transforms.ortho(-width,width,-width,width, 0, 20000.0 )
+    projection = transforms.ortho(-width,width,-width,width, 0, 8000.0 )
     Shaders.setUniform('projection',projection)
     Shaders.setUniform('shadowProjection'+str(i+1),projection)
     Shaders.setUniform('shadowLevel',i)
@@ -90,7 +91,7 @@ def render():
   
     Terrain.display()
     #Marker.display()
-    #Forest.display(lockCam.pos)
+    Forest.display(lockCam.pos)
 
     textures[i].makeMipmap()
   Shaders.setUniform('shadowLevel',-1)

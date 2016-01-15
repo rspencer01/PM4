@@ -51,5 +51,6 @@ void main()
   temp = shadowProjection3 * shadow3View * VertexOut.position;
   VertexOut.shadowPos3 = (temp.xyz / temp.w)/2+vec3(0.5);
 
+ 
   gl_Position = projection * View * VertexOut.position;
 }
