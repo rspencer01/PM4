@@ -2,6 +2,7 @@ import numpy as np
 import random
 import Image
 import Camera 
+import noiseG
 from pyassimp import *
 
 print "Loading trees"
@@ -182,13 +183,15 @@ class Swatch:
     self.endIndex = startIndex
     self.addTree()
   def addTree(self):
-    for i in xrange(4):
-      for j in xrange(4):
+    for i in xrange(5):
+      for j in xrange(5):
         b = np.eye(4,dtype=np.float32)
         posx = self.posx+i*(8000/numSwatch)/5+random.random()*16-8
         posy = self.posy+j*(8000/numSwatch)/5+random.random()*16-8
         if sum(map(lambda x:x**2,Terrain.getGradAt(-posx,-posy)))>0.4:
           continue;
+        if noiseG.get(posx/30000.0, posy/30000.0)[3]**2 < 0.01:
+          continue
 #        yrotate(b,random.random()*360)
         translate(b,-posx,Terrain.getAt(-posx,-posy)[3]+12,-posy)
         tree1.addInstance(b)
@@ -204,10 +207,11 @@ for i in xrange(numSwatch):
     startIndex = swatches[j][i].endIndex
 
 tree1.freeze()
-def display(pos):
+def display(pos,shadows=False):
   shader.load()
   shader['colormap'] = Texture.COLORMAP_NUM
   for i in xrange(int(round(((pos+4000)/(8000/numSwatch))[0]))-1,int(round(((pos+4000)/(8000/numSwatch))[0]))+2):
     startj = int(round(((-pos+4000)/(8000/numSwatch))[2]))-1
     tree1.render(swatches[startj][i].startIndex,swatches[startj+2][i].endIndex-swatches[startj][i].startIndex)
-  tree1.renderBillboards(0)
+  if not shadows:
+    tree1.renderBillboards(0)

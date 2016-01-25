@@ -56,7 +56,7 @@ def timer(fps):
     glut.glutSetWindowTitle("PM3 "+ str(fps) + " fps")
     t = 3.0
 #  Marker.timeUpdate(1.0/fps)
-  s = 80
+  s = 300
   if 'w' in keys:
     camera.move(s * 1.0/fps)
   if 's' in keys:
@@ -71,6 +71,14 @@ def timer(fps):
     camera.rotLeftRight(1.5/fps)
   glut.glutTimerFunc(1000/fps, timer, fps)
   glut.glutPostRedisplay()
+
+mouseX,mouseY = 0,0
+def mouseMotion(x,y):
+  global mouseX,mouseY
+  camera.rotUpDown(0.01*(y-mouseY))
+  camera.rotLeftRight(0.01*(x-mouseX))
+  mouseX = x
+  mouseY = y
 
 def reshape(width,height):
   global windowHeight,windowWidth
@@ -93,8 +101,12 @@ def keyboard(key,x,y):
   keys.add(key)
 def keyboardUp(key,x,y):
   keys.remove(key)
+
 def mouse(button,state,x,y):
-  print button,state,x,y
+  global mouseX,mouseY
+  glut.glutWarpPointer(windowWidth/2,windowHeight/2)
+  mouseX = windowWidth/2
+  mouseY = windowHeight/2
 
 glut.glutInit()
 
@@ -115,6 +127,7 @@ glut.glutKeyboardFunc(keyboard)
 glut.glutMouseFunc(mouse)
 glut.glutKeyboardUpFunc(keyboardUp)
 glut.glutTimerFunc(1000/60, timer, 60)
+glut.glutPassiveMotionFunc(mouseMotion)
 
 print "Using OpenGL Version",gl.glGetString(gl.GL_VERSION)
 

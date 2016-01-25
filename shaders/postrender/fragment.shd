@@ -17,8 +17,7 @@ void main()
 {
   vec3 inputColor = textureLod(colormap,pos.xy/2+vec2(0.5),0).rgb; 
   float depth = textureLod(depthmap,pos.xy/2+vec2(0.5),0).r; 
-  if (pos.x<0)
-    inputColor = textureLod(colormap,pos.xy/2+vec2(0.5),pow(depth,30)*0.5).rgb; 
+  inputColor = textureLod(colormap,pos.xy/2+vec2(0.5),pow(depth,30)*0.4).rgb; 
   vec4 inputNorm = textureLod(normmap,pos.xy/2+vec2(0.5),0); 
   fragColor = vec4(inputColor,1);
 }

@@ -82,7 +82,7 @@ def render():
   for i in range(3):
     gl.glBindFramebuffer(gl.GL_FRAMEBUFFER,frameBuffers[i+1] );
     gl.glClear(gl.GL_COLOR_BUFFER_BIT|gl.GL_DEPTH_BUFFER_BIT);
-    width = 50 * 12**i
+    width = 10 * 20**i
     projection = transforms.ortho(-width,width,-width,width, 0, 8000.0 )
     Shaders.setUniform('projection',projection)
     Shaders.setUniform('shadowProjection'+str(i+1),projection)
@@ -91,7 +91,7 @@ def render():
   
     Terrain.display()
     #Marker.display()
-    Forest.display(lockCam.pos)
+    Forest.display(lockCam.pos,shadows=True)
 
     textures[i].makeMipmap()
   Shaders.setUniform('shadowLevel',-1)

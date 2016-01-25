@@ -33,13 +33,20 @@ float lighting(vec4 normal, vec4 position)
 
   vec4 temp = shadowProjection1 * shadow1View * position;
   vec3 shadowPos = (temp.xyz/temp.w)/2+vec3(0.5);
+  float shadowAmount = 0;
   if ((shadowPos.x < 1.0) &&
       (shadowPos.x > 0.0) &&
       (shadowPos.y < 1.0) &&
       (shadowPos.y > 0.0))
   {
-    if (shadowPos.z-textureLod(shadowTexture1,shadowPos.xy,0).x > 0.001)
-      return ambientLight;
+    for (int i = 0; i<5; i+=1)
+    {
+      for (int j = -3; j<4; j+=1)
+      {
+        if (shadowPos.z-textureLod(shadowTexture1,shadowPos.xy + pow(i/3.0,0.5)*vec2(cos(j*3.141592/3),sin(j*3.141592/3))*0.001,0).x > 0.001)
+          shadowAmount += 1.0/28;
+      }
+    }
   }
   else
   {
@@ -50,8 +57,14 @@ float lighting(vec4 normal, vec4 position)
         (shadowPos.y < 1.0) &&
         (shadowPos.y > 0.0))
     {
-      if (shadowPos.z-textureLod(shadowTexture2,shadowPos.xy,1).x > 0.001)
-        return ambientLight;
+      for (int i = 0; i<5; i+=1)
+      {
+        for (int j = -3; j<4; j+=1)
+        {
+          if (shadowPos.z-textureLod(shadowTexture2,shadowPos.xy + pow(i/3.0,0.5)*vec2(cos(j*3.141592/3),sin(j*3.141592/3))*0.001,0).x > 0.001)
+            shadowAmount += 1.0/28;
+        }
+      }
     }
     else
     {
@@ -62,15 +75,21 @@ float lighting(vec4 normal, vec4 position)
           (shadowPos.y < 1.0) &&
           (shadowPos.y > 0.0))
       {
-        if (shadowPos.z-textureLod(shadowTexture3,shadowPos.xy,0).x > 0.001)
-          return ambientLight;
+        for (int i = 0; i<5; i+=1)
+        {
+          for (int j = -3; j<4; j+=1)
+          {
+            if (shadowPos.z-textureLod(shadowTexture3,shadowPos.xy + pow(i/3.0,0.5)*vec2(cos(j*3.141592/3),sin(j*3.141592/3))*0.001,0).x > 0.001)
+              shadowAmount += 1.0/28;
+          }
+        }
       }
     }
   }
 
 
 
-  return ambientLight + sunLight * diffuse;
+  return ambientLight + sunLight * diffuse * (1-shadowAmount);
 }
 
 void main()
