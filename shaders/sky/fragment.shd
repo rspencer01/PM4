@@ -4,7 +4,7 @@ in vec4 pos;
 layout(location=0) out vec4 fragColor;
 layout(location=1) out vec4 fragNorm;
 
-uniform mat4 view;
+uniform mat4 View;
 uniform vec3 CameraPosition;
 uniform vec3 CameraDirection;
 uniform vec3 sunDirection;
@@ -59,10 +59,11 @@ void main()
     objectDepth = INF;
   }
 
-  vec3 right = -cross(normalize(CameraDirection),vec3(0,1,0));
-  vec3 up = -cross(right,normalize(CameraDirection));
+  vec3 right = vec3(View[0][0],View[1][0],View[2][0]);
+  vec3 up = vec3(View[0][1],View[1][1],View[2][1]);
+  vec3 forward = -vec3(View[0][2],View[1][2],View[2][2]);
 
-  vec3 direction = normalize(normalize(CameraDirection) + right * pos.x * aspectRatio * tan(3.141592/6) + up * pos.y * tan(3.141592/6));
+  vec3 direction = normalize(forward + right * pos.x * aspectRatio * tan(3.141592/6) + up * pos.y * tan(3.141592/6));
 
   float sunTheta = atan(normalize(sunDirection).z,normalize(sunDirection).y); 
   vec3 celestialDirection = vec3(
