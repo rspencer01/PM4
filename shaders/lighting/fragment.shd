@@ -30,8 +30,7 @@ float lighting(vec4 normal, vec4 position)
 {
   float diffuse = max(0,dot(normal.xyz,sunDirection));
   if (sunDirection.y<0) diffuse = 0; 
-
-  vec4 temp = shadowProjection1 * shadow1View * position;
+vec4 temp = shadowProjection1 * shadow1View * position;
   vec3 shadowPos = (temp.xyz/temp.w)/2+vec3(0.5);
   float shadowAmount = 0;
   if ((shadowPos.x < 1.0) &&
@@ -95,7 +94,7 @@ float lighting(vec4 normal, vec4 position)
 void main()
 {
   vec3 inputColor = textureLod(colormap,pos.xy/2+vec2(0.5),0).rgb; 
-  vec4 inputNorm = textureLod(normmap,pos.xy/2+vec2(0.5),0); 
+  vec4 inputNorm = normalize(textureLod(normmap,pos.xy/2+vec2(0.5),0)); 
   vec4 inputPos = textureLod(posmap,pos.xy/2+vec2(0.5),0); 
   fragColor = vec4(lighting(inputNorm,inputPos) * inputColor,1);
   gl_FragDepth = textureLod(depthmap,pos.xy/2+vec2(0.5),0).r;

@@ -26,7 +26,8 @@ uniform sampler2D  bumpmap;
 
 void main()
 {
-  if (abs(VertexOut.position.x - 100*(userCameraPosition.x/100)) < 100 && abs(VertexOut.position.z - 100*(userCameraPosition.z/100)) < 100 ) discard;
+  if (abs(VertexOut.position.x - (100*floor(userCameraPosition.x/100)+50)) < 150 && 
+      abs(VertexOut.position.z - (100*floor(userCameraPosition.z/100)+50)) < 150 ) discard;
   float dist = length(VertexOut.position.xyz - userCameraPosition);
   vec4 textureColor = textureLod(colormap,vec2(VertexOut.uv.x,VertexOut.uv.y),min(dist/800,4));
   vec3 normal = textureLod(bumpmap,vec2(VertexOut.uv.x,1-VertexOut.uv.y),min(dist/800,4)).xyz;
