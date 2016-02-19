@@ -23,6 +23,7 @@ def display():
   projection = perspective( 60.0, windowWidth/float(windowHeight), 0.3, 8000.0 )
   setUniform('projection',projection)
   setUniform('aspectRatio',windowWidth/float(windowHeight))
+  setUniform('windowWidth',float(windowWidth))
   
   camera.render()
   

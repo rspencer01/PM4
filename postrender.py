@@ -9,7 +9,9 @@ indices = np.array(I,dtype=np.int32)
 shader = getShader('postrender')
 renderID = shader.setData(data,indices)
 lightingShader = getShader('lighting')
-lightingRenderID = shader.setData(data,indices)
+lightingRenderID = lightingShader.setData(data,indices)
+mapShader = getShader('map')
+mapRenderID = mapShader.setData(data,indices) 
 
 def display(colorTexture,depthTexture):
   depthTexture.load()
@@ -20,6 +22,9 @@ def display(colorTexture,depthTexture):
   shader['colormap'] = Texture.COLORMAP_NUM
   shader['depthmap'] = Texture.DEPTHMAP_NUM
   shader.draw(gl.GL_TRIANGLES,renderID,1)
+  mapShader.load()
+  mapShader['heightmap'] = Texture.HEIGHTMAP_NUM
+  mapShader.draw(gl.GL_TRIANGLES,mapRenderID,1)
 
 def lighting(colorTexture,normTexture,posTexture,depthTexture):
   depthTexture.load()

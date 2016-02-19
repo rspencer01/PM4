@@ -1,0 +1,12 @@
+#version 140
+in vec3 position;
+out vec4 pos;
+
+uniform float windowWidth;
+uniform float aspectRatio;
+void main()
+{
+  gl_Position = vec4(-1 + position.x*200/windowWidth + 250/windowWidth,
+                    -1 + position.y*200/windowWidth*aspectRatio + 250/windowWidth*aspectRatio,-0.1,1);
+  pos = vec4(position,1);
+}
