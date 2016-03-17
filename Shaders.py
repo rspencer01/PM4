@@ -173,7 +173,6 @@ class InstancedShader(GenericShader):
                                offset
                                )
 
-
 class TesselationShader(Shader):
   def __init__(self,name,frag,vert,geom,tessC,tessE):
     super(TesselationShader, self).__init__(name)

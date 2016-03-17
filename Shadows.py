@@ -62,7 +62,7 @@ def render():
   global count,sunTheta
   # Get this right some day
   sunTheta = np.cos(count/200.0)*0.1
-  sunTheta = -count/2000.0+2.005
+  sunTheta = -count/500.0+2.005
   shadowTexture1.load()
   shadowCamera.direction = np.array([0.,0.,1.])
   shadowCamera.theta = 0
@@ -83,7 +83,7 @@ def render():
     gl.glBindFramebuffer(gl.GL_FRAMEBUFFER,frameBuffers[i+1] );
     gl.glClear(gl.GL_COLOR_BUFFER_BIT|gl.GL_DEPTH_BUFFER_BIT);
     width = 10 * 20**i
-    projection = transforms.ortho(-width,width,-width,width, 0, 8000.0 )
+    projection = transforms.ortho(-width,width,-width,width, 4000. - 2*width, 4000. + 2*width)
     Shaders.setUniform('projection',projection)
     Shaders.setUniform('shadowProjection'+str(i+1),projection)
     Shaders.setUniform('shadowLevel',i)

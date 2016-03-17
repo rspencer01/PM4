@@ -27,22 +27,25 @@ uniform float ambientLight;
 uniform float sunLight;
 
 float lighting(vec4 normal, vec4 position)
-{
-  float diffuse = max(0,dot(normal.xyz,sunDirection));
+{ 
+  float diffuse = max(0,dot(normal.xyz,normalize(sunDirection)));
   if (sunDirection.y<0) diffuse = 0; 
 vec4 temp = shadowProjection1 * shadow1View * position;
   vec3 shadowPos = (temp.xyz/temp.w)/2+vec3(0.5);
+  float tanacosl = tan(acos(diffuse));
   float shadowAmount = 0;
   if ((shadowPos.x < 1.0) &&
       (shadowPos.x > 0.0) &&
       (shadowPos.y < 1.0) &&
-      (shadowPos.y > 0.0))
+      (shadowPos.y > 0.0) &&
+      (shadowPos.z < 1.0) &&
+      (shadowPos.z > -1.0))
   {
     for (int i = 0; i<5; i+=1)
     {
       for (int j = -3; j<4; j+=1)
       {
-        if (shadowPos.z-textureLod(shadowTexture1,shadowPos.xy + pow(i/3.0,0.5)*vec2(cos(j*3.141592/3),sin(j*3.141592/3))*0.001,0).x > 0.001)
+        if (shadowPos.z-textureLod(shadowTexture1,shadowPos.xy + pow(i/3.0,0.5)*vec2(cos(j*3.141592/3),sin(j*3.141592/3))*0.001,0).x > clamp(0.002*tanacosl,0.0,0.001))
           shadowAmount += 1.0/28;
       }
     }
@@ -88,7 +91,7 @@ vec4 temp = shadowProjection1 * shadow1View * position;
 
 
 
-  return ambientLight + sunLight * diffuse * (1-shadowAmount);
+  return clamp(ambientLight*normalize(sunDirection).y,0.006,1.0) + sunLight * diffuse * (1-shadowAmount);
 }
 
 void main()

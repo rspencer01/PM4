@@ -1,4 +1,4 @@
-#version 140
+#version 400
 in vec4 pos;
 out vec4 fragColor;
 uniform mat4 view;
@@ -11,7 +11,7 @@ uniform sampler2D colormap;
 uniform sampler2D depthmap;
 uniform sampler2D normmap;
 
-uniform float ambientLight;
+uniform float brightness;
 
 void main()
 {
@@ -19,5 +19,9 @@ void main()
   float depth = textureLod(depthmap,pos.xy/2+vec2(0.5),0).r; 
   inputColor = textureLod(colormap,pos.xy/2+vec2(0.5),pow(depth,30)*0.4).rgb; 
   vec4 inputNorm = textureLod(normmap,pos.xy/2+vec2(0.5),0); 
-  fragColor = vec4(inputColor,1);
+  inputColor *= brightness;
+  fragColor = vec4(pow(inputColor.r,1/1.2),
+                   pow(inputColor.g,1/1.2),
+                   pow(inputColor.b,1/1.2)
+  ,1);
 }
