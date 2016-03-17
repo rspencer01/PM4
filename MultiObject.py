@@ -202,8 +202,10 @@ class MultiObject(object):
     shader['colormap'] = Texture.COLORMAP_NUM
     clptpos = (pos + 4000) / (8000/self.numSwatches)
     for i in xrange(int(math.floor(clptpos[0])-1),int(math.floor(clptpos[0])+2)):
+      if i<0 or i>=self.numSwatches: continue
       #      pdb.set_trace()
       startj = int(math.floor(((-pos+4000)/(8000/self.numSwatches))[2]))-1
+      startj = min(self.numSwatches-3,max(0,startj))
       self.render(self.swatches[startj][i].startIndex,
                   self.swatches[startj+2][i].endIndex-self.swatches[startj][i].startIndex)
     self.renderBillboards(0)
