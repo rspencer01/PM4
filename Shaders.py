@@ -193,9 +193,9 @@ class TesselationShader(Shader):
 
 shaders = {}
 
-def getShader(name,tess=False,instance=False,geom=False):
+def getShader(name,tess=False,instance=False,geom=False,forceReload=False):
   global shaders
-  if name not in shaders:
+  if name not in shaders or forceReload:
     print "Loading shader",name
     if not tess:
       if not instance:

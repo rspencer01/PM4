@@ -8,7 +8,7 @@ import os,sys
 print "Constructing opticalDepths"
 N = 256 
 Re = 6360e3
-Ra = 6420e3
+Ra = 6520e3
 Hr = 8e3
 Hm = 1.2e3
 
@@ -56,7 +56,7 @@ nightSkyTexture = Texture.Texture(Texture.COLORMAP2)
 if not os.path.exists('nightSky.npy'):
   framebuffer = gl.glGenFramebuffers(1)
   gl.glBindFramebuffer(gl.GL_FRAMEBUFFER,framebuffer)
-  texSize = 2500
+  texSize = 4096
   nightSkyTexture.loadData(2*texSize,texSize,None)
 
   depthbuffer = gl.glGenRenderbuffers(1)
@@ -99,7 +99,7 @@ else:
   nightSkyTexture.loadFromFile('nightSky.npy')
 
   
-shader = getShader('sky')
+shader = getShader('sky',forceReload=True)
 renderID = shader.setData(data,indices)
 def display(colorTexture,depthTexture):
   #gl.glDisable(gl.GL_DEPTH_TEST)
