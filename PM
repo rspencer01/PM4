@@ -10,8 +10,11 @@ import OpenGL.GL.framebufferobjects as glfbo
 program = None
 windowHeight = 512
 windowWidth = 512
+cameraSpeed = 9
 
 def display():
+  global cameraSpeed
+  cameraSpeed = max((((3600e3-camera.pos[1])**2+camera.pos[2]**2+camera.pos[0]**2)**0.5-3600.0e3)*2+90,90)
   camera.render('user')
   Shadows.render()
 
@@ -57,11 +60,10 @@ def timer(fps):
     glut.glutSetWindowTitle("PM3 "+ str(fps) + " fps")
     t = 3.0
 #  Marker.timeUpdate(1.0/fps)
-  s = 300
   if 'w' in keys:
-    camera.move(s * 1.0/fps)
+    camera.move(cameraSpeed * 1.0/fps)
   if 's' in keys:
-    camera.move(s * -1.0/fps)
+    camera.move(cameraSpeed * -1.0/fps)
   if 'e' in keys:
     camera.rotUpDown(1.5/fps)
   if 'q' in keys:
@@ -99,7 +101,10 @@ def keyboard(key,x,y):
     sys.exit(0)
   if key=='p':
     print camera.pos
+  if key=='~':
+    userCommand()
   keys.add(key)
+
 def keyboardUp(key,x,y):
   keys.remove(key)
 
@@ -108,6 +113,16 @@ def mouse(button,state,x,y):
   glut.glutWarpPointer(windowWidth/2,windowHeight/2)
   mouseX = windowWidth/2
   mouseY = windowHeight/2
+
+def userCommand():
+  command = ''
+  while (command != 'exit'):
+    command = raw_input('>>> ')
+    try:
+      exec(command,globals())
+    except Exception as e:
+      print "Exception:",e
+
 
 glut.glutInit()
 
@@ -150,7 +165,7 @@ import Shadows
 import postrender
 import Sky
 
-camera = Camera(np.array([30.,80,480]))
+camera = Camera(np.array([282.,3000e3+23,560]))
 camera.rotLeftRight(-3.141592/2*0)
 camera.render()
 Shadows.lockCam = camera
