@@ -46,10 +46,11 @@ class Texture:
   def load(self):
     gl.glActiveTexture(self.textureType)
     gl.glBindTexture(gl.GL_TEXTURE_2D, self.id)
-  def saveToFile(self,fileName):
+  def getData(self):
     self.load()
-    data = gl.glGetTexImage(gl.GL_TEXTURE_2D,0,gl.GL_RGBA,gl.GL_FLOAT)
-    np.save(fileName,data)
+    return gl.glGetTexImage(gl.GL_TEXTURE_2D,0,gl.GL_RGBA,gl.GL_FLOAT)
+  def saveToFile(self,fileName):
+    np.save(fileName,self.getData())
   def loadFromFile(self,fileName):
     data = np.load(fileName)
     self.loadData(data.shape[0],data.shape[1],data)

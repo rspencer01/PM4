@@ -57,7 +57,9 @@ vec4 temp = shadowProjection1 * shadow1View * position;
     if ((shadowPos.x < 1.0) &&
         (shadowPos.x > 0.0) &&
         (shadowPos.y < 1.0) &&
-        (shadowPos.y > 0.0))
+        (shadowPos.y > 0.0) &&
+        (shadowPos.z < 1.0) &&
+        (shadowPos.z > -1.0))
     {
       for (int i = 0; i<5; i+=1)
       {
@@ -75,7 +77,9 @@ vec4 temp = shadowProjection1 * shadow1View * position;
       if ((shadowPos.x < 1.0) &&
           (shadowPos.x > 0.0) &&
           (shadowPos.y < 1.0) &&
-          (shadowPos.y > 0.0))
+          (shadowPos.y > 0.0) &&
+          (shadowPos.z < 1.0) &&
+          (shadowPos.z > -1.0))
       {
         for (int i = 0; i<5; i+=1)
         {

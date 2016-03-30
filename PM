@@ -10,11 +10,14 @@ import OpenGL.GL.framebufferobjects as glfbo
 program = None
 windowHeight = 512
 windowWidth = 512
+lockToGround = False
 cameraSpeed = 9
 
 def display():
+  if lockToGround:
+    camera.pos[1] = -Terrain.getAt(-camera.pos[0],camera.pos[2])[3]-11
   global cameraSpeed
-  cameraSpeed = max((((3600e3-camera.pos[1])**2+camera.pos[2]**2+camera.pos[0]**2)**0.5-3600.0e3)*2+90,90)
+  cameraSpeed = max((((3600e3-camera.pos[1])**2+camera.pos[2]**2+camera.pos[0]**2)**0.5-3600.0e3)*2+90,0)
   camera.render('user')
   Shadows.render()
 
@@ -47,10 +50,9 @@ def display():
   gl.glBindFramebuffer(gl.GL_FRAMEBUFFER, 0)
   gl.glClear(gl.GL_COLOR_BUFFER_BIT | gl.GL_DEPTH_BUFFER_BIT)
   gl.glViewport(0,0,windowWidth,windowHeight)
-  postrender.display(displayColorTextures[2],displayDepthTextures[2])
+  postrender.display(displayColorTextures[2],displayDepthTextures[2],windowWidth,windowHeight)
 
   glut.glutSwapBuffers()
-  
   
 t = 1.0
 def timer(fps):
@@ -72,6 +74,8 @@ def timer(fps):
     camera.rotLeftRight(-1.5/fps)
   if 'd' in keys:
     camera.rotLeftRight(1.5/fps)
+  if 'h' in keys:
+    camera.pos *= 0.98
   glut.glutTimerFunc(1000/fps, timer, fps)
   glut.glutPostRedisplay()
 
@@ -99,6 +103,9 @@ def keyboard(key,x,y):
   if key=='\033':
     #    Shadows.cleanup()
     sys.exit(0)
+  if key=='l':
+    global lockToGround
+    lockToGround = not lockToGround
   if key=='p':
     print camera.pos
   if key=='~':

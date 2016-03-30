@@ -11,6 +11,7 @@ uniform vec3 sunDirection;
 uniform float aspectRatio;
 uniform sampler2D colormap;
 uniform sampler2D depthmap;
+uniform sampler2D noisemap;
 uniform sampler2D opticaldepthmap;
 uniform sampler2D nightSkymap;
 vec3 sunIntensity = vec3(35);
@@ -81,7 +82,11 @@ void main()
     celestialMap = normalize(vec2(celestialDirection.x,celestialDirection.z))*acos(-celestialDirection.y)/3.141592*2;
     celestialMap = vec2(0.25*celestialMap.x,0.5*celestialMap.y) + vec2(0.75,0.5);
   }
-  vec3 celestialColor = textureLod(nightSkymap,celestialMap,0).rgb*0.1;
+  vec3 celestialColor = textureLod(nightSkymap,celestialMap,0).rgb*0.03;
+
+  celestialColor += exp(-pow(1-clamp(dot(direction,normalize(sunDirection)),0,1),2)/(0.0000005))*10*vec3(1,0.90,0.7);
+
+
   if (objectDepth >= INF-1)
     objectColor = celestialColor;
 
@@ -106,7 +111,34 @@ void main()
     { 
       Pa = Pc + direction * smallestIntersectionDistance(Pc,direction,Re);
       vec3 surfacePos = vec3(0,Re,0)+CameraPosition + direction*smallestIntersectionDistance(vec3(0,Re,0)+CameraPosition,direction,Re);
-      objectColor = vec3(0.04,0.08,0.16) * (0.05 + 0.95*max(0,dot(normalize(surfacePos),normalize(sunDirection))));
+      objectColor = vec3(0.02,0.04,0.08);
+      if (
+          (
+          textureLod(noisemap,surfacePos.xy/14e6+vec2(0.5),0).a+
+          textureLod(noisemap,surfacePos.yz/14e6+vec2(0.5),0).a+
+          textureLod(noisemap,surfacePos.zx/14e6+vec2(0.5),0).a+
+
+          textureLod(noisemap,surfacePos.xy/14e5+vec2(0.5),0).a*0.1+
+          textureLod(noisemap,-surfacePos.xy/14e5+vec2(0.5),0).a*0.1+
+          textureLod(noisemap,surfacePos.xz/14e5+vec2(0.5),0).a*0.1+
+          textureLod(noisemap,-surfacePos.xz/14e5+vec2(0.5),0).a*0.1+
+          textureLod(noisemap,surfacePos.yz/14e5+vec2(0.5),0).a*0.1+
+          textureLod(noisemap,-surfacePos.yz/14e5+vec2(0.5),0).a*0.1+
+
+          textureLod(noisemap,surfacePos.xy/14e4+vec2(0.5),0).a*0.01+
+          textureLod(noisemap,-surfacePos.xy/14e4+vec2(0.5),0).a*0.01+
+          textureLod(noisemap,surfacePos.xz/14e4+vec2(0.5),0).a*0.01+
+          textureLod(noisemap,-surfacePos.xz/14e4+vec2(0.5),0).a*0.01+
+          textureLod(noisemap,surfacePos.yz/14e4+vec2(0.5),0).a*0.01+
+          textureLod(noisemap,-surfacePos.yz/14e4+vec2(0.5),0).a*0.01
+          )
+          >190)
+      {
+        float f = clamp(2*pow(abs(surfacePos.x/7e6),6),0,1);
+        objectColor = vec3(0.02,0.20,0.08) * (1-f)
+                      + vec3(0.8,0.8,0.9) * f;
+      }
+      objectColor *= (0.03 + 0.97*max(0,dot(normalize(surfacePos),normalize(sunDirection))));
     }
   }
 

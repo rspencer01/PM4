@@ -55,7 +55,7 @@ void main()
   vec3 p1 = gl_TessCoord.y * evaluationpoint_wor[1];
   vec3 p2 = gl_TessCoord.z * evaluationpoint_wor[2];
   TesselationOut.position = vec4(p0+p1+p2,1);
-  TesselationOut.position.y += 10;
+  TesselationOut.position.y += 1e3;
   TesselationOut.origPosition = TesselationOut.position;
   vec3 displacement = vec3(0,1,0) * texture(heightmap,(TesselationOut.position.xyz+vec3(4000)).xz/8000).a;
   vec3 normal = texture(heightmap,(TesselationOut.position.xyz+vec3(4000)).xz/8000).zyx;

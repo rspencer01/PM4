@@ -1,5 +1,6 @@
 import numpy as np
 import Texture
+import graphicsOps
 from Shaders import *
 data = np.zeros(4,dtype=[("position" , np.float32,3)])
 data['position'] = [(-1,-1,0.999999),(-1,1,0.999999),(1,-1,0.999999),(1,1,0.999999)]
@@ -15,7 +16,10 @@ mapRenderID = mapShader.setData(data,indices)
 
 exposure = 1.0
 
-def display(colorTexture,depthTexture):
+highColTexture = Texture.Texture(Texture.COLORMAP2)
+blurredHighColTexture = Texture.Texture(Texture.COLORMAP2)
+
+def display(colorTexture,depthTexture,windowWidth,windowHeight):
   depthTexture.load()
   colorTexture.load()
   colorTexture.makeMipmap()
@@ -31,11 +35,23 @@ def display(colorTexture,depthTexture):
       exposure = (1/b + 0.3)* 0.09 + exposure * 0.91
     else:
       exposure = (1/b + 0.3)* 0.005 + exposure * 0.995
+  graphicsOps.extractHighColor(colorTexture,max(0.03,b),highColTexture)
+  highColTexture.load()
+  graphicsOps.gaussianBlur(highColTexture,0.03,blurredHighColTexture)
+  blurredHighColTexture.load()
+
+  # This shouldn't happen here, but we mess with the buffers in the highlights stuff
+  colorTexture.load()
+  gl.glBindFramebuffer(gl.GL_FRAMEBUFFER, 0)
+  gl.glClear(gl.GL_COLOR_BUFFER_BIT | gl.GL_DEPTH_BUFFER_BIT)
+  gl.glViewport(0,0,windowWidth,windowHeight)
+
   shader.load()
   shader['model'] = np.eye(4,dtype=np.float32)
   shader['colormap'] = Texture.COLORMAP_NUM
   shader['depthmap'] = Texture.DEPTHMAP_NUM
-  shader['brightness'] = min(5.0,max(0.1,exposure))
+  shader['highCol'] = Texture.COLORMAP2_NUM
+  shader['brightness'] = min(8.0,max(0.05,exposure))
   shader.draw(gl.GL_TRIANGLES,renderID,1)
   mapShader.load()
   mapShader['heightmap'] = Texture.HEIGHTMAP_NUM

@@ -75,7 +75,7 @@ class Shader(object):
       offset = ctypes.c_void_p(offsetc)
       loc = gl.glGetAttribLocation(self.program,i)
       if loc==-1:
-        print "Error setting "+i+" in shader " + self.name
+        # Not in shader
         offsetc += data.dtype[i].itemsize
         continue
       gl.glEnableVertexAttribArray(loc)
@@ -101,7 +101,6 @@ class Shader(object):
     loc = self.locations[i]
     if loc==-1:
       if not i in self.warned:
-        print "Error uniform setting variable "+i+" in "+self.name+".  Maybe optimised out?"
         self.warned.add(i)
       return
     if type(v) == np.ndarray and v.shape == (4,4):
@@ -135,23 +134,32 @@ class GenericShader(Shader):
     self.build()
 
 class InstancedShader(GenericShader):
+  def __init__(self,name,frag,vert,geom):
+    super(InstancedShader,self).__init__(name,frag,vert,geom)
+    self.instbo = None
+
   def setData(self,data,indices,instanced):
     renderId = super(InstancedShader,self).setData(data,indices)
-    instbo = gl.glGenBuffers(1)
-    self.objInfo[renderId].instbo = instbo
+    self.setInstances(instanced,renderId)
+    return renderId
 
-    gl.glBindBuffer(gl.GL_ARRAY_BUFFER,instbo)
-    gl.glBufferData(gl.GL_ARRAY_BUFFER,instanced.nbytes,instanced,gl.GL_STREAM_DRAW)
-    stride = instanced.strides[0]
+  def setInstances(self,instances,renderId):
+    gl.glBindVertexArray(self.objInfo[renderId].vertexArray)
+    self.instbo = gl.glGenBuffers(1)
+    self.objInfo[renderId].instbo = self.instbo
+
+    gl.glBindBuffer(gl.GL_ARRAY_BUFFER,self.instbo)
+    gl.glBufferData(gl.GL_ARRAY_BUFFER,instances.nbytes,instances,gl.GL_STREAM_DRAW)
+    stride = instances.strides[0]
     offsetc = 0
-    for i in instanced.dtype.names:
+    for i in instances.dtype.names:
       offset = ctypes.c_void_p(offsetc)
       loc = gl.glGetAttribLocation(self.program,i)
       if loc==-1:
         print "Error setting "+i+" in shader "+self.name
         continue
-      gl.glBindBuffer(gl.GL_ARRAY_BUFFER,instbo)
-      if instanced.dtype[i].shape==(4,4):
+      gl.glBindBuffer(gl.GL_ARRAY_BUFFER,self.instbo)
+      if instances.dtype[i].shape==(4,4):
         for j in range(4):
           offset = ctypes.c_void_p(j*stride/4)
           gl.glEnableVertexAttribArray(loc+j)
@@ -161,7 +169,7 @@ class InstancedShader(GenericShader):
       else:
         raise Exception("Type wrong for instanced variable")
     gl.glBindBuffer(gl.GL_ARRAY_BUFFER,0)
-    return renderId
+
   def draw(self,type,objectIndex,num=0,offset=0):
     gl.glBindVertexArray(self.objInfo[objectIndex].vertexArray)
     gl.glDrawElementsInstancedBaseInstance(

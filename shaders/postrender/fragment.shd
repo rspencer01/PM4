@@ -10,6 +10,7 @@ uniform float aspectRatio;
 uniform sampler2D colormap;
 uniform sampler2D depthmap;
 uniform sampler2D normmap;
+uniform sampler2D highCol;
 
 uniform float brightness;
 
@@ -24,4 +25,5 @@ void main()
                    pow(inputColor.g,1/1.2),
                    pow(inputColor.b,1/1.2)
   ,1);
+//  fragColor += textureLod(highCol,pos.xy/2+vec2(0.5),0);
 }

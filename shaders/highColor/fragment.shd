@@ -1,0 +1,14 @@
+#version 400
+in vec4 pos;
+out vec4 fragColor;
+
+uniform sampler2D inTex;
+uniform float threshhold;
+
+void main()
+{
+  fragColor = vec4(0,0,0,1);
+  vec3 c = textureLod(inTex,pos.xy/2+vec2(0.5),0).rgb;
+  if (length(c) > threshhold)
+    fragColor = vec4(c,1);
+}
