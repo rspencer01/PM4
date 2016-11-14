@@ -31,14 +31,16 @@ def display(colorTexture,depthTexture,windowWidth,windowHeight):
   b = b*0.8+0.2*s
   global exposure
   if b==b:
-    if 1/b + 0.1 < exposure:
-      exposure = (1/b + 0.3)* 0.09 + exposure * 0.91
-    else:
-      exposure = (1/b + 0.3)* 0.005 + exposure * 0.995
-  graphicsOps.extractHighColor(colorTexture,max(0.03,b),highColTexture)
-  highColTexture.load()
-  graphicsOps.gaussianBlur(highColTexture,0.03,blurredHighColTexture)
-  blurredHighColTexture.load()
+    if b!=0:
+      if 1/b + 0.3 < exposure:
+        exposure = (1/b + 0.3)* 0.09 + exposure * 0.91
+      else:
+        exposure = (1/b + 0.3)* 0.005 + exposure * 0.995
+  exposure = min(8.0,max(0.05,exposure))
+#  graphicsOps.extractHighColor(colorTexture,max(0.03,b),highColTexture)
+#  highColTexture.load()
+#  graphicsOps.gaussianBlur(highColTexture,0.03,blurredHighColTexture)
+#  blurredHighColTexture.load()
 
   # This shouldn't happen here, but we mess with the buffers in the highlights stuff
   colorTexture.load()
@@ -51,7 +53,7 @@ def display(colorTexture,depthTexture,windowWidth,windowHeight):
   shader['colormap'] = Texture.COLORMAP_NUM
   shader['depthmap'] = Texture.DEPTHMAP_NUM
   shader['highCol'] = Texture.COLORMAP2_NUM
-  shader['brightness'] = min(8.0,max(0.05,exposure))
+  shader['brightness'] = exposure
   shader.draw(gl.GL_TRIANGLES,renderID,1)
   mapShader.load()
   mapShader['heightmap'] = Texture.HEIGHTMAP_NUM
@@ -62,12 +64,14 @@ def lighting(colorTexture,normTexture,posTexture,depthTexture):
   colorTexture.load()
   normTexture.load()
   posTexture.load()
+  setUniform('ambientLight',0.1)
+  setUniform('sunLight',1.0)
   lightingShader.load()
   lightingShader['model'] = np.eye(4,dtype=np.float32)
   lightingShader['colormap'] = Texture.COLORMAP_NUM
   lightingShader['normmap'] = Texture.COLORMAP2_NUM
   lightingShader['posmap'] = Texture.COLORMAP3_NUM
   lightingShader['depthmap'] = Texture.DEPTHMAP_NUM
-  lightingShader['ambientLight'] = 0.1
+  lightingShader['ambientLight'] = 0.1;
   lightingShader['sunLight'] = 0.9
   shader.draw(gl.GL_TRIANGLES,lightingRenderID,1)

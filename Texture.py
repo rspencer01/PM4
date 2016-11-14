@@ -21,6 +21,8 @@ COLORMAP2 = gl.GL_TEXTURE8
 COLORMAP2_NUM = 8
 COLORMAP3 = gl.GL_TEXTURE9
 COLORMAP3_NUM = 9
+FOLIAGEMAP = gl.GL_TEXTURE10
+FOLIAGEMAP_NUM = 10
 
 
 class Texture:
@@ -28,7 +30,7 @@ class Texture:
     self.textureType =  type
     self.id = gl.glGenTextures(1)
     self.size = ()
-    
+
     self.load()
     #gl.glPixelStorei(gl.GL_UNPACK_ALIGNMENT,1)
     gl.glTexParameteri(gl.GL_TEXTURE_2D, gl.GL_TEXTURE_WRAP_S, gl.GL_REPEAT)
@@ -40,6 +42,7 @@ class Texture:
     gl.glTexImage2D(gl.GL_TEXTURE_2D, 0 ,gl.GL_RGBA32F, width, height, 0, gl.GL_RGBA, gl.GL_FLOAT, data)
     self.size = (width,height)
     self.makeMipmap()
+    del data
   def makeMipmap(self):
     self.load()
     gl.glGenerateMipmap(gl.GL_TEXTURE_2D)
@@ -54,6 +57,7 @@ class Texture:
   def loadFromFile(self,fileName):
     data = np.load(fileName)
     self.loadData(data.shape[0],data.shape[1],data)
+    del data
   def __del__(self):
     print "Freeing texture",self.id
     gl.glDeleteTextures(self.id)

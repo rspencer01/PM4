@@ -26,34 +26,37 @@ uniform sampler2D shadowTexture3;
 uniform float ambientLight;
 uniform float sunLight;
 
+float Re = 6.360e6;
+
+bool intersects(vec3 position, vec3 direction, float radius)
+{
+  if (dot(direction,position)*dot(direction,position) - dot(position,position)+radius*radius > 0)
+    return true;
+  return false;
+}
+float smallestIntersectionDistance(vec3 position, vec3 direction, float radius)
+{
+  return - dot(position,direction) -
+            sqrt(dot(direction,position)*dot(direction,position) 
+                 - dot(position,position)+radius*radius);
+}
+
 float lighting(vec4 normal, vec4 position)
-{ 
+{
   float diffuse = max(0,dot(normal.xyz,normalize(sunDirection)));
-  if (sunDirection.y<0) diffuse = 0; 
-vec4 temp = shadowProjection1 * shadow1View * position;
+  vec4 temp = shadowProjection1 * shadow1View * position;
   vec3 shadowPos = (temp.xyz/temp.w)/2+vec3(0.5);
   float tanacosl = tan(acos(diffuse));
   float shadowAmount = 0;
-  if ((shadowPos.x < 1.0) &&
-      (shadowPos.x > 0.0) &&
-      (shadowPos.y < 1.0) &&
-      (shadowPos.y > 0.0) &&
-      (shadowPos.z < 1.0) &&
-      (shadowPos.z > -1.0))
+  float sunLight = max(0,pow(sunDirection.y,0.7));
+  if (intersects(position.xyz+vec3(0,Re,0),sunDirection,Re+1500) &&
+      smallestIntersectionDistance(position.xyz+vec3(0,Re,0),sunDirection,Re+1500) > 0
+      )
   {
-    for (int i = 0; i<5; i+=1)
-    {
-      for (int j = -3; j<4; j+=1)
-      {
-        if (shadowPos.z-textureLod(shadowTexture1,shadowPos.xy + pow(i/3.0,0.5)*vec2(cos(j*3.141592/3),sin(j*3.141592/3))*0.001,0).x > clamp(0.002*tanacosl,0.0,0.001))
-          shadowAmount += 1.0/28;
-      }
-    }
+    shadowAmount = 1;
   }
   else
   {
-    temp = shadowProjection2 * shadow2View * position;
-    shadowPos = (temp.xyz/temp.w)/2+vec3(0.5);
     if ((shadowPos.x < 1.0) &&
         (shadowPos.x > 0.0) &&
         (shadowPos.y < 1.0) &&
@@ -65,14 +68,15 @@ vec4 temp = shadowProjection1 * shadow1View * position;
       {
         for (int j = -3; j<4; j+=1)
         {
-          if (shadowPos.z-textureLod(shadowTexture2,shadowPos.xy + pow(i/3.0,0.5)*vec2(cos(j*3.141592/3),sin(j*3.141592/3))*0.001,0).x > 0.001)
+          //if (shadowPos.z-textureLod(shadowTexture1,shadowPos.xy + pow(i/3.0,0.5)*vec2(cos(j*3.141592/3),sin(j*3.141592/3))*0.001,0).x < clamp(0.002*tanacosl,0.0,0.001))
+          if (shadowPos.z-textureLod(shadowTexture1,shadowPos.xy + pow(i/3.0,0.5)*vec2(cos(j*3.141592/3),sin(j*3.141592/3))*0.001,0).x > 0.001)
             shadowAmount += 1.0/28;
         }
       }
     }
     else
     {
-      temp = shadowProjection3 * shadow3View * position;
+      temp = shadowProjection2 * shadow2View * position;
       shadowPos = (temp.xyz/temp.w)/2+vec3(0.5);
       if ((shadowPos.x < 1.0) &&
           (shadowPos.x > 0.0) &&
@@ -85,24 +89,46 @@ vec4 temp = shadowProjection1 * shadow1View * position;
         {
           for (int j = -3; j<4; j+=1)
           {
-            if (shadowPos.z-textureLod(shadowTexture3,shadowPos.xy + pow(i/3.0,0.5)*vec2(cos(j*3.141592/3),sin(j*3.141592/3))*0.001,0).x > 0.001)
+            if (shadowPos.z-textureLod(shadowTexture2,shadowPos.xy + pow(i/3.0,0.5)*vec2(cos(j*3.141592/3),sin(j*3.141592/3))*0.001,0).x > 0.004)
               shadowAmount += 1.0/28;
+          }
+        }
+      }
+      else
+      {
+        temp = shadowProjection3 * shadow3View * position;
+        shadowPos = (temp.xyz/temp.w)/2+vec3(0.5);
+        if ((shadowPos.x < 1.0) &&
+            (shadowPos.x > 0.0) &&
+            (shadowPos.y < 1.0) &&
+            (shadowPos.y > 0.0) &&
+            (shadowPos.z < 1.0) &&
+            (shadowPos.z > -1.0))
+        {
+          for (int i = 0; i<5; i+=1)
+          {
+            for (int j = -3; j<4; j+=1)
+            {
+              if (shadowPos.z-textureLod(shadowTexture3,shadowPos.xy + pow(i/3.0,0.5)*vec2(cos(j*3.141592/3),sin(j*3.141592/3))*0.001,0).x > 0.004)
+                shadowAmount += 1.0/28;
+            }
           }
         }
       }
     }
   }
-
-
-
-  return clamp(ambientLight*normalize(sunDirection).y,0.006,1.0) + sunLight * diffuse * (1-shadowAmount);
+//  if (shadowAmount>0.1)
+//    shadowAmount=1;
+  return clamp(ambientLight*sunLight,0.006,1.0) + sunLight * diffuse * (1-shadowAmount*0.8);
 }
 
 void main()
 {
   vec3 inputColor = textureLod(colormap,pos.xy/2+vec2(0.5),0).rgb; 
-  vec4 inputNorm = normalize(textureLod(normmap,pos.xy/2+vec2(0.5),0)); 
+  vec4 inputNorm = vec4(normalize(textureLod(normmap,pos.xy/2+vec2(0.5),0).rgb),1); 
   vec4 inputPos = textureLod(posmap,pos.xy/2+vec2(0.5),0); 
   fragColor = vec4(lighting(inputNorm,inputPos) * inputColor,1);
   gl_FragDepth = textureLod(depthmap,pos.xy/2+vec2(0.5),0).r;
+ // fragColor = vec4(inputNorm.rgb/2+vec3(0.5),1);
+//  fragColor = vec4(inputColor,1);
 }

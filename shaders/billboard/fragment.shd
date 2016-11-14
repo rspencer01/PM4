@@ -26,14 +26,19 @@ uniform sampler2D  bumpmap;
 
 void main()
 {
-  if (abs(VertexOut.position.x - (100*floor(userCameraPosition.x/100)+50)) < 150 && 
+/*  if (abs(VertexOut.position.x - (100*floor(userCameraPosition.x/100)+50)) < 150 && 
       abs(VertexOut.position.z - (100*floor(userCameraPosition.z/100)+50)) < 150 ) discard;
+      */
+
   float dist = length(VertexOut.position.xyz - userCameraPosition);
-  vec4 textureColor = textureLod(colormap,vec2(VertexOut.uv.x,VertexOut.uv.y),min(dist/800,4));
-  vec3 normal = textureLod(bumpmap,vec2(VertexOut.uv.x,1-VertexOut.uv.y),min(dist/800,4)).xyz;
-  normal.xz = VertexOut.normMat * normal.xz;
+  vec4 textureColor = textureLod(colormap,vec2(VertexOut.uv.x,VertexOut.uv.y),0*min(dist/800,4));
+  vec3 normal = normalize(textureLod(bumpmap,vec2(VertexOut.uv.x,VertexOut.uv.y),0*min(dist/800,4)).xyz - vec3(0.5));
   if (textureColor.a < 0.4) discard;
+  // I don't know why this doesn't work
+  //Only really applies with single billboards
+  normal.xz = VertexOut.normMat * normal.xz;
   fragColor = textureColor;
-  fragNorm = vec4(normal,1);
+  // Wut.  Why need this?
+  fragNorm = vec4(-normal.zyx,1);
   fragPos = VertexOut.position;
 }

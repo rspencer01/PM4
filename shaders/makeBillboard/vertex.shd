@@ -19,9 +19,6 @@ out VertexData
   vec4 position;
   vec4 normal;
   vec4 color;
-  vec3 shadowPos1;
-  vec3 shadowPos2;
-  vec3 shadowPos3;
   vec2 uv;
 } VertexOut;
 
@@ -29,14 +26,7 @@ void main()
 {
   VertexOut.position = model * vec4(position,1.0);
   gl_Position = projection * View * VertexOut.position;
-  VertexOut.normal = model * vec4(normal,0);
+  VertexOut.normal = vec4(normal,0);
   VertexOut.color = color;
   VertexOut.uv = textcoord;
-
-  vec4 temp = shadowProjection1 * shadow1View * model * vec4(position,1);
-  VertexOut.shadowPos1 = (temp.xyz / temp.w)/2+vec3(0.5);
-  temp = shadowProjection2 * shadow2View * model * vec4(position,1);
-  VertexOut.shadowPos2 = (temp.xyz / temp.w)/2+vec3(0.5);
-  temp = shadowProjection3 * shadow3View * model * vec4(position,1);
-  VertexOut.shadowPos3 = (temp.xyz / temp.w)/2+vec3(0.5);
 }

@@ -1,5 +1,8 @@
 #!/usr/bin/python
 import sys
+import time
+import RenderStage
+import logging
 from transforms import *
 import numpy as np
 import numpy.linalg
@@ -8,66 +11,82 @@ import OpenGL.GLU as glu
 import OpenGL.GLUT as glut
 import OpenGL.GL.framebufferobjects as glfbo
 
+logging.basicConfig(format ='%(asctime)-15s - [%(module)-10s] - %(message)s',level=logging.INFO)
+
+import args
+args.parse()
+
+Re = 6.360e6
+
 program = None
 windowHeight = 512
 windowWidth = 512
 lockToGround = False
-cameraSpeed = 9
+cameraSpeed = 20
+frametime = 0.
+lastframe = time.time()
+
+aboveGround = 1
 
 def display():
+  global frametime,lastframe,cputime,lastcpucycle
+  frametime = frametime*.8 + 0.2*(time.time()-lastframe)
+  lastframe = time.time()
+  glut.glutSetWindowTitle("PM4 {:.2f} ({:.0f}ms)".format(1./frametime,frametime*1000))
+
   if lockToGround:
-    camera.pos[1] = Terrain.getAt(camera.pos[0],camera.pos[2])[3]-11
+    camera.pos[1] = Terrain.getAt(camera.pos[0],camera.pos[2])[3]+aboveGround
 
   global cameraSpeed
+  noiseG.load(setUniform)
 
-  p = np.array([0,3.600e6,0]) + camera.pos
-  cameraSpeed = max((p.dot(p)**0.5 -3.6e6)*2+90,0)
-
-  f = np.clip((p.dot(p)**0.5 - 4.5e6) /(4.5e6 - 4.2e6),-1,1)/2+0.5
-  p /= p.dot(p)**0.5
-  globUp = np.array([np.array([1,0,0]),
-                     p])
+  p = camera.pos + np.array([0,Re,0])
+  cameraSpeed = max((p.dot(p)**0.5-Re-1000)*2+90,0)
+  f = np.clip((p.dot(p)**0.5 - Re*1.03) /(Re*0.3),0,1)
+  globUp = np.array([np.array([1.0,0.0,0.0]),
+                     p/p.dot(p)**0.5])
   camera.globalUp = (globUp[0]*f + globUp[1]*(1-f))
   camera.globalUp /= camera.globalUp.dot(camera.globalUp)**0.5
-  camera.globalRight = np.cross(camera.globalUp,np.array([0,1,0]))
+  t = np.cross(camera.globalUp,camera.globalRight)
+  camera.globalRight = np.cross(t,camera.globalUp)
   camera.globalRight /= camera.globalRight.dot(camera.globalRight)**0.5
 
   camera.render('user')
   Shadows.render()
 
-  gl.glBindFramebuffer(gl.GL_FRAMEBUFFER, displayFBOs[0])
+  gl.glBindFramebuffer(gl.GL_FRAMEBUFFER, renderStages[0].displayFBO)
   gl.glClear(gl.GL_DEPTH_BUFFER_BIT | gl.GL_COLOR_BUFFER_BIT)
   gl.glViewport(0,0,windowWidth,windowHeight)
 
   camera.render()
-  projection = perspective( 60.0, windowWidth/float(windowHeight), 0.3, 8000.0 )
+  projection = perspective( 60.0, windowWidth/float(windowHeight), 0.3, 1e7 )
   setUniform('projection',projection)
   setUniform('aspectRatio',windowWidth/float(windowHeight))
   setUniform('windowWidth',float(windowWidth))
-  
-  camera.render()
-  
-  Terrain.display()
-#  Marker.display()
-  #Road.display()
-  Forest.display(camera.pos)
-  gl.glBindFramebuffer(gl.GL_FRAMEBUFFER, displayFBOs[1])
-  gl.glClear(gl.GL_DEPTH_BUFFER_BIT | gl.GL_COLOR_BUFFER_BIT)
-  gl.glViewport(0,0,windowWidth,windowHeight)
-  postrender.lighting(displayColorTextures[0],displaySecondaryColorTextures[0],displayAuxColorTextures[0],displayDepthTextures[0])
 
-  gl.glBindFramebuffer(gl.GL_FRAMEBUFFER, displayFBOs[2])
+  camera.render()
+  camera.render('user')
+  Terrain.display()
+  grass.display(camera)
+  Forest.display(camera.pos)
+
+  gl.glBindFramebuffer(gl.GL_FRAMEBUFFER, renderStages[1].displayFBO)
   gl.glClear(gl.GL_DEPTH_BUFFER_BIT | gl.GL_COLOR_BUFFER_BIT)
   gl.glViewport(0,0,windowWidth,windowHeight)
-  Sky.display(displayColorTextures[1],displayDepthTextures[1])
+  postrender.lighting(renderStages[0].displayColorTexture,renderStages[0].displaySecondaryColorTexture,renderStages[0].displayAuxColorTexture,renderStages[0].displayDepthTexture)
+
+  gl.glBindFramebuffer(gl.GL_FRAMEBUFFER, renderStages[2].displayFBO)
+  gl.glClear(gl.GL_DEPTH_BUFFER_BIT | gl.GL_COLOR_BUFFER_BIT)
+  gl.glViewport(0,0,windowWidth,windowHeight)
+  Sky.display(renderStages[1].displayColorTexture,renderStages[1].displayDepthTexture)
 
   gl.glBindFramebuffer(gl.GL_FRAMEBUFFER, 0)
   gl.glClear(gl.GL_COLOR_BUFFER_BIT | gl.GL_DEPTH_BUFFER_BIT)
   gl.glViewport(0,0,windowWidth,windowHeight)
-  postrender.display(displayColorTextures[2],displayDepthTextures[2],windowWidth,windowHeight)
+  postrender.display(renderStages[2].displayColorTexture,renderStages[2].displayDepthTexture,windowWidth,windowHeight)
 
   glut.glutSwapBuffers()
-  
+
 t = 1.0
 def timer(fps):
   global t
@@ -89,7 +108,7 @@ def timer(fps):
   if 'd' in keys:
     camera.rotLeftRight(1.5/fps)
   if 'h' in keys:
-    camera.pos *= 0.98
+    camera.pos = camera.pos * 0.98
   glut.glutTimerFunc(1000/fps, timer, fps)
   glut.glutPostRedisplay()
 
@@ -105,25 +124,32 @@ def reshape(width,height):
   global windowHeight,windowWidth
   windowHeight = height
   windowWidth = width
-  for i in xrange(NUMSTAGES):
-    displayColorTextures[i].loadData(width,height,None)
-    displaySecondaryColorTextures[i].loadData(width,height,None)
-    displayAuxColorTextures[i].loadData(width,height,None)
-    displayDepthTextures[i].load()
+  for stage in renderStages:
+    stage.displayColorTexture.loadData(width,height,None)
+    stage.displaySecondaryColorTexture.loadData(width,height,None)
+    stage.displayAuxColorTexture.loadData(width,height,None)
+    stage.displayDepthTexture.load()
     gl.glTexImage2D(gl.GL_TEXTURE_2D, 0,gl.GL_DEPTH_COMPONENT32, width, height, 0,gl.GL_DEPTH_COMPONENT, gl.GL_FLOAT, None)
 
 keys = set()
 def keyboard(key,x,y):
+  global cameraSpeed
   if key=='\033':
     #    Shadows.cleanup()
     sys.exit(0)
   if key=='l':
     global lockToGround
     lockToGround = not lockToGround
-  if key=='p':
-    print camera.pos
   if key=='~':
     userCommand()
+  if key=='#':
+    reload(Terrain)
+    reload(Sky)
+    reload(grass)
+  if key=='+':
+    cameraSpeed += 1
+  if key=='-':
+    cameraSpeed -= 1
   keys.add(key)
 
 def keyboardUp(key,x,y):
@@ -136,17 +162,17 @@ def mouse(button,state,x,y):
   mouseY = windowHeight/2
 
 def userCommand():
-  command = ''
+  command = raw_input('>>> ')
   while (command not in ['continue','exit']):
-    command = raw_input('>>> ')
     try:
       exec(command,globals())
     except Exception as e:
       print "Exception:",e
+    command = raw_input('>>> ')
 
 
 glut.glutInit()
-
+print "Requesting OpenGL 4.2"
 glut.glutInitContextVersion(4, 2);
 glut.glutInitContextFlags(glut.GLUT_FORWARD_COMPATIBLE);
 glut.glutInitContextProfile(glut.GLUT_CORE_PROFILE);
@@ -155,8 +181,9 @@ glut.glutInitWindowSize(512,512);
 glut.glutCreateWindow("PM4")
 gl.glEnable(gl.GL_DEPTH_TEST)
 gl.glPolygonMode(gl.GL_FRONT_AND_BACK,gl.GL_FILL );
-#gl.glPolygonMode(gl.GL_FRONT_AND_BACK,gl.GL_LINE );
 gl.glEnable(gl.GL_BLEND)
+gl.glEnable(gl.GL_PROGRAM_POINT_SIZE);
+gl.glPointSize(3.)
 gl.glBlendFunc(gl.GL_SRC_ALPHA, gl.GL_ONE_MINUS_SRC_ALPHA);
 glut.glutReshapeFunc(reshape)
 glut.glutDisplayFunc(display)
@@ -165,11 +192,10 @@ glut.glutMouseFunc(mouse)
 glut.glutKeyboardUpFunc(keyboardUp)
 glut.glutTimerFunc(1000/60, timer, 60)
 glut.glutPassiveMotionFunc(mouseMotion)
-
-print "Using OpenGL Version",gl.glGetString(gl.GL_VERSION)
+print "Obtained OpenGL",gl.glGetString(gl.GL_VERSION)
 
 from Shaders import *
-from Camera import Camera
+import Camera
 import Texture
 #import Marker
 import Terrain
@@ -185,9 +211,11 @@ import Forest
 import Shadows
 import postrender
 import Sky
+import grass
 
-camera = Camera(np.array([282.,3000e3+23,560]))
-camera.rotLeftRight(-3.141592/2*0)
+camera = Camera.Camera(np.array([0,1e4,0]))
+camera.radiusCentre = np.array([0,-Re,0])
+camera.minRadius = Re
 camera.render()
 Shadows.lockCam = camera
 #camera.locked = True
@@ -195,56 +223,9 @@ Shadows.lockCam = camera
 #  for j in xrange(-10,10):
 #    Marker.addMarker(400*np.array([i,0,j]))
 #Marker.freeze()
-    
-noiseG.load(setUniform)
-NUMSTAGES = 3
-displayFBOs = [gl.glGenFramebuffers(1) for i in xrange(NUMSTAGES)]
-displayColorTextures = [None for i in xrange(NUMSTAGES)]
-displaySecondaryColorTextures = [None for i in xrange(NUMSTAGES)]
-displayAuxColorTextures = [None for i in xrange(NUMSTAGES)]
-displayDepthTextures = [None for i in xrange(NUMSTAGES)]
-for i in xrange(NUMSTAGES):
-  print "Initialising FBO",i+1
-  gl.glBindFramebuffer(gl.GL_FRAMEBUFFER, displayFBOs[i])
 
-  displayColorTextures[i] = Texture.Texture(Texture.COLORMAP)
-  displayColorTextures[i].load()
-  gl.glTexParameteri(gl.GL_TEXTURE_2D, gl.GL_TEXTURE_WRAP_S, gl.GL_REPEAT)
-  gl.glTexParameteri(gl.GL_TEXTURE_2D, gl.GL_TEXTURE_WRAP_T, gl.GL_REPEAT)
-  gl.glTexParameteri(gl.GL_TEXTURE_2D, gl.GL_TEXTURE_MAG_FILTER, gl.GL_NEAREST)
-  gl.glTexParameteri(gl.GL_TEXTURE_2D, gl.GL_TEXTURE_MIN_FILTER, gl.GL_LINEAR_MIPMAP_LINEAR)    
-  displayColorTextures[i].loadData(1,1,None)
-  displaySecondaryColorTextures[i] = Texture.Texture(Texture.COLORMAP2)
-  displaySecondaryColorTextures[i].load()
-  gl.glTexParameteri(gl.GL_TEXTURE_2D, gl.GL_TEXTURE_WRAP_S, gl.GL_REPEAT)
-  gl.glTexParameteri(gl.GL_TEXTURE_2D, gl.GL_TEXTURE_WRAP_T, gl.GL_REPEAT)
-  gl.glTexParameteri(gl.GL_TEXTURE_2D, gl.GL_TEXTURE_MAG_FILTER, gl.GL_NEAREST)
-  gl.glTexParameteri(gl.GL_TEXTURE_2D, gl.GL_TEXTURE_MIN_FILTER, gl.GL_NEAREST_MIPMAP_NEAREST)    
-  displaySecondaryColorTextures[i].loadData(1,1,None)
-  displayAuxColorTextures[i] = Texture.Texture(Texture.COLORMAP3)
-  displayAuxColorTextures[i].load()
-  gl.glTexParameteri(gl.GL_TEXTURE_2D, gl.GL_TEXTURE_WRAP_S, gl.GL_REPEAT)
-  gl.glTexParameteri(gl.GL_TEXTURE_2D, gl.GL_TEXTURE_WRAP_T, gl.GL_REPEAT)
-  gl.glTexParameteri(gl.GL_TEXTURE_2D, gl.GL_TEXTURE_MAG_FILTER, gl.GL_NEAREST)
-  gl.glTexParameteri(gl.GL_TEXTURE_2D, gl.GL_TEXTURE_MIN_FILTER, gl.GL_NEAREST_MIPMAP_NEAREST)    
-  displayAuxColorTextures[i].loadData(1,1,None)
-  displayDepthTextures[i] = Texture.Texture(Texture.DEPTHMAP)
-  displayDepthTextures[i].load()
-  gl.glTexParameteri(gl.GL_TEXTURE_2D, gl.GL_TEXTURE_WRAP_S, gl.GL_REPEAT)
-  gl.glTexParameteri(gl.GL_TEXTURE_2D, gl.GL_TEXTURE_WRAP_T, gl.GL_REPEAT)
-  gl.glTexParameteri(gl.GL_TEXTURE_2D, gl.GL_TEXTURE_MAG_FILTER, gl.GL_NEAREST)
-  gl.glTexParameteri(gl.GL_TEXTURE_2D, gl.GL_TEXTURE_MIN_FILTER, gl.GL_NEAREST)    
-  gl.glTexParameteri(gl.GL_TEXTURE_2D, gl.GL_TEXTURE_COMPARE_FUNC,gl.GL_LEQUAL)
-  gl.glTexParameteri(gl.GL_TEXTURE_2D, gl.GL_TEXTURE_COMPARE_MODE,gl.GL_NONE)
-  gl.glTexImage2D(gl.GL_TEXTURE_2D, 0,gl.GL_DEPTH_COMPONENT32, 1, 1, 0,gl.GL_DEPTH_COMPONENT, gl.GL_FLOAT, None)
-
-  gl.glFramebufferTexture(gl.GL_FRAMEBUFFER, gl.GL_DEPTH_ATTACHMENT, displayDepthTextures[i].id, 0)
-  gl.glFramebufferTexture(gl.GL_FRAMEBUFFER,gl.GL_COLOR_ATTACHMENT0, displayColorTextures[i].id, 0);
-  gl.glFramebufferTexture(gl.GL_FRAMEBUFFER,gl.GL_COLOR_ATTACHMENT1, displaySecondaryColorTextures[i].id, 0);
-  gl.glFramebufferTexture(gl.GL_FRAMEBUFFER,gl.GL_COLOR_ATTACHMENT2, displayAuxColorTextures[i].id, 0);
-  gl.glDrawBuffers(3,[gl.GL_COLOR_ATTACHMENT0,gl.GL_COLOR_ATTACHMENT1,gl.GL_COLOR_ATTACHMENT2])
-  glfbo.checkFramebufferStatus()
-
+renderStages = [RenderStage.RenderStage(),
+                RenderStage.RenderStage(),
+                RenderStage.RenderStage()]
 print "Initialisation finished."
-
 glut.glutMainLoop()

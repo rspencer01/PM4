@@ -1,39 +1,29 @@
-#version 410 core
+#version 330
+in vec3 position;
 
-layout(triangles, equal_spacing, ccw) in;
+out VertexData
+{
+  vec4 position;
+  vec3 up;
+  vec3 north;
+  vec2 type;
+} VertexOut;
 
 uniform mat4 View;
 uniform mat4 projection;
-uniform mat4 shadowProjection1;
-uniform mat4 shadowProjection2;
-uniform mat4 shadowProjection3;
-uniform mat4 shadow1View;
-uniform mat4 shadow2View;
-uniform mat4 shadow3View;
+uniform vec3 CameraPosition;
+uniform vec3 userCameraPosition;
+uniform float patchSize;
 uniform sampler2D heightmap;
 uniform sampler2D noise;
 
-in vec3 evaluationpoint_wor[];
-
-float Re = 6.360e6;
-
-out TesselationData
-{
-  vec4 position;
-  vec4 origPosition;
-  vec3 shadowPos1;
-  vec3 shadowPos2;
-  vec3 shadowPos3;
-} TesselationOut;
-
 // Second derivitive of the heightmap, ie div^2(H)
 float getCurvature()
-{
-  float c = texture(heightmap,TesselationOut.position.xz/60000+vec2(0.5)).a;
-  float d = texture(heightmap,(TesselationOut.position.xz+vec2(30,0))/60000+vec2(0.5)).a+
-            texture(heightmap,(TesselationOut.position.xz+vec2(0,30))/60000+vec2(0.5)).a+
-            texture(heightmap,(TesselationOut.position.xz+vec2(-30,0))/60000+vec2(0.5)).a+
-            texture(heightmap,(TesselationOut.position.xz+vec2(0,-30))/60000+vec2(0.5)).a;
+{ float c = texture(heightmap,VertexOut.position.xz/60000+vec2(0.5)).a;
+  float d = texture(heightmap,(VertexOut.position.xz+vec2(30,0))/60000+vec2(0.5)).a+
+            texture(heightmap,(VertexOut.position.xz+vec2(0,30))/60000+vec2(0.5)).a+
+            texture(heightmap,(VertexOut.position.xz+vec2(-30,0))/60000+vec2(0.5)).a+
+            texture(heightmap,(VertexOut.position.xz+vec2(0,-30))/60000+vec2(0.5)).a;
   d/=4;
   return abs(c-d);
 }
@@ -105,7 +95,7 @@ vec4 textureBicubic(sampler2D sampler, vec2 texCoords){
 
 float getFineAmount()
 {
-  float theta = acos(normalize(texture(heightmap,TesselationOut.position.xz/60000+vec2(0.5)).xyz).y);
+  float theta = acos(normalize(texture(heightmap,VertexOut.position.xz/60000+vec2(0.5)).xyz).y);
   if (theta<0.3)
     return 4;
   theta = (theta -0.5)/(3.1415/2 - 0.5);
@@ -128,33 +118,36 @@ vec4 getFineValue(vec3 pos)
   return  addNormals(ans3,addNormals(ans1,ans2));
 }
 
+
 void main()
 {
-  vec3 p0 = gl_TessCoord.x * evaluationpoint_wor[0];
-  vec3 p1 = gl_TessCoord.y * evaluationpoint_wor[1];
-  vec3 p2 = gl_TessCoord.z * evaluationpoint_wor[2];
-  TesselationOut.position = vec4(p0+p1+p2,1);
-  TesselationOut.origPosition = TesselationOut.position;
+  VertexOut.position = vec4(position,1.0);
 
-  // Lets not clip on the Earth's surface due to the atmospheric renderer
-  TesselationOut.position.y += 1e3;
+  VertexOut.position.xz += floor(userCameraPosition.xz/patchSize)*patchSize;
+  VertexOut.position.x += texture2D(noise,cos(VertexOut.position.xz)*0.300+vec2(.5)).a*3;
+  VertexOut.position.z += texture2D(noise,cos(VertexOut.position.xz+vec2(.1,.3))*0.400+vec2(.5)).a*3;
+  VertexOut.position.y += 1e3;
 
-  // The basic heightmap
-  vec3 displacement = vec3(0,1,0) * textureBicubic(heightmap,TesselationOut.position.xz/60000 + vec2(0.5)).a;
+  VertexOut.type=vec2(.5,.5);
+  if (texture2D(noise,cos(VertexOut.position.xz)*0.300+vec2(.5)).a > .3)
+    VertexOut.type=vec2(.5,0.);
 
-  vec3 normal = textureBicubic(heightmap,(TesselationOut.position.xz/60000)+vec2(0.5)).zyx;
+
+  vec3 displacement = vec3(0,1,0) * textureBicubic(heightmap,VertexOut.position.xz/60000 + vec2(0.5)).a;
+
+  vec3 normal = textureBicubic(heightmap,(VertexOut.position.xz/60000)+vec2(0.5)).zyx;
   normal = normalize(normal);
 
-  displacement += normal * getFineAmount() * getFineValue(TesselationOut.position.xyz).a;
+  displacement += normal * getFineAmount() * getFineValue(VertexOut.position.xyz).a;
 
-  TesselationOut.position.xyz += displacement;
+  VertexOut.position.xyz += displacement;
+  VertexOut.position.y += 0;
 
-  vec4 temp = shadowProjection1 * shadow1View * TesselationOut.position;
-  TesselationOut.shadowPos1 = (temp.xyz / temp.w)/2+vec3(0.5);
-  temp = shadowProjection2 * shadow2View * TesselationOut.position;
-  TesselationOut.shadowPos2 = (temp.xyz / temp.w)/2+vec3(0.5);
-  temp = shadowProjection3 * shadow3View * TesselationOut.position;
-  TesselationOut.shadowPos3 = (temp.xyz / temp.w)/2+vec3(0.5);
+  VertexOut.up= normal;
+  VertexOut.north = normalize(cross(vec3(texture2D(noise,VertexOut.position.xz).a,
+                         0,
+                         texture2D(noise,VertexOut.position.yz).a),VertexOut.up));
 
-  gl_Position = projection * View * TesselationOut.position;
+  gl_Position = projection * View * VertexOut.position;
+  gl_PointSize = 5.;
 }

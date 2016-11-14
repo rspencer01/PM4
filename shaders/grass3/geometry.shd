@@ -1,0 +1,120 @@
+#version 330
+layout (points) in;
+layout (triangle_strip,max_vertices = 12) out;
+
+in VertexData
+{
+  vec4 position;
+  vec3 up;
+  vec3 north;
+  vec2 type;
+} VertexOut[];
+
+out GeometryData
+{
+  vec4 position;
+  vec2 uv;
+  vec3 normal;
+} GeometryOut;
+
+uniform mat4 View;
+uniform mat4 projection;
+
+void main()
+{
+  vec3 up = VertexOut[0].up*2;
+  vec3 north = VertexOut[0].north*2;
+  vec3 east = length(north) * normalize(cross(north,up));
+  vec3 pos;
+
+  pos = VertexOut[0].position.xyz + north*.5;
+  gl_Position = projection*View*vec4(pos,1);
+  GeometryOut.position = vec4(pos,1);
+  GeometryOut.uv = vec2(1,1)/2;
+  GeometryOut.normal = VertexOut[0].up;
+  EmitVertex();
+
+  pos = VertexOut[0].position.xyz - north*.5;
+  gl_Position = projection*View*vec4(pos,1);
+  GeometryOut.position = vec4(pos,1);
+  GeometryOut.uv = vec2(0,1)/2;
+  GeometryOut.normal = VertexOut[0].up;
+  EmitVertex();
+
+  pos = VertexOut[0].position.xyz + north*.5 + up;
+  gl_Position = projection*View*vec4(pos,1);
+  GeometryOut.position = vec4(pos,1);
+  GeometryOut.uv = vec2(1,0.01)/2;
+  GeometryOut.normal = VertexOut[0].up;
+  EmitVertex();
+
+  pos = VertexOut[0].position.xyz - north*.5 + up;
+  gl_Position = projection*View*vec4(pos,1);
+  GeometryOut.position = vec4(pos,1);
+  GeometryOut.uv = vec2(0,0.01)/2;
+  GeometryOut.normal = VertexOut[0].up;
+  EmitVertex();
+
+  EndPrimitive();
+
+  pos = VertexOut[0].position.xyz + east*.5;
+  gl_Position = projection*View*vec4(pos,1);
+  GeometryOut.position = vec4(pos,1);
+  GeometryOut.uv = vec2(1,1)/2;
+  GeometryOut.normal = VertexOut[0].up;
+  EmitVertex();
+
+  pos = VertexOut[0].position.xyz - east*.5;
+  gl_Position = projection*View*vec4(pos,1);
+  GeometryOut.position = vec4(pos,1);
+  GeometryOut.uv = vec2(0,1)/2;
+  GeometryOut.normal = VertexOut[0].up;
+  EmitVertex();
+
+  pos = VertexOut[0].position.xyz + east*.5 + up;
+  gl_Position = projection*View*vec4(pos,1);
+  GeometryOut.position = vec4(pos,1);
+  GeometryOut.uv = vec2(1,0.01)/2;
+  GeometryOut.normal = VertexOut[0].up;
+  EmitVertex();
+
+  pos = VertexOut[0].position.xyz - east*.5 + up;
+  gl_Position = projection*View*vec4(pos,1);
+  GeometryOut.position = vec4(pos,1);
+  GeometryOut.uv = vec2(0,0.01)/2;
+  GeometryOut.normal = VertexOut[0].up;
+  EmitVertex();
+
+  EndPrimitive();
+
+  pos = VertexOut[0].position.xyz + east*.5+north*.5+up*.4;
+  gl_Position = projection*View*vec4(pos,1);
+  GeometryOut.position = vec4(pos,1);
+  GeometryOut.uv = VertexOut[0].type+vec2(1,1)/2;
+  GeometryOut.normal = VertexOut[0].up;
+  EmitVertex();
+
+  pos = VertexOut[0].position.xyz - east*.5+north*.5+up*.4;
+  gl_Position = projection*View*vec4(pos,1);
+  GeometryOut.position = vec4(pos,1);
+  GeometryOut.uv = VertexOut[0].type+vec2(0,1)/2;
+  GeometryOut.normal = VertexOut[0].up;
+  EmitVertex();
+
+  pos = VertexOut[0].position.xyz + east*.5-north*.5 +up*.4;
+  gl_Position = projection*View*vec4(pos,1);
+  GeometryOut.position = vec4(pos,1);
+  GeometryOut.uv = VertexOut[0].type+vec2(1,0.01)/2;
+  GeometryOut.normal = VertexOut[0].up;
+  EmitVertex();
+
+  pos = VertexOut[0].position.xyz - east*.5-north*.5 +up*.4;
+  gl_Position = projection*View*vec4(pos,1);
+  GeometryOut.position = vec4(pos,1);
+  GeometryOut.uv = VertexOut[0].type+vec2(0,0.01)/2;
+  GeometryOut.normal = VertexOut[0].up;
+  EmitVertex();
+
+  EndPrimitive();
+
+}

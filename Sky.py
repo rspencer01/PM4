@@ -4,15 +4,17 @@ import OpenGL.GL.framebufferobjects as glfbo
 import Texture
 import OpenGL.GL as gl
 import os,sys
+import noiseG
+import args
 
 print "Constructing opticalDepths"
-N = 256 
-Re = 6360e3
+N = 128
+Re = 6.360e6
 Ra = 6520e3
-Hr = 8e3
-Hm = 1.2e3
+Hr = 1e4
+Hm = 1.15e3
 
-if not os.path.exists('opdepth.npy'):
+if not os.path.exists('opdepth.npy') or args.args.remake_sky:
   opdepth = np.zeros((N*16,N,4),dtype=np.float32)
 
   for j,theta in enumerate(np.arange(0,np.pi*0.75,np.pi*0.75/N)):
@@ -45,6 +47,7 @@ opticalDepthmap.load()
 gl.glTexParameteri(gl.GL_TEXTURE_2D, gl.GL_TEXTURE_WRAP_S, gl.GL_CLAMP)
 gl.glTexParameteri(gl.GL_TEXTURE_2D, gl.GL_TEXTURE_WRAP_T, gl.GL_CLAMP)
 opticalDepthmap.loadData(N,N,opdepth)
+del opdepth
 
 data = np.zeros(4,dtype=[("position" , np.float32,3)])
 data['position'] = [(-1,-1,0.999999),(-1,1,0.999999),(1,-1,0.999999),(1,1,0.999999)]
@@ -56,7 +59,7 @@ nightSkyTexture = Texture.Texture(Texture.COLORMAP2)
 if not os.path.exists('nightSky.npy'):
   framebuffer = gl.glGenFramebuffers(1)
   gl.glBindFramebuffer(gl.GL_FRAMEBUFFER,framebuffer)
-  texSize = 4096
+  texSize = 2048
   nightSkyTexture.loadData(2*texSize,texSize,None)
 
   depthbuffer = gl.glGenRenderbuffers(1)
@@ -98,7 +101,6 @@ if not os.path.exists('nightSky.npy'):
 else:
   nightSkyTexture.loadFromFile('nightSky.npy')
 
-  
 shader = getShader('sky',forceReload=True)
 renderID = shader.setData(data,indices)
 def display(colorTexture,depthTexture):
@@ -109,8 +111,10 @@ def display(colorTexture,depthTexture):
   nightSkyTexture.load();
   opticalDepthmap.load()
   shader.load()
+  noiseG.noiseT.load()
   shader['model'] = np.eye(4,dtype=np.float32)
   shader['colormap'] = Texture.COLORMAP_NUM
+  shader['noisemap'] = Texture.NOISE_NUM
   shader['depthmap'] = Texture.DEPTHMAP_NUM
   shader['nightSkymap'] = Texture.COLORMAP2_NUM
   shader['opticaldepthmap'] = Texture.BUMPMAP_NUM

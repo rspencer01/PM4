@@ -3,10 +3,12 @@ import numpy as np
 import OpenGL.GL as gl
 #import Road
 import Terrain
+#import Grass
 import Texture
 #import Marker
-import Forest 
+import Forest
 import Shaders
+import grass
 import transforms
 
 print "Initialising Shadows"
@@ -63,15 +65,17 @@ def render():
   # Get this right some day
   sunTheta = np.cos(count/200.0)*0.1
   sunTheta = -count/500.0+2.005
+  sunTheta = 1.1+0.9*np.sin(count/50.)
   shadowTexture1.load()
   shadowCamera.direction = np.array([0.,0.,1.])
   shadowCamera.theta = 0
   shadowCamera.phi = 0
   shadowCamera.rotUpDown(sunTheta)
   shadowCamera.rotLeftRight(sunPhi)
+  shadowCamera.direction *= -1
   sunDirection = shadowCamera.direction
-  shadowCamera.pos = lockCam.pos - 4000*sunDirection*np.array((-1,1,1))
-  Shaders.setUniform('sunDirection',sunDirection*np.array((1,1,-1)))
+  shadowCamera.pos = lockCam.pos + 40000*sunDirection*np.array((-1,1,1))
+  Shaders.setUniform('sunDirection',sunDirection*np.array((1,1,1)))
   shadowCamera.update()
   shadowCamera.render()
   shadowTexture1.load()
@@ -80,18 +84,21 @@ def render():
   gl.glViewport(0,0,shadowSize,shadowSize)
 
   for i in range(3):
+    if np.sum(lockCam.pos*lockCam.pos) > 6e4**2 or lockCam.pos[1]>4e3:
+      if i<2:
+        continue 
     gl.glBindFramebuffer(gl.GL_FRAMEBUFFER,frameBuffers[i+1] );
     gl.glClear(gl.GL_COLOR_BUFFER_BIT|gl.GL_DEPTH_BUFFER_BIT);
-    width = 10 * 20**i
-    projection = transforms.ortho(-width,width,-width,width, 4000. - 2*width, 4000. + 2*width)
+    width = 10 * 25**i
+    projection = transforms.ortho(-width,width,-width,width, 40000. - 2*width, 40000. + 2*width)
     Shaders.setUniform('projection',projection)
     Shaders.setUniform('shadowProjection'+str(i+1),projection)
     Shaders.setUniform('shadowLevel',i)
     shadowCamera.render('shadow'+str(i+1))
   
     Terrain.display()
-    #Marker.display()
-    Forest.display(lockCam.pos,shadows=True)
+    grass.display(lockCam)
+    Forest.display(lockCam.pos,i)
 
     textures[i].makeMipmap()
   Shaders.setUniform('shadowLevel',-1)

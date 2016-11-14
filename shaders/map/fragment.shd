@@ -1,10 +1,13 @@
-#version 140
+#version 400
 in vec4 pos;
 out vec4 fragColor;
 uniform vec3 CameraPosition;
 uniform vec3 CameraDirection;
 
 uniform sampler2D heightmap;
+uniform sampler2D foliageMap;
+uniform sampler2D noise;
+uniform sampler2D shadowTexture3;
 
 uniform float ambientLight;
 
@@ -23,42 +26,51 @@ void main()
   if (abs(pos.x) < 0.005 || abs(pos.y) < 0.005)
   {
     fragColor = vec4(0.5,0.7,0.5,al);
-    return;
+//    return;
   }
 
   if (abs(length(pos.xy*3) - round(length(pos.xy*3))) < 0.02)
   {
     fragColor = vec4(0.5,1-length(pos.xy)/1.5,0,al);
-    return;
+//    return;
   }
 
   if (dot(normalize(pos.xy),normalize(CameraDirection.xz)) > 0.99 && length(pos.xy)<0.33)
   {
     fragColor = vec4(0.5,1,0.5,al);
-    return;
+//    return;
   }
 
 
-  vec2 ps = CameraPosition.xz / 8000;
-  float height = texture2D(heightmap,ps + pos.xy/8 + vec2(0.5)).a/200;
+  float mapSize = 1000;
+  vec2 ps = CameraPosition.xz / (60000/mapSize);
+  float height = texture2D(heightmap,ps + pos.xy/(60000/mapSize) + vec2(0.5)).a;
   int marked = 0;
   
-  float offheight = texture2D(heightmap,ps + pos.xy/8 + vec2(0.5)+vec2(0.001)).a/200;
-  if (height*3 < round(height*3) && offheight*3 >= round(offheight*3)) marked = 1;
+  float vertRes = 20;
 
-        offheight = texture2D(heightmap,ps + pos.xy/8 + vec2(0.5)+vec2(-0.001)).a/200;
-  if (height*3 < round(height*3) && offheight*3 >= round(offheight*3)) marked = 1;
+  float offheight = texture2D(heightmap,ps + pos.xy/(60000/mapSize) + vec2(0.5)+vec2(0.001)).a;
+  if (height/vertRes < round(height/vertRes) && offheight/vertRes >= round(offheight/vertRes)) marked = 1;
 
-        offheight = texture2D(heightmap,ps + pos.xy/8 + vec2(0.5)+vec2(0.001,-0.001)).a/200;
-  if (height*3 < round(height*3) && offheight*3 >= round(offheight*3)) marked = 1;
+        offheight = texture2D(heightmap,ps + pos.xy/(60000/mapSize) + vec2(0.5)+vec2(-0.001)).a;
+  if (height/vertRes < round(height/vertRes) && offheight/vertRes >= round(offheight/vertRes)) marked = 1;
+/*
+        offheight = texture2D(heightmap,ps + pos.xy/(60000/mapSize) + vec2(0.5)+vec2(0.001,-0.001)).a;
+  if (height/vertRes < round(height*vertRes) && offheight*vertRes >= round(offheight*vertRes)) marked = 1;
 
-        offheight = texture2D(heightmap,ps + pos.xy/8 + vec2(0.5)+vec2(-0.001,0.001)).a/200;
-  if (height*3 < round(height*3) && offheight*3 >= round(offheight*3)) marked = 1;
-
+        offheight = texture2D(heightmap,ps + pos.xy/(60000/mapSize) + vec2(0.5)+vec2(-0.001,0.001)).a;
+  if (height/vertRes < round(height*vertRes) && offheight*vertRes >= round(offheight*vertRes)) marked = 1;
+*/
   if (marked>0)
   {
     fragColor = vec4(0.5,0.5,0.7,al);
-    return;
+ //   return;
   }
-  fragColor = vec4(height/5,0,0,al);
+  
+  float foliageAmount = texture2D(foliageMap,ps + pos.xy/8 + vec2(0.5)).a;
+
+  fragColor = vec4(height/2000,round(foliageAmount)/8.0,0,al);
+
+  fragColor = vec4(vec3(texture2D(shadowTexture3,pos.xy/2+vec2(0.5)).r),1);
+  fragColor = vec4(vec3(texture2D(noise,pos.xy/2+vec2(0.5)).r),1);
 }

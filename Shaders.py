@@ -1,4 +1,5 @@
 import ctypes
+import logging
 import numpy as np
 import OpenGL.GL as gl
 from ctypes import c_void_p, sizeof
@@ -38,7 +39,7 @@ class Shader(object):
     if gl.glGetShaderiv(prog, gl.GL_COMPILE_STATUS) != gl.GL_TRUE:
         raise RuntimeError(gl.glGetShaderInfoLog(prog))
     gl.glAttachShader(self.program,prog)
-  
+
   def build(self):
     # Link!  Everything else is done in addProgram
     gl.glLinkProgram(self.program)
@@ -65,7 +66,7 @@ class Shader(object):
                                     vertexArray,
                                     ibo,
                                     len(indices)*3
-                                    ) ) 
+                                    ) )
 
     gl.glBindBuffer(gl.GL_ARRAY_BUFFER,vbo)
     gl.glBufferData(gl.GL_ARRAY_BUFFER,data.nbytes,data,gl.GL_STATIC_DRAW)
@@ -85,7 +86,7 @@ class Shader(object):
       offsetc += data.dtype[i].itemsize
 
     gl.glBindBuffer(gl.GL_ELEMENT_ARRAY_BUFFER,ibo)
-    gl.glBufferData(gl.GL_ELEMENT_ARRAY_BUFFER,indices.nbytes,indices, gl.GL_STREAM_DRAW); 
+    gl.glBufferData(gl.GL_ELEMENT_ARRAY_BUFFER,indices.nbytes,indices, gl.GL_STREAM_DRAW);
 
     return len(self.objInfo)-1
 
@@ -105,7 +106,7 @@ class Shader(object):
       return
     if type(v) == np.ndarray and v.shape == (4,4):
       gl.glUniformMatrix4fv(loc,1,gl.GL_FALSE,v)
-      return      
+      return
     if type(v) == np.ndarray and len(v.shape)==2 and v.shape[1]==3:
       gl.glUniform3fv(loc,v.shape[0],v)
     if type(v) == np.ndarray and len(v.shape)==2 and v.shape[1]==4:
@@ -203,7 +204,7 @@ shaders = {}
 def getShader(name,tess=False,instance=False,geom=False,forceReload=False):
   global shaders
   if name not in shaders or forceReload:
-    print "Loading shader",name
+    logging.info("Loading shader '{:s}'".format(name))
     if not tess:
       if not instance:
         shaders[name] = GenericShader(

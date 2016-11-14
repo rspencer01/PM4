@@ -1,0 +1,29 @@
+#version 330
+layout(location=0) out vec4 fragColor;
+layout(location=1) out vec4 fragNorm;
+layout(location=2) out vec4 fragPos;
+
+in GeometryData
+{
+  vec4 position;
+  vec2 uv;
+  vec3 normal;
+} GeometryOut;
+
+uniform vec3 sunDirection;
+uniform vec3 CameraPosition;
+uniform vec3 userCameraPosition;
+uniform sampler2D shadowTexture1;
+uniform sampler2D shadowTexture2;
+uniform sampler2D shadowTexture3;
+uniform sampler2D  colormap;
+uniform sampler2D  bumpmap;
+
+void main()
+{
+  vec4 color = texture2D(colormap,GeometryOut.uv);
+  if (color.a < 0.4) discard;
+  fragNorm = vec4(GeometryOut.normal,1);
+  fragPos = GeometryOut.position;
+  fragColor = vec4(color);
+}
