@@ -79,6 +79,7 @@ for i in xrange(patches-1):
       yy = textSize*(t[2]+30000)/60000
       textData[xx,yy][0] = 1
 foliageMap.loadData(textSize,textSize,textData)
+Shaders.setUniform('foliageMap',Texture.FOLIAGEMAP_NUM)
 logging.info(" + Total trees {:d}".format(totalTrees))
 tree1.freeze()
 logging.info(" + Created trees")
@@ -86,5 +87,4 @@ del data
 
 def display(pos,shadows=False):
   foliageMap.load()
-  Shaders.setUniform('foliageMap',Texture.FOLIAGEMAP_NUM)
   tree1.display(pos,shadows)
