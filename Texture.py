@@ -32,32 +32,56 @@ class Texture:
     self.size = ()
 
     self.load()
-    #gl.glPixelStorei(gl.GL_UNPACK_ALIGNMENT,1)
+
     gl.glTexParameteri(gl.GL_TEXTURE_2D, gl.GL_TEXTURE_WRAP_S, gl.GL_REPEAT)
     gl.glTexParameteri(gl.GL_TEXTURE_2D, gl.GL_TEXTURE_WRAP_T, gl.GL_REPEAT)
     gl.glTexParameteri(gl.GL_TEXTURE_2D, gl.GL_TEXTURE_MAG_FILTER, gl.GL_LINEAR)
-    gl.glTexParameteri(gl.GL_TEXTURE_2D, gl.GL_TEXTURE_MIN_FILTER, gl.GL_LINEAR_MIPMAP_LINEAR)    
-  def loadData(self,width,height,data):
+    gl.glTexParameteri(gl.GL_TEXTURE_2D, gl.GL_TEXTURE_MIN_FILTER, gl.GL_LINEAR_MIPMAP_LINEAR)
+
+
+  def loadData(
+      self,
+      width,
+      height,
+      data,
+      internal_format=gl.GL_RGBA32F,
+      type=gl.GL_FLOAT):
     self.load()
-    gl.glTexImage2D(gl.GL_TEXTURE_2D, 0 ,gl.GL_RGBA32F, width, height, 0, gl.GL_RGBA, gl.GL_FLOAT, data)
+    gl.glTexImage2D(gl.GL_TEXTURE_2D, 0 ,internal_format, width, height, 0, gl.GL_RGBA, type, data)
     self.size = (width,height)
     self.makeMipmap()
-    del data
+
+
   def makeMipmap(self):
     self.load()
     gl.glGenerateMipmap(gl.GL_TEXTURE_2D)
+
+
   def load(self):
-    gl.glActiveTexture(self.textureType)
+    self.loadAs(self.textureType)
+
+
+  def loadAs(self, type):
+    gl.glActiveTexture(type)
     gl.glBindTexture(gl.GL_TEXTURE_2D, self.id)
+
+
+
   def getData(self):
     self.load()
     return gl.glGetTexImage(gl.GL_TEXTURE_2D,0,gl.GL_RGBA,gl.GL_FLOAT)
+
+
   def saveToFile(self,fileName):
     np.save(fileName,self.getData())
+
+
   def loadFromFile(self,fileName):
     data = np.load(fileName)
     self.loadData(data.shape[0],data.shape[1],data)
     del data
+
+
   def __del__(self):
     print "Freeing texture",self.id
     gl.glDeleteTextures(self.id)
