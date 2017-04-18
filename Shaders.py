@@ -3,6 +3,7 @@ import logging
 import numpy as np
 import OpenGL.GL as gl
 from ctypes import c_void_p, sizeof
+import re
 
 currentShader = None
 
@@ -227,6 +228,16 @@ class TesselationShader(Shader):
 
 shaders = {}
 
+def readShaderFile(filename):
+  source = open(filename).read()
+  p = re.compile(r"#include\W(.+);")
+  m = p.search(source)
+  while m:
+    included = open(m.group(1)).read()
+    source = source.replace("#include {};".format(m.group(1)), included)
+    m = p.search(source)
+  return source
+
 def getShader(name,tess=False,instance=False,geom=False,forceReload=False):
   global shaders
   if name not in shaders or forceReload:
@@ -235,25 +246,25 @@ def getShader(name,tess=False,instance=False,geom=False,forceReload=False):
       if not instance:
         shaders[name] = GenericShader(
                                name,
-                               open('shaders/'+name+'/fragment.shd','r').read(),
-                               open('shaders/'+name+'/vertex.shd','r').read(),
-                               geom and open('shaders/'+name+'/geometry.shd','r').read()
+                               readShaderFile('shaders/'+name+'/fragment.shd'),
+                               readShaderFile('shaders/'+name+'/vertex.shd'),
+                               geom and readShaderFile('shaders/'+name+'/geometry.shd')
                                )
       else:
         shaders[name] = InstancedShader(
                                name,
-                               open('shaders/'+name+'/fragment.shd','r').read(),
-                               open('shaders/'+name+'/vertex.shd','r').read(),
-                               geom and open('shaders/'+name+'/geometry.shd','r').read()
+                               readShaderFile('shaders/'+name+'/fragment.shd'),
+                               readShaderFile('shaders/'+name+'/vertex.shd'),
+                               geom and readShaderFile('shaders/'+name+'/geometry.shd')
                                )
     else:
       shaders[name] = TesselationShader(
                                name,
-                               open('shaders/'+name+'/fragment.shd','r').read(),
-                               open('shaders/'+name+'/vertex.shd','r').read(),
-                               geom and open('shaders/'+name+'/geometry.shd','r').read(),
-                               open('shaders/'+name+'/tesscontrol.shd','r').read(),
-                               open('shaders/'+name+'/tesseval.shd','r').read()
+                               readShaderFile('shaders/'+name+'/fragment.shd'),
+                               readShaderFile('shaders/'+name+'/vertex.shd'),
+                               geom and readShaderFile('shaders/'+name+'/geometry.shd'),
+                               readShaderFile('shaders/'+name+'/tesscontrol.shd'),
+                               readShaderFile('shaders/'+name+'/tesseval.shd')
                                )
       
   return shaders[name]
