@@ -31,6 +31,8 @@ class Shader(object):
     self.objInfo = []
     # The errorful variables we have seen before
     self.warned = set()
+    # Uniforms that are still to be set
+    self.unsetUniforms = {}
 
   def addProgram(self,type,source):
     prog = gl.glCreateShader(type)
@@ -96,7 +98,17 @@ class Shader(object):
     gl.glDeleteVertexArrays(obj.vertexArray)
 
   def __setitem__(self,i,v):
-    self.load()
+    """
+    Sets the uniform lazily.  That is, we store the uniform CPU side, and only blitz it once
+    we are about to render.  See `_setitem`.
+    """
+    self.unsetUniforms[i] = v
+
+  def _setitem(self,i,v):
+    """
+    Actually sets the uniform in the shader.  Due to GPU overhead, this is not called via
+    the [] notation, but only when we render.
+    """
     if i not in self.locations:
       self.locations[i] = gl.glGetUniformLocation(self.program,i)
     loc = self.locations[i]
@@ -121,7 +133,17 @@ class Shader(object):
       gl.glUniform1i(loc,v)
       return
 
+  def _setitems(self):
+    """
+    Blits all the lazyloaded uniforms to the GPU.
+    """
+    for i,v in self.unsetUniforms.items():
+      self._setitem(i,v)
+    self.unsetUniforms = {}
+
   def draw(self,type,objectIndex,num=0):
+    self.load()
+    self._setitems()
     gl.glBindVertexArray(self.objInfo[objectIndex].vertexArray)
     gl.glDrawElements(type,self.objInfo[objectIndex].numIndices,gl.GL_UNSIGNED_INT,None)
 
@@ -172,6 +194,8 @@ class InstancedShader(GenericShader):
     gl.glBindBuffer(gl.GL_ARRAY_BUFFER,0)
 
   def draw(self,type,objectIndex,num=0,offset=0):
+    self.load()
+    self._setitems()
     gl.glBindVertexArray(self.objInfo[objectIndex].vertexArray)
     gl.glDrawElementsInstancedBaseInstance(
                                type,
@@ -194,6 +218,8 @@ class TesselationShader(Shader):
     self.build()
 
   def draw(self,number,objectIndex):
+    self.load()
+    self._setitems()
     gl.glBindVertexArray(self.objInfo[objectIndex].vertexArray)
     gl.glPatchParameteri(gl.GL_PATCH_VERTICES,3)
     gl.glDrawArrays(gl.GL_PATCHES,0,number)
