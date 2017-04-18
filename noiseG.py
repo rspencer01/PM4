@@ -10,7 +10,7 @@ import args
 logging.info("Constructing Noise")
 
 noiseT = Texture.Texture(Texture.NOISE)
-textWidth = 800
+textWidth = 1000
 textHeight = textWidth
 if not os.path.exists('noise.npy') or args.args.remake_noise:
   logging.info(" + Creating texture")
@@ -29,7 +29,7 @@ if not os.path.exists('noise.npy') or args.args.remake_noise:
       nz = x1+np.sin(s*2*np.pi)*dx/(2*np.pi)
       nw = y1+np.sin(t*2*np.pi)*dy/(2*np.pi)
 
-      t = noise.snoise4(nx,ny,nz,nw,octaves=10,persistence=0.6)
+      t = noise.snoise4(nx,ny,nz,nw,octaves=7,persistence=0.5)
       d[i,j] = (t,t,t,t)
   for i in range(textWidth):
     for j in range(textHeight):
@@ -38,6 +38,9 @@ if not os.path.exists('noise.npy') or args.args.remake_noise:
       v3= np.array([dx*float(i)/textWidth,   d[i,(j+1)%textHeight][3], dy*float(j+1)/textWidth])
       d[i,j][:3] = np.cross(v3-v1,v2-v1)
       d[i,j][:3] /= np.dot(d[i,j][:3],d[i,j][:3])**0.5
+
+      d[i,j,2] = (d[(i+1)%textWidth,j,3] - d[i,j,3] )/ (1. / textWidth)
+      d[i,j,0] = (d[i,(j+1)%textWidth,3] - d[i,j,3] )/ (1. / textHeight)
   np.save('noise.npy',d)
 else:
   logging.info(" + Loaded from file")
