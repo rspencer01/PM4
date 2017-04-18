@@ -96,7 +96,7 @@ def render():
     Shaders.setUniform('shadowLevel',i)
     shadowCamera.render('shadow'+str(i+1))
   
-    Terrain.display()
+    Terrain.display(lockCam)
     grass.display(lockCam)
     Forest.display(lockCam.pos,i)
 

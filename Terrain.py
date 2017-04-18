@@ -1,4 +1,5 @@
 import numpy as np
+import args
 import Image
 import logging
 from Shaders import *
@@ -32,6 +33,9 @@ indices = np.array([],dtype=np.int32)
 
 # Set up renderer
 shader = getShader('terrain',tess=True,geom=False,forceReload=True)
+shader['model'] = np.eye(4,dtype=np.float32)
+shader['heightmap'] = Texture.HEIGHTMAP_NUM
+shader['colormap'] = Texture.COLORMAP_NUM
 renderID = shader.setData(data,indices)
 
 # Texture sizes
@@ -41,7 +45,7 @@ textRes = float(planetSize) / textWidth
 logging.info(" + Heightmap texture size {:d}x{:d} for a resolution of {:.1f}m per pixel".format(textWidth,textWidth,textRes))
 textHeight = textWidth
 sign = lambda x: 1 if x>0 else -1
-if not os.path.exists('terrain.npy'):
+if not os.path.exists('terrain.npy') or args.args.remake_terrain:
   d = np.zeros((textWidth,textHeight,4),dtype=np.float32)
   logging.info(" + Calculating heightmap")
   im = Image.open("assets/Cederberg Mountains Height Map (Merged).png")
@@ -87,9 +91,6 @@ if not os.path.exists('terrain.npy'):
     d[0,i] = -1000
     d[-1,i] = -1000
 
-  d[textWidth/2-1,textHeight/2-1] = 3000
-  d[textWidth/2-1,textHeight/2] = 3000
-  d[textWidth/2,textHeight/2] = 3000
   logging.info(" + Calculating normalmap")
   for i in range(textWidth-1):
     sys.stdout.write(' | '+str(i)+" / "+str(textWidth))
@@ -142,17 +143,16 @@ texData[0:colorMapSize/2,colorMapSize/2:] = stone
 texData[colorMapSize/2:,0:colorMapSize/2] = dirt
 texture.loadData(texData.shape[0],texData.shape[1],texData)
 del texData
+setUniform('heightmap',Texture.HEIGHTMAP_NUM)
 
-def display():
-  setUniform('heightmap',Texture.HEIGHTMAP_NUM)
+def display(camera):
+  if np.sum(camera.pos*camera.pos) > 6e6**2:
+    return
   shader.load()
   texture.load()
-  shader['model'] = np.eye(4,dtype=np.float32)
-  shader['heightmap'] = Texture.HEIGHTMAP_NUM
-  shader['colormap'] = Texture.COLORMAP_NUM
   heightmap.load()
   shader.draw((patches-1)**2*6,renderID)
-  
+
 def getAt(x,y):
   x,y = x,y
   x+=planetSize/2

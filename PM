@@ -66,7 +66,7 @@ def display():
 
   camera.render()
   camera.render('user')
-  Terrain.display()
+  Terrain.display(camera)
   grass.display(camera)
   Forest.display(camera.pos)
 
