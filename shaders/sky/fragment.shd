@@ -27,7 +27,7 @@ float Hr = 1e4;
 float Hm = 1.15e3;
 float INF = 1e20;
 float g = 0.65;
-int numInt = 100;
+int numInt = 80;
 
 bool intersects(vec3 position, vec3 direction, float radius)
 {
@@ -70,7 +70,7 @@ vec3 getCelestialColor(vec3 direction)
   }
   vec3 celestialColor = textureLod(nightSkymap,celestialMap,0).rgb*0.03;
 
-  celestialColor += exp(-pow(1-clamp(dot(direction,normalize(sunDirection)),0,1),2)/(0.0000005))*80*vec3(1,0.90,0.7);
+  celestialColor += exp(-pow(1-clamp(dot(direction,normalize(sunDirection)),0,1),2)/(0.0000005))*5*vec3(1,0.90,0.7);
   return celestialColor;
 }
 
