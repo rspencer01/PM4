@@ -30,10 +30,10 @@ out TesselationData
 float getCurvature()
 {
   float c = texture(heightmap,TesselationOut.position.xz/60000+vec2(0.5)).a;
-  float d = texture(heightmap,(TesselationOut.position.xz+vec2(30,0))/60000+vec2(0.5)).a+
-            texture(heightmap,(TesselationOut.position.xz+vec2(0,30))/60000+vec2(0.5)).a+
-            texture(heightmap,(TesselationOut.position.xz+vec2(-30,0))/60000+vec2(0.5)).a+
-            texture(heightmap,(TesselationOut.position.xz+vec2(0,-30))/60000+vec2(0.5)).a;
+  float d = texture(heightmap,(TesselationOut.position.xz+vec2(10,0))/60000+vec2(0.5)).a+
+            texture(heightmap,(TesselationOut.position.xz+vec2(0,10))/60000+vec2(0.5)).a+
+            texture(heightmap,(TesselationOut.position.xz+vec2(-10,0))/60000+vec2(0.5)).a+
+            texture(heightmap,(TesselationOut.position.xz+vec2(0,-10))/60000+vec2(0.5)).a;
   d/=4;
   return abs(c-d);
 }
@@ -103,29 +103,20 @@ vec4 textureBicubic(sampler2D sampler, vec2 texCoords){
     , sy);
 }
 
-float getFineAmount()
+float getFineAmount(vec3 pos)
 {
-  float theta = acos(normalize(texture(heightmap,TesselationOut.position.xz/60000+vec2(0.5)).xyz).y);
-  if (theta<0.3)
-    return 4;
-  theta = (theta -0.5)/(3.1415/2 - 0.5);
-  return (theta*30+5) + 2*getCurvature();
+  float theta = acos(normalize(texture(heightmap,pos.xz/60000+vec2(0.5)).xyz).y);
+  if (theta<0.4)
+    return 30;
+  return 30+(theta-0.4)*100 + 10*(theta-0.4)*getCurvature();
 }
 
 vec4 getFineValue(vec3 pos)
 {
-  vec4 ans1 =textureLod(noise,pos.xz/800,0);
-  ans1.xz /= 800;
-  ans1.xyz = normalize(ans1.xyz);
-  vec4 ans2 =textureLod(noise,pos.xz/200+vec2(0.1,0.3),0);
-  ans2.xz /= 200;
-  ans2.xyz = normalize(ans2.xyz);
-  ans2 = scaleNormal(ans2,0.1);
-  vec4 ans3 =textureLod(noise,pos.xz/1200+vec2(0.1,0.3),0);
-  ans3.xz /= 1200;
-  ans3.xyz = normalize(ans3.xyz);
-  ans3 = scaleNormal(ans3,3);
-  return  addNormals(ans3,addNormals(ans1,ans2));
+  vec4 ans1 =textureBicubic(noise,pos.xz/1200);
+  ans1.xz/=1200;
+  ans1.xzw*=getFineAmount(pos);
+  return ans1;
 }
 
 void main()
@@ -145,7 +136,7 @@ void main()
   vec3 normal = textureBicubic(heightmap,(TesselationOut.position.xz/60000)+vec2(0.5)).zyx;
   normal = normalize(normal);
 
-  displacement += normal * getFineAmount() * getFineValue(TesselationOut.position.xyz).a;
+  displacement += normal* getFineValue(TesselationOut.position.xyz).a;
 
   TesselationOut.position.xyz += displacement;
 

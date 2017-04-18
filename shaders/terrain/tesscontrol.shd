@@ -21,10 +21,16 @@ uniform sampler2D noise;
 
 int detailLevel(vec3 position)
 {
-  float dist = length(userCameraPosition.xz - position.xz);
-  if (dist < 1000)
-    return 200;
-  return 3;
+  vec3 dir = position - userCameraPosition;
+  float dist = length(dir.xz);
+  if (dist < 300)
+    return 100;
+  if (dist < 7000)
+    return max(2,
+        int(100*(pow(1-max(0,dist-300)/8000.0,4))));
+  if (dot(normalize(dir),CameraDirection) < 0.7)
+    return 0;
+  return 1;
 } 
 
 
