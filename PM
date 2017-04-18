@@ -22,6 +22,7 @@ program = None
 windowHeight = 512
 windowWidth = 512
 lockToGround = False
+line = False
 cameraSpeed = 20
 frametime = 0.
 lastframe = time.time()
@@ -53,6 +54,8 @@ def display():
   camera.render('user')
   Shadows.render()
 
+  if line:
+    gl.glPolygonMode(gl.GL_FRONT_AND_BACK,gl.GL_LINE)
   renderStages[0].load(windowWidth, windowHeight)
 
   camera.render()
@@ -115,7 +118,7 @@ def reshape(width,height):
 
 keys = set()
 def keyboard(key,x,y):
-  global cameraSpeed
+  global cameraSpeed, line
   if key=='\033':
     #    Shadows.cleanup()
     sys.exit(0)
@@ -132,6 +135,8 @@ def keyboard(key,x,y):
     cameraSpeed += 1
   if key=='-':
     cameraSpeed -= 1
+  if key=='p':
+    line = not line
   keys.add(key)
 
 def keyboardUp(key,x,y):
