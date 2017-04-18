@@ -6,14 +6,14 @@ import Terrain
 #import Grass
 import Texture
 #import Marker
-import Forest
+#import Forest
 import Shaders
-import grass
+#import grass
 import transforms
 
 print "Initialising Shadows"
 
-shadowSize = 2048
+shadowSize = 1024
 
 sunDeclination = 22/180.0*3.141592
 latitude = 3.1415/4
@@ -26,8 +26,7 @@ shadowCamera.rotLeftRight(sunPhi)
 shadowCamera.update()
 
 sunDirection = shadowCamera.direction
-#sunDirection[0],sunDirection[2] = sunDirection[2],sunDirection[0]
-Shaders.setUniform('sunDirection',sunDirection*np.array((1,1,-1)))
+#sunDirection[0],sunDirection[2] = sunDirection[2],sunDirection[0] Shaders.setUniform('sunDirection',sunDirection*np.array((1,1,-1)))
 
 shadowTexture1 = Texture.Texture(Texture.SHADOWS1)
 shadowTexture2 = Texture.Texture(Texture.SHADOWS2)
@@ -65,8 +64,7 @@ def render():
   # Get this right some day
   sunTheta = np.cos(count/200.0)*0.1
   sunTheta = -count/500.0+2.005
-  sunTheta = 1.1+0.9*np.sin(count/50.)
-  shadowTexture1.load()
+ # sunTheta = 1.1+0.9*np.sin(count/50.)
   shadowCamera.direction = np.array([0.,0.,1.])
   shadowCamera.theta = 0
   shadowCamera.phi = 0
@@ -95,23 +93,22 @@ def render():
     Shaders.setUniform('shadowProjection'+str(i+1),projection)
     Shaders.setUniform('shadowLevel',i)
     shadowCamera.render('shadow'+str(i+1))
-  
+
     Terrain.display(lockCam)
-    grass.display(lockCam)
-    Forest.display(lockCam.pos,i)
+ #   grass.display(lockCam)
+ #   Forest.display(lockCam.pos,i)
 
     textures[i].makeMipmap()
   Shaders.setUniform('shadowLevel',-1)
-    
+
   gl.glBindFramebuffer(gl.GL_FRAMEBUFFER, 0);
-  
-  
+
   Shaders.setUniform('shadowTexture1',Texture.SHADOWS1_NUM)
   Shaders.setUniform('shadowTexture2',Texture.SHADOWS2_NUM)
   Shaders.setUniform('shadowTexture3',Texture.SHADOWS3_NUM)
 
   count+=1
-  
+
 def cleanup():
   gl.glDeleteFramebuffers(frameBuffers[1:])
   for i in textures:

@@ -16,7 +16,7 @@ if (texdata.shape[1]!=4):
 texdata = texdata.reshape(grass_image.size[0], grass_image.size[1], 4)
 texture.loadData(texdata.shape[0],texdata.shape[1],texdata/256)
 
-numberOfPatches = 500
+numberOfPatches = 100
 patchSize = 1.
 logging.info(" + {:d} ({:d}x{:d}) patches at {:f}m on a side".format((numberOfPatches)**2,numberOfPatches,numberOfPatches,patchSize))
 

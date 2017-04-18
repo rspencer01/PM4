@@ -33,7 +33,6 @@ def display():
   global frametime,lastframe,cputime,lastcpucycle
   frametime = frametime*.8 + 0.2*(time.time()-lastframe)
   lastframe = time.time()
-  glut.glutSetWindowTitle("PM4 {:.2f} ({:.0f}ms)".format(1./frametime,frametime*1000))
 
   if lockToGround:
     camera.pos[1] = Terrain.getAt(camera.pos[0],camera.pos[2])[3]+aboveGround
@@ -67,8 +66,8 @@ def display():
   camera.render()
   camera.render('user')
   Terrain.display(camera)
-  grass.display(camera)
-  Forest.display(camera.pos)
+  #grass.display(camera)
+  #Forest.display(camera.pos)
 
   gl.glPolygonMode(gl.GL_FRONT_AND_BACK,gl.GL_FILL);
   renderStages[1].load(windowWidth, windowHeight)
@@ -81,6 +80,7 @@ def display():
   postrender.display(renderStages[2],windowWidth,windowHeight)
 
   glut.glutSwapBuffers()
+  glut.glutSetWindowTitle("PM4 {:.2f} ({:.0f}ms) {:.6f}".format(1./frametime,frametime*1000, time.time()-lastframe))
 
 def timer(fps):
 #  Marker.timeUpdate(1.0/fps)
@@ -118,7 +118,7 @@ def reshape(width,height):
 
 keys = set()
 def keyboard(key,x,y):
-  global cameraSpeed, line
+  global line
   if key=='\033':
     #    Shadows.cleanup()
     sys.exit(0)
@@ -127,20 +127,15 @@ def keyboard(key,x,y):
     lockToGround = not lockToGround
   if key=='~':
     userCommand()
-  if key=='#':
-    reload(Terrain)
-    reload(Sky)
-    reload(grass)
-  if key=='+':
-    cameraSpeed += 1
-  if key=='-':
-    cameraSpeed -= 1
   if key=='p':
     line = not line
+  if key=='#':
+    reload(Terrain)
   keys.add(key)
 
 def keyboardUp(key,x,y):
-  keys.remove(key)
+  if key in keys:
+    keys.remove(key)
 
 def mouse(button,state,x,y):
   global mouseX,mouseY
@@ -190,12 +185,12 @@ projection = perspective( 60.0, 1, 0.3, 8000.0 )
 setUniform('projection',projection)
 setUniform('fogLevel',8.0)
 setUniform('maxFog',1000.0)
-import Forest
+#import Forest
 
 import Shadows
 import postrender
 import Sky
-import grass
+#import grass
 
 camera = Camera.Camera(np.array([0,1e4,0]))
 camera.radiusCentre = np.array([0,-Re,0])

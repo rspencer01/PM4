@@ -8,7 +8,7 @@ import noiseG
 import args
 
 print "Constructing opticalDepths"
-N = 128
+N = 256
 Re = 6.360e6
 Ra = 6520e3
 Hr = 1e4
@@ -28,7 +28,7 @@ if not os.path.exists('opdepth.npy') or args.args.remake_sky:
           opdepth[k][j] = [-1,-1,0,0]
       #    continue
       r = (Ra**2-P[0]**2)**0.5-P[1]
-      nn = 200
+      nn = 400
       dx = r/nn
       opdepthR = 0;
       opdepthM = 0;
@@ -104,6 +104,8 @@ else:
 shader = getShader('sky',forceReload=True)
 renderID = shader.setData(data,indices)
 def display(previousStage):
+  #gl.glDisable(gl.GL_DEPTH_TEST)
+  #gl.glDepthMask(False)
   previousStage.displayColorTexture.load()
   # TODO Is this needed?
   previousStage.displayDepthTexture.load()
@@ -118,3 +120,5 @@ def display(previousStage):
   shader['nightSkymap'] = Texture.COLORMAP2_NUM
   shader['opticaldepthmap'] = Texture.BUMPMAP_NUM
   shader.draw(gl.GL_TRIANGLES,renderID,1)
+  #gl.glEnable(gl.GL_DEPTH_TEST)
+  #gl.glDepthMask(True)
