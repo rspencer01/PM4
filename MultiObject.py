@@ -14,7 +14,10 @@ from transforms import *
 import OpenGL.GL as gl
 
 shader          = Shaders.getShader('general',instance=True,forceReload=True)
+shader['colormap'] = Texture.COLORMAP_NUM
 billboardShader = Shaders.getShader('billboard',instance=True,forceReload=True)
+billboardShader['colormap'] = Texture.COLORMAP_NUM
+billboardShader['bumpmap'] = Texture.BUMPMAP_NUM
 makeBillboardShader = Shaders.getShader('makeBillboard',instance=True,forceReload=True)
 
 class MultiObject(object):
@@ -110,7 +113,6 @@ class MultiObject(object):
     if num==None: num = len(self.instances)
     for mesh,renderID in zip(self.meshes,self.renderIDs):
       # Load texture
-      shader['colormap'] = Texture.COLORMAP_NUM
       mesh[2].load()
       shader.draw(gl.GL_TRIANGLES,renderID,num,offset)
 
@@ -118,8 +120,6 @@ class MultiObject(object):
     if num==None: num = len(self.instances)
     # Load texture
     billboardShader.load()
-    billboardShader['colormap'] = Texture.COLORMAP_NUM
-    billboardShader['bumpmap'] = Texture.BUMPMAP_NUM
     self.billboardTexture.load()
     self.billboardnormalTexture.load()
     billboardShader.draw(gl.GL_TRIANGLES,self.billboardRenderID,num,offset)
@@ -220,12 +220,12 @@ class MultiObject(object):
 #      enindex = self.swatches[enj][i].endIndex
 #      self.renderBillboards(stindex,enindex-stindex)
     self.renderBillboards(0,self.swatches[-1][-1].endIndex)
+    return
 
     # Render the full geometries
     indexPos = (int((pos[2]+30000)*self.numSwatches/60000),
                 int((pos[0]+30000)*self.numSwatches/60000))
     shader.load()
-    shader['colormap'] = Texture.COLORMAP_NUM
     for i in xrange(max(0,indexPos[1]-2),min(self.numSwatches-1,indexPos[1]+3)):
       stj,enj  = max(0,indexPos[0]-2),min(self.numSwatches-1,indexPos[0]+3)
       stindex = self.swatches[stj][i].startIndex
