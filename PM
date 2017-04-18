@@ -38,7 +38,6 @@ def display():
     camera.pos[1] = Terrain.getAt(camera.pos[0],camera.pos[2])[3]+aboveGround
 
   global cameraSpeed
-  noiseG.load(setUniform)
 
   p = camera.pos + np.array([0,Re,0])
   cameraSpeed = max((p.dot(p)**0.5-Re-1000)*2+90,0)
@@ -54,9 +53,7 @@ def display():
   camera.render('user')
   Shadows.render()
 
-  gl.glBindFramebuffer(gl.GL_FRAMEBUFFER, renderStages[0].displayFBO)
-  gl.glClear(gl.GL_DEPTH_BUFFER_BIT | gl.GL_COLOR_BUFFER_BIT)
-  gl.glViewport(0,0,windowWidth,windowHeight)
+  renderStages[0].load(windowWidth, windowHeight)
 
   camera.render()
   projection = perspective( 60.0, windowWidth/float(windowHeight), 0.3, 1e7 )
@@ -70,30 +67,19 @@ def display():
   grass.display(camera)
   Forest.display(camera.pos)
 
-  gl.glBindFramebuffer(gl.GL_FRAMEBUFFER, renderStages[1].displayFBO)
-  gl.glClear(gl.GL_DEPTH_BUFFER_BIT | gl.GL_COLOR_BUFFER_BIT)
-  gl.glViewport(0,0,windowWidth,windowHeight)
+  gl.glPolygonMode(gl.GL_FRONT_AND_BACK,gl.GL_FILL);
+  renderStages[1].load(windowWidth, windowHeight)
   postrender.lighting(renderStages[0].displayColorTexture,renderStages[0].displaySecondaryColorTexture,renderStages[0].displayAuxColorTexture,renderStages[0].displayDepthTexture)
 
-  gl.glBindFramebuffer(gl.GL_FRAMEBUFFER, renderStages[2].displayFBO)
-  gl.glClear(gl.GL_DEPTH_BUFFER_BIT | gl.GL_COLOR_BUFFER_BIT)
-  gl.glViewport(0,0,windowWidth,windowHeight)
-  Sky.display(renderStages[1].displayColorTexture,renderStages[1].displayDepthTexture)
+  renderStages[2].load(windowWidth, windowHeight)
+  Sky.display(renderStages[1])
 
-  gl.glBindFramebuffer(gl.GL_FRAMEBUFFER, 0)
-  gl.glClear(gl.GL_COLOR_BUFFER_BIT | gl.GL_DEPTH_BUFFER_BIT)
-  gl.glViewport(0,0,windowWidth,windowHeight)
-  postrender.display(renderStages[2].displayColorTexture,renderStages[2].displayDepthTexture,windowWidth,windowHeight)
+  renderStages[3].load(windowWidth, windowHeight)
+  postrender.display(renderStages[2],windowWidth,windowHeight)
 
   glut.glutSwapBuffers()
 
-t = 1.0
 def timer(fps):
-  global t
-  t -= 1.0/fps
-  if t<0:
-    glut.glutSetWindowTitle("PM3 "+ str(fps) + " fps")
-    t = 3.0
 #  Marker.timeUpdate(1.0/fps)
   if 'w' in keys:
     camera.move(cameraSpeed * 1.0/fps)
@@ -125,11 +111,7 @@ def reshape(width,height):
   windowHeight = height
   windowWidth = width
   for stage in renderStages:
-    stage.displayColorTexture.loadData(width,height,None)
-    stage.displaySecondaryColorTexture.loadData(width,height,None)
-    stage.displayAuxColorTexture.loadData(width,height,None)
-    stage.displayDepthTexture.load()
-    gl.glTexImage2D(gl.GL_TEXTURE_2D, 0,gl.GL_DEPTH_COMPONENT32, width, height, 0,gl.GL_DEPTH_COMPONENT, gl.GL_FLOAT, None)
+    stage.reshape(width, height)
 
 keys = set()
 def keyboard(key,x,y):
@@ -170,9 +152,8 @@ def userCommand():
       print "Exception:",e
     command = raw_input('>>> ')
 
-
 glut.glutInit()
-print "Requesting OpenGL 4.2"
+logging.info("Requesting OpenGL 4.2")
 glut.glutInitContextVersion(4, 2);
 glut.glutInitContextFlags(glut.GLUT_FORWARD_COMPATIBLE);
 glut.glutInitContextProfile(glut.GLUT_CORE_PROFILE);
@@ -180,10 +161,8 @@ glut.glutInitDisplayMode(glut.GLUT_DOUBLE | glut.GLUT_RGBA | glut.GLUT_DEPTH)
 glut.glutInitWindowSize(512,512);
 glut.glutCreateWindow("PM4")
 gl.glEnable(gl.GL_DEPTH_TEST)
-gl.glPolygonMode(gl.GL_FRONT_AND_BACK,gl.GL_FILL );
+gl.glPolygonMode(gl.GL_FRONT_AND_BACK,gl.GL_FILL);
 gl.glEnable(gl.GL_BLEND)
-gl.glEnable(gl.GL_PROGRAM_POINT_SIZE);
-gl.glPointSize(3.)
 gl.glBlendFunc(gl.GL_SRC_ALPHA, gl.GL_ONE_MINUS_SRC_ALPHA);
 glut.glutReshapeFunc(reshape)
 glut.glutDisplayFunc(display)
@@ -192,7 +171,7 @@ glut.glutMouseFunc(mouse)
 glut.glutKeyboardUpFunc(keyboardUp)
 glut.glutTimerFunc(1000/60, timer, 60)
 glut.glutPassiveMotionFunc(mouseMotion)
-print "Obtained OpenGL",gl.glGetString(gl.GL_VERSION)
+logging.info("Obtained OpenGL "+gl.glGetString(gl.GL_VERSION))
 
 from Shaders import *
 import Camera
@@ -200,8 +179,8 @@ import Texture
 #import Marker
 import Terrain
 import noiseG
+noiseG.load(setUniform)
 #import Road
-gl.glClear(gl.GL_COLOR_BUFFER_BIT | gl.GL_DEPTH_BUFFER_BIT)
 projection = perspective( 60.0, 1, 0.3, 8000.0 )
 setUniform('projection',projection)
 setUniform('fogLevel',8.0)
@@ -226,6 +205,8 @@ Shadows.lockCam = camera
 
 renderStages = [RenderStage.RenderStage(),
                 RenderStage.RenderStage(),
-                RenderStage.RenderStage()]
+                RenderStage.RenderStage(),
+                RenderStage.RenderStage(final_stage=True)
+                ]
 print "Initialisation finished."
 glut.glutMainLoop()

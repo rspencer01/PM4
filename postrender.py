@@ -8,21 +8,36 @@ I = [0,1,2, 1,2,3]
 indices = np.array(I,dtype=np.int32)
   
 shader = getShader('postrender',forceReload=True)
+shader['model'] = np.eye(4,dtype=np.float32)
+shader['colormap'] = Texture.COLORMAP_NUM
+shader['depthmap'] = Texture.DEPTHMAP_NUM
+shader['highCol'] = Texture.COLORMAP2_NUM
 renderID = shader.setData(data,indices)
+
 lightingShader = getShader('lighting',forceReload=True)
+lightingShader['model'] = np.eye(4,dtype=np.float32)
+lightingShader['colormap'] = Texture.COLORMAP_NUM
+lightingShader['normmap'] = Texture.COLORMAP2_NUM
+lightingShader['posmap'] = Texture.COLORMAP3_NUM
+lightingShader['depthmap'] = Texture.DEPTHMAP_NUM
 lightingRenderID = lightingShader.setData(data,indices)
+
 mapShader = getShader('map',forceReload=True)
+mapShader['heightmap'] = Texture.HEIGHTMAP_NUM
 mapRenderID = mapShader.setData(data,indices) 
+
+setUniform('ambientLight',0.1)
+setUniform('sunLight',1.0)
 
 exposure = 1.0
 
 highColTexture = Texture.Texture(Texture.COLORMAP2)
 blurredHighColTexture = Texture.Texture(Texture.COLORMAP2)
 
-def display(colorTexture,depthTexture,windowWidth,windowHeight):
-  depthTexture.load()
-  colorTexture.load()
-  colorTexture.makeMipmap()
+def display(previousStage,windowWidth,windowHeight):
+  previousStage.displayDepthTexture.load()
+  previousStage.displayColorTexture.load()
+  previousStage.displayColorTexture.makeMipmap()
   data = gl.glGetTexImage(gl.GL_TEXTURE_2D,3,gl.GL_RGBA,gl.GL_FLOAT)
   s = data.sum(axis=0).sum(axis=0)/(data.shape[0]*data.shape[1])
   s = s[:3].dot(s[:3])**0.5
@@ -43,7 +58,7 @@ def display(colorTexture,depthTexture,windowWidth,windowHeight):
 #  blurredHighColTexture.load()
 
   # This shouldn't happen here, but we mess with the buffers in the highlights stuff
-  colorTexture.load()
+  previousStage.displayColorTexture.load()
   gl.glBindFramebuffer(gl.GL_FRAMEBUFFER, 0)
   gl.glClear(gl.GL_COLOR_BUFFER_BIT | gl.GL_DEPTH_BUFFER_BIT)
   gl.glViewport(0,0,windowWidth,windowHeight)
@@ -56,7 +71,6 @@ def display(colorTexture,depthTexture,windowWidth,windowHeight):
   shader['brightness'] = exposure
   shader.draw(gl.GL_TRIANGLES,renderID,1)
   mapShader.load()
-  mapShader['heightmap'] = Texture.HEIGHTMAP_NUM
   mapShader.draw(gl.GL_TRIANGLES,mapRenderID,1)
 
 def lighting(colorTexture,normTexture,posTexture,depthTexture):
@@ -74,4 +88,4 @@ def lighting(colorTexture,normTexture,posTexture,depthTexture):
   lightingShader['depthmap'] = Texture.DEPTHMAP_NUM
   lightingShader['ambientLight'] = 0.1;
   lightingShader['sunLight'] = 0.9
-  shader.draw(gl.GL_TRIANGLES,lightingRenderID,1)
+  lightingShader.draw(gl.GL_TRIANGLES,lightingRenderID,1)

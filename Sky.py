@@ -103,11 +103,10 @@ else:
 
 shader = getShader('sky',forceReload=True)
 renderID = shader.setData(data,indices)
-def display(colorTexture,depthTexture):
-  #gl.glDisable(gl.GL_DEPTH_TEST)
-  #gl.glDepthMask(False)
-  depthTexture.load()
-  colorTexture.load()
+def display(previousStage):
+  previousStage.displayColorTexture.load()
+  # TODO Is this needed?
+  previousStage.displayDepthTexture.load()
   nightSkyTexture.load();
   opticalDepthmap.load()
   shader.load()
@@ -119,5 +118,3 @@ def display(colorTexture,depthTexture):
   shader['nightSkymap'] = Texture.COLORMAP2_NUM
   shader['opticaldepthmap'] = Texture.BUMPMAP_NUM
   shader.draw(gl.GL_TRIANGLES,renderID,1)
-  #gl.glEnable(gl.GL_DEPTH_TEST)
-  #gl.glDepthMask(True)

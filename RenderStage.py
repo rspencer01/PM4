@@ -3,8 +3,26 @@ import OpenGL.GL.framebufferobjects as glfbo
 import Texture
 
 class RenderStage(object):
-  def __init__(self):
-    self.create_fbos()
+  def __init__(self, final_stage=False):
+    self.final_stage = final_stage
+    if not final_stage:
+      self.create_fbos()
+
+  def load(self, width, height):
+    if not self.final_stage:
+      gl.glBindFramebuffer(gl.GL_FRAMEBUFFER, self.displayFBO)
+    else:
+      gl.glBindFramebuffer(gl.GL_FRAMEBUFFER, 0)
+    gl.glClear(gl.GL_DEPTH_BUFFER_BIT | gl.GL_COLOR_BUFFER_BIT)
+    gl.glViewport(0, 0, width, height)
+
+  def reshape(self, width, height):
+    if self.final_stage: return
+    self.displayColorTexture.loadData(width, height, None)
+    self.displaySecondaryColorTexture.loadData(width, height, None)
+    self.displayAuxColorTexture.loadData(width, height, None)
+    self.displayDepthTexture.load()
+    gl.glTexImage2D(gl.GL_TEXTURE_2D, 0,gl.GL_DEPTH_COMPONENT32, width, height, 0,gl.GL_DEPTH_COMPONENT, gl.GL_FLOAT, None)
 
   def create_fbos(self):
     self.displayFBO = gl.glGenFramebuffers(1)
