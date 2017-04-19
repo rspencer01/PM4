@@ -26,6 +26,7 @@ line = False
 cameraSpeed = 20
 frametime = 0.
 lastframe = time.time()
+enableAtmosphere = not args.args.disable_atmosphere
 
 aboveGround = 1
 
@@ -74,12 +75,16 @@ def display():
   gl.glPolygonMode(gl.GL_FRONT_AND_BACK,gl.GL_FILL);
   renderStages[1].load(windowWidth, windowHeight)
   postrender.lighting(renderStages[0].displayColorTexture,renderStages[0].displaySecondaryColorTexture,renderStages[0].displayAuxColorTexture,renderStages[0].displayDepthTexture)
+  lastRenderStage = renderStages[1]
 
-  renderStages[2].load(windowWidth, windowHeight)
-  Sky.display(renderStages[1])
+  if enableAtmosphere:
+    renderStages[2].load(windowWidth, windowHeight)
+    Sky.display(lastRenderStage)
+    lastRenderStage = renderStages[2]
 
   renderStages[3].load(windowWidth, windowHeight)
-  postrender.display(renderStages[2],windowWidth,windowHeight)
+  postrender.display(lastRenderStage,windowWidth,windowHeight)
+  lastRenderStage = renderStages[3]
 
   glut.glutSwapBuffers()
   glut.glutSetWindowTitle("PM4 {:.2f} ({:.0f}ms) {:.6f}".format(1./frametime,frametime*1000, time.time()-lastframe))
@@ -120,7 +125,7 @@ def reshape(width,height):
 
 keys = set()
 def keyboard(key,x,y):
-  global line
+  global line,enableAtmosphere
   if key=='\033':
     #    Shadows.cleanup()
     sys.exit(0)
@@ -133,6 +138,10 @@ def keyboard(key,x,y):
     line = not line
   if key=='#':
     reload(Terrain)
+  if key=='o':
+    enableAtmosphere = not enableAtmosphere
+  if key=='?':
+    print open('help').read()
   keys.add(key)
 
 def keyboardUp(key,x,y):
