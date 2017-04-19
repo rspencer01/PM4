@@ -134,6 +134,7 @@ setUniform('heightmap',Texture.HEIGHTMAP_NUM)
 pageTableTexture = Texture.Texture(Texture.COLORMAP2)
 gl.glTexParameteri(gl.GL_TEXTURE_2D, gl.GL_TEXTURE_MAG_FILTER, gl.GL_NEAREST)
 gl.glTexParameteri(gl.GL_TEXTURE_2D, gl.GL_TEXTURE_MIN_FILTER, gl.GL_NEAREST_MIPMAP_NEAREST)
+pageTableTexture.loadData(1,1, np.zeros((1,1,4))-1)
 pageRenderStage = RenderStage.RenderStage()
 pageRenderStage.reshape(pageResoultion*numPages,pageResoultion*numPages)
 pageTexture = pageRenderStage.displayAuxColorTexture
@@ -166,6 +167,10 @@ def generatePage(page):
   pageTexture.makeMipmap()
 
 def updatePageTable(camera):
+  if camera.pos[1] > 5000:
+    pageMapping.clear()
+    return
+
   currentPage = (pagesAcross - int(camera.pos[2] / (pageSize) + pagesAcross/2) , int(camera.pos[0] / (pageSize) + pagesAcross/2))
   data = np.zeros((pagesAcross, pagesAcross, 4),dtype=np.float32) - 1
   toredo = False
@@ -175,8 +180,6 @@ def updatePageTable(camera):
       if page not in pageMapping:
         toredo = True
   if not toredo: return
-
-  #pageMapping.clear()
 
   for i in xrange(max(0,currentPage[0]-numPages/2),min(pagesAcross,currentPage[0]+numPages/2+1)):
     for j in xrange(max(0,currentPage[1]-numPages/2),min(pagesAcross,currentPage[1]+numPages/2+1)):

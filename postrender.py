@@ -2,14 +2,16 @@ import numpy as np
 import Texture
 import graphicsOps
 from Shaders import *
+
 data = np.zeros(4,dtype=[("position" , np.float32,3)])
 data['position'] = [(-1,-1,0.999999),(-1,1,0.999999),(1,-1,0.999999),(1,1,0.999999)]
 I = [0,1,2, 1,2,3]
 indices = np.array(I,dtype=np.int32)
-  
+
 shader = getShader('postrender',forceReload=True)
 shader['model'] = np.eye(4,dtype=np.float32)
 shader['colormap'] = Texture.COLORMAP_NUM
+shader['blurredColorMap'] = Texture.COLORMAP3_NUM
 shader['depthmap'] = Texture.DEPTHMAP_NUM
 shader['highCol'] = Texture.COLORMAP2_NUM
 renderID = shader.setData(data,indices)
@@ -38,6 +40,7 @@ def display(previousStage,windowWidth,windowHeight):
   previousStage.displayDepthTexture.load()
   previousStage.displayColorTexture.load()
   previousStage.displayColorTexture.makeMipmap()
+
   data = gl.glGetTexImage(gl.GL_TEXTURE_2D,3,gl.GL_RGBA,gl.GL_FLOAT)
   s = data.sum(axis=0).sum(axis=0)/(data.shape[0]*data.shape[1])
   s = s[:3].dot(s[:3])**0.5
@@ -52,24 +55,12 @@ def display(previousStage,windowWidth,windowHeight):
       else:
         exposure = (1/b + 0.3)* 0.005 + exposure * 0.995
   exposure = min(8.0,max(0.05,exposure))
-#  graphicsOps.extractHighColor(colorTexture,max(0.03,b),highColTexture)
-#  highColTexture.load()
-#  graphicsOps.gaussianBlur(highColTexture,0.03,blurredHighColTexture)
-#  blurredHighColTexture.load()
-
-  # This shouldn't happen here, but we mess with the buffers in the highlights stuff
-  previousStage.displayColorTexture.load()
-  gl.glBindFramebuffer(gl.GL_FRAMEBUFFER, 0)
-  gl.glClear(gl.GL_COLOR_BUFFER_BIT | gl.GL_DEPTH_BUFFER_BIT)
-  gl.glViewport(0,0,windowWidth,windowHeight)
 
   shader.load()
-  shader['model'] = np.eye(4,dtype=np.float32)
-  shader['colormap'] = Texture.COLORMAP_NUM
-  shader['depthmap'] = Texture.DEPTHMAP_NUM
-  shader['highCol'] = Texture.COLORMAP2_NUM
   shader['brightness'] = exposure
   shader.draw(gl.GL_TRIANGLES,renderID,1)
+
+  # Render the map
   mapShader.load()
   mapShader.draw(gl.GL_TRIANGLES,mapRenderID,1)
 
@@ -81,11 +72,6 @@ def lighting(colorTexture,normTexture,posTexture,depthTexture):
   setUniform('ambientLight',0.1)
   setUniform('sunLight',1.0)
   lightingShader.load()
-  lightingShader['model'] = np.eye(4,dtype=np.float32)
-  lightingShader['colormap'] = Texture.COLORMAP_NUM
-  lightingShader['normmap'] = Texture.COLORMAP2_NUM
-  lightingShader['posmap'] = Texture.COLORMAP3_NUM
-  lightingShader['depthmap'] = Texture.DEPTHMAP_NUM
   lightingShader['ambientLight'] = 0.1;
   lightingShader['sunLight'] = 0.9
   lightingShader.draw(gl.GL_TRIANGLES,lightingRenderID,1)
