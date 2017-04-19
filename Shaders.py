@@ -19,6 +19,20 @@ class objectInfo:
   def __repr__(self):
     return "<objectInfo (v/i {:d}/{:d} | vbo/ibo/ver/instbo {:d}/{:d}/{:d}/{:d}>".format(self.numVertices,self.numIndices,self.vbo,self.ibo,self.vertexArray,self.instbo)
 
+class ShaderCompileException(Exception):
+  def __init__(self, args):
+    message, source = args
+    errp = re.compile(r"0\((.+?)\)(.*)")
+    m = errp.match(message)
+    if not m or not source:
+      Exception.__init__(self, message)
+      return
+    line = int(m.groups()[0])
+    ret = '\n\n'+message+'\n'
+    for i in xrange(max(0,line-5),min(len(source),line+4)):
+      ret += ('  |' if i != line-1 else '>>|') + source.split('\n')[i]+'\n'
+    Exception.__init__(self, ret)
+
 class Shader(object):
   def __init__(self,name):
     # Who are we
@@ -40,7 +54,7 @@ class Shader(object):
     gl.glShaderSource(prog,source)
     gl.glCompileShader(prog)
     if gl.glGetShaderiv(prog, gl.GL_COMPILE_STATUS) != gl.GL_TRUE:
-        raise RuntimeError(gl.glGetShaderInfoLog(prog))
+        raise ShaderCompileException((gl.glGetShaderInfoLog(prog), source))
     gl.glAttachShader(self.program,prog)
 
   def build(self):
