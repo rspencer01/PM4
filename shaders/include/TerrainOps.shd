@@ -1,0 +1,29 @@
+uniform sampler2D heightmap;
+
+float getCurvature(sampler2D tex, vec2 ps)
+{
+  float c = texture(tex,ps/60000).a;
+  float d = texture(tex,(ps+vec2(10,0))/60000).a+
+            texture(tex,(ps+vec2(0,10))/60000).a+
+            texture(tex,(ps+vec2(-10,0))/60000).a+
+            texture(tex,(ps+vec2(0,-10))/60000).a;
+  d/=4;
+  return abs(c-d);
+}
+
+float getFineAmount(vec2 ps)
+{
+  float theta = acos(normalize(texture(heightmap,ps/60000).xyz).y);
+  if (theta<0.4)
+    return 30;
+  return 30+(theta-0.4)*100 + 10*(theta-0.4)*getCurvature(heightmap, ps);
+}
+
+vec4 getFineValue(vec2 ps)
+{
+  vec4 ans1 = textureBicubic(noise, ps/1200);
+  ans1.xz /= 1200;
+  ans1.xzw *= getFineAmount(ps);
+  return ans1;
+}
+

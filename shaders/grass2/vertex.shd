@@ -1,0 +1,56 @@
+#version 330
+in vec3 position;
+in vec3 normal;
+in vec4 color;
+in vec2 textcoord;
+in mat4 model;
+
+out VertexData
+{
+  vec4 position;
+  vec4 normal;
+  vec4 color;
+  vec2 uv;
+} VertexOut;
+
+uniform mat4 View;
+uniform vec3 userCameraPosition;
+uniform vec3 CameraDirection;
+uniform mat4 projection;
+uniform sampler2D heightmap;
+uniform sampler2D noise;
+
+float getCurvature()
+{
+  float c = texture(heightmap,VertexOut.position.xz/8000+vec2(0.5)).a;
+  float d = texture(heightmap,(VertexOut.position.xz+vec2(16,0))/8000+vec2(0.5)).a+
+            texture(heightmap,(VertexOut.position.xz+vec2(0,16))/8000+vec2(0.5)).a+
+            texture(heightmap,(VertexOut.position.xz+vec2(-16,0))/8000+vec2(0.5)).a+
+            texture(heightmap,(VertexOut.position.xz+vec2(0,-16))/8000+vec2(0.5)).a;
+  d/=4;
+  return abs(c-d);
+}
+
+float getFineAmount()
+{
+  float theta = acos(normalize(texture(heightmap,VertexOut.position.xz/8000+vec2(0.5)).xyz).y);
+  if (theta<0.5)
+    return 1+2*getCurvature();;
+  theta = (theta -0.5)/(3.1415/2 - 0.5);
+  return (theta*20+1) + 2*getCurvature();
+}
+
+void main()
+{
+  vec2 offset = round(userCameraPosition.xz);
+  VertexOut.position = model * vec4(position.x+offset.x,0,position.z+offset.y,1.0);
+  VertexOut.position.y += 10;
+
+  vec3 displacement = vec3(0,1,0) * texture(heightmap,(VertexOut.position.xyz+vec3(4000)).xz/8000).a;
+  vec3 normal = texture(heightmap,(VertexOut.position.xyz+vec3(4000)).xz/8000).zyx;
+  normal = normalize(normal);
+  displacement += normal * getFineAmount() * texture(noise,VertexOut.position.xz/200).a;
+
+  VertexOut.position.xyz += displacement+vec3(0,0.2,0);
+  gl_Position = projection * View * VertexOut.position;
+}

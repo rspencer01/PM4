@@ -1,0 +1,21 @@
+vec4 addNormals(vec4 a, vec4 b)
+{
+  a.xyz /= a.y;
+  b.xyz /= b.y;
+  vec4 ans;
+  ans.a = a.a + b.a;
+  ans.y = 1;
+  ans.x = a.x + b.x;
+  ans.z = a.z + b.z;
+  ans.xyz = normalize(ans.xyz);
+  return ans;
+}
+
+vec4 scaleNormal(vec4 a, float s)
+{
+  a.y /= s;
+  a.w *= s;
+  a.xyz = normalize(a.xyz);
+  return a;
+}
+
