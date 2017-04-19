@@ -5,16 +5,22 @@ import logging
 from Shaders import *
 import OpenGL.GL as gl
 import Texture
+import RenderStage
 import noise
 import os
 import sys
+import Pager
 
 logging.info("Constructing Terrain")
 
 planetSize = 60000
-resolution = 160
 patches = 200
 patchSize = planetSize/patches
+pageSize = 1000
+pagesAcross = planetSize / pageSize
+pageResoultion = 256
+numPages = 5
+pageMapping = Pager.Pager(numPages**2)
 logging.info(" + {:d} (={:d}x{:d}) patches at {:d}m on a side".format((patches-1)**2,patches-1,patches-1,patchSize))
 
 # Construct patches
@@ -36,6 +42,9 @@ shader = getShader('terrain',tess=True,geom=False,forceReload=True)
 shader['model'] = np.eye(4,dtype=np.float32)
 shader['heightmap'] = Texture.HEIGHTMAP_NUM
 shader['colormap'] = Texture.COLORMAP_NUM
+shader['worldSize'] = planetSize
+shader['numPages'] = numPages
+shader['pageSize'] = pageSize
 renderID = shader.setData(data,indices)
 
 # Texture sizes
@@ -46,7 +55,7 @@ logging.info(" + Heightmap texture size {:d}x{:d} for a resolution of {:.1f}m pe
 textHeight = textWidth
 sign = lambda x: 1 if x>0 else -1
 if not os.path.exists('terrain.npy') or args.args.remake_terrain:
-  d = np.zeros((textWidth,textHeight,4),dtype=np.float32)
+  d = np.zeros((textWidth,textHeight,4), dtype=np.float32)
   logging.info(" + Calculating heightmap")
   im = Image.open("assets/Cederberg Mountains Height Map (Merged).png")
   im.thumbnail((textHeight,textWidth),Image.ANTIALIAS)
@@ -55,35 +64,13 @@ if not os.path.exists('terrain.npy') or args.args.remake_terrain:
     for j in range(textHeight):
       t = pix[i,j]
       d[textWidth-1-i,j] = (t,t,t,t)
-  """
-  for i in range(textWidth):
-    sys.stdout.write(str(i)+" / "+str(textWidth))
-    sys.stdout.write('\r')
-    sys.stdout.flush()
-    for j in range(textHeight):
-      # Larger, general shape
-      t = 17*noise.pnoise2(float(i)/textWidth*3.5,float(j)/textWidth*3.5+0.34,octaves=5)**2
-      t += 5*noise.pnoise2(float(i)/textWidth*7.5,float(j)/textWidth*7.5,octaves=4)**2
-      r = textWidth*(0.4 + 0.0*
-              (
-                np.cos(float(3.1415*i*1.3)/textWidth)+
-                np.cos(float(3.1415*j*1.5)/textWidth)+
-                np.sin(float(3.1415*j*8.5)/textWidth+2) * 0.2+
-                np.sin(float(3.1415*i*7.5)/textWidth+4) * 0.2+
-                np.sin(float(3.1415*(i+3*j)*3.5)/textWidth+4) * 0.1
-              )
-          )
-      t += 1.5*np.exp( -0.00008**2*abs((i-textWidth/2)**2+(j-textWidth/2)**2 - (r)**2)**2)
-      t = np.sin(t/4.5 * 3.1415/2)
-      d[i,j] = (t,t,t,t)
 
-  print np.max(d),np.min(d)
-  """
+  # Normalize to 0-1 range
   d -= np.min(d)
   d /= np.max(d)
-  d = np.sin(d*3.1415/2)
   d *= 1920
-  #d *= 1620
+
+  # Boundary conditions
   for i in xrange(textWidth):
     d[i,0] = -1000
     d[i,-1] = -1000
@@ -106,7 +93,6 @@ if not os.path.exists('terrain.npy') or args.args.remake_terrain:
 else:
   d=np.load('terrain.npy')
 
-#print d
 heightmap.loadData(d.shape[0],d.shape[1],d)
 
 logging.info(" + Loading textures")
@@ -139,11 +125,68 @@ stone = np.array([stone[i*a.size[0]:(i+1)*a.size[0]] for i in xrange(a.size[1])]
 
 
 texData[0:colorMapSize/2,0:colorMapSize/2] = grass
-texData[0:colorMapSize/2,colorMapSize/2:] = stone 
+texData[0:colorMapSize/2,colorMapSize/2:] = stone
 texData[colorMapSize/2:,0:colorMapSize/2] = dirt
 texture.loadData(texData.shape[0],texData.shape[1],texData)
 del texData
 setUniform('heightmap',Texture.HEIGHTMAP_NUM)
+
+pageTableTexture = Texture.Texture(Texture.COLORMAP2)
+gl.glTexParameteri(gl.GL_TEXTURE_2D, gl.GL_TEXTURE_MAG_FILTER, gl.GL_NEAREST)
+gl.glTexParameteri(gl.GL_TEXTURE_2D, gl.GL_TEXTURE_MIN_FILTER, gl.GL_NEAREST_MIPMAP_NEAREST)
+pageRenderStage = RenderStage.RenderStage()
+pageRenderStage.reshape(pageResoultion*numPages,pageResoultion*numPages)
+pageTexture = pageRenderStage.displayAuxColorTexture
+
+setUniform('pageTable',Texture.COLORMAP2_NUM)
+setUniform('pageTexture',Texture.COLORMAP3_NUM)
+
+pagingShader = getShader('pagingShader', forceReload=True)
+data = np.zeros(4,dtype=[("position" , np.float32,3)])
+data['position'] = [(-1,-1,0.999999),(-1,1,0.999999),(1,-1,0.999999),(1,1,0.999999)]
+I = [0,1,2, 1,2,3]
+indices = np.array(I,dtype=np.int32)
+pagingRenderID = pagingShader.setData(data,indices)
+
+def getCoordinate(id):
+  return id % numPages, id / numPages
+
+def generatePage(page):
+  assert page in pageMapping
+  c = getCoordinate(pageMapping[page])
+  pageRenderStage.load(pageResoultion,pageResoultion, pageResoultion*c[0],pageResoultion*(numPages-c[1]-1),False)
+  pagingShader.load()
+  pagingShader['pagePosition'] = np.array([page[0],0.,page[1]],dtype=np.float32)
+  pagingShader['id'] = pageMapping[page]
+  pagingShader['pageSize'] = pageSize
+  pagingShader['numPages'] = numPages
+  pagingShader['pagesAcross'] = pagesAcross
+  pagingShader['worldSize'] = planetSize
+  pagingShader.draw(gl.GL_TRIANGLES, pagingRenderID)
+  pageTexture.makeMipmap()
+
+def updatePageTable(camera):
+  currentPage = (pagesAcross - int(camera.pos[2] / (pageSize) + pagesAcross/2) , int(camera.pos[0] / (pageSize) + pagesAcross/2))
+  data = np.zeros((pagesAcross, pagesAcross, 4),dtype=np.float32) - 1
+  toredo = False
+  for i in xrange(max(0,currentPage[0]-numPages/2),min(pagesAcross,currentPage[0]+numPages/2+1)):
+    for j in xrange(max(0,currentPage[1]-numPages/2),min(pagesAcross,currentPage[1]+numPages/2+1)):
+      page = (i,j)
+      if page not in pageMapping:
+        toredo = True
+  if not toredo: return
+
+  #pageMapping.clear()
+
+  for i in xrange(max(0,currentPage[0]-numPages/2),min(pagesAcross,currentPage[0]+numPages/2+1)):
+    for j in xrange(max(0,currentPage[1]-numPages/2),min(pagesAcross,currentPage[1]+numPages/2+1)):
+      page = (i,j)
+      if page not in pageMapping:
+        pageMapping.add(page)
+        generatePage(page)
+      index = pageMapping[page]
+      data[i][j][0] = index / float(numPages**2)
+  pageTableTexture.loadData(data.shape[0], data.shape[1], data[::-1,:])
 
 def display(camera):
   if np.sum(camera.pos*camera.pos) > 6e6**2:
@@ -151,6 +194,8 @@ def display(camera):
   shader.load()
   texture.load()
   heightmap.load()
+  pageTableTexture.load()
+  pageTexture.load()
   shader.draw((patches-1)**2*6,renderID)
 
 def getAt(x,y):

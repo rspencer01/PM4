@@ -1,0 +1,48 @@
+uniform int numPages;
+uniform int worldSize;
+uniform int pageSize;
+uniform sampler2D heightmap;
+
+// Given a position in worldspace, finds the page id
+int getPageID(vec3 pos)
+{
+  vec2 p = (floor(pos.xz / pageSize)+0.5) / (float(worldSize)/pageSize);
+  return int(round(
+        texture(pageTable, p + vec2(0.5)).r * numPages * numPages));
+}
+
+vec2 getPageCoordinate(int pageID)
+{
+  return vec2(floor(mod(pageID,numPages))/float(numPages),
+              floor(pageID/numPages)/float(numPages));
+}
+
+
+// Given a position in worldspace, find the corresponding texture uv for the paged texture
+vec2 getPagedPosition(vec3 pos)
+{
+  int page = getPageID(pos);
+  if (page < 0)
+    return vec2(-1);
+  return (mod(pos.xz, float(pageSize))/pageSize*0.8+0.1) / numPages + getPageCoordinate(page);
+}
+
+vec4 readPagedTexture(vec3 pos)
+{
+  vec2 texCoords = getPagedPosition(pos);
+  if (texCoords.x < 0) {
+    return vec4(0);
+  }
+  texCoords.y = 1 - texCoords.y;
+  return vec4(textureLod(pageTexture, texCoords, 0).xyz,1);
+}
+
+vec3 getOffset(vec3 pos)
+{
+  vec4 offst = readPagedTexture(pos);
+  if (offst.a < 0.5)
+  {
+    offst.xyz = vec3(0,textureLod(heightmap, pos.xz/worldSize + vec2(0.5),0).a,0);
+  }
+  return offst.xyz;
+}

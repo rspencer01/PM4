@@ -1,0 +1,53 @@
+#version 400
+in vec4 pos;
+out vec4 fragColor;
+out vec4 fragColor2;
+out vec4 offst;
+uniform vec3 pagePosition;
+uniform int id;
+uniform int pageSize;
+uniform int numPages;
+uniform sampler2D heightmap;
+uniform sampler2D noise;
+
+#include shaders/include/TextureBicubic.shd;
+
+float getCurvature(vec2 ps)
+{
+  float c = texture(heightmap,ps/60000).a;
+  float d = texture(heightmap,(ps+vec2(10,0))/60000).a+
+            texture(heightmap,(ps+vec2(0,10))/60000).a+
+            texture(heightmap,(ps+vec2(-10,0))/60000).a+
+            texture(heightmap,(ps+vec2(0,-10))/60000).a;
+  d/=4;
+  return abs(c-d);
+}
+
+
+float getFineAmount(vec2 ps)
+{
+  float theta = acos(normalize(texture(heightmap,ps/60000).xyz).y);
+  if (theta<0.4)
+    return 30;
+  return 30+(theta-0.4)*100 + 10*(theta-0.4)*getCurvature(ps);
+}
+
+vec4 getFineValue(vec2 ps)
+{
+  vec4 ans1 = textureBicubic(noise, ps/1200);
+  ans1.xz /= 1200;
+  ans1.xzw *= getFineAmount(ps);
+  return ans1;
+}
+
+void main()
+{
+  vec2 ps = ((pos.xy/(2*0.8)+0.5) + pagePosition.zx) * pageSize;
+  ps.y = - ps.y;
+
+  vec3 displacement = vec3(0,1,0) * textureBicubic(heightmap, ps/60000).a;
+  vec3 normal = normalize(textureBicubic(heightmap, ps/60000).zyx);
+  displacement += normal * getFineValue(ps).a;
+
+  offst = vec4(displacement,1);
+}

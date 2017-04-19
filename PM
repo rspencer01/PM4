@@ -50,6 +50,8 @@ def display():
   camera.globalRight = np.cross(t,camera.globalUp)
   camera.globalRight /= camera.globalRight.dot(camera.globalRight)**0.5
 
+  Terrain.updatePageTable(camera)
+
   camera.render('user')
   Shadows.render()
 
