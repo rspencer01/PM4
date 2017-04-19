@@ -8,13 +8,24 @@ class RenderStage(object):
     if not final_stage:
       self.create_fbos()
 
-  def load(self, width, height):
+  def load(self, width, height, offsetx=0, offsety=0, clear=True):
+    """Loads the render stage's buffers, clears them and sets the viewport.
+
+    The depth buffer will always be cleared, but the color buffer is cleared
+    only if the `clear` argument is true (default).
+
+    If the stage is "final", the screen buffer will be loaded."""
     if not self.final_stage:
       gl.glBindFramebuffer(gl.GL_FRAMEBUFFER, self.displayFBO)
     else:
       gl.glBindFramebuffer(gl.GL_FRAMEBUFFER, 0)
-    gl.glClear(gl.GL_DEPTH_BUFFER_BIT | gl.GL_COLOR_BUFFER_BIT)
-    gl.glViewport(0, 0, width, height)
+
+    if clear:
+      gl.glClear(gl.GL_DEPTH_BUFFER_BIT | gl.GL_COLOR_BUFFER_BIT)
+    else:
+      gl.glClear(gl.GL_DEPTH_BUFFER_BIT)
+
+    gl.glViewport(offsetx, offsety, width, height)
 
   def reshape(self, width, height):
     if self.final_stage: return
