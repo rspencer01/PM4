@@ -10,14 +10,14 @@ import args
 print "Constructing opticalDepths"
 N = 256
 Re = 6.360e6
-Ra = 6520e3
+Ra = 6540e3
 Hr = 1e4
 Hm = 1.15e3
 
 if not os.path.exists('opdepth.npy') or args.args.remake_sky:
   opdepth = np.zeros((N*16,N,4),dtype=np.float32)
 
-  for j,theta in enumerate(np.arange(0,np.pi*0.75,np.pi*0.75/N)):
+  for j,theta in enumerate(np.arange(0, np.pi*0.75, np.pi*0.75/N)):
     for k,altitudeP in enumerate(np.arange(Re,Ra,(Ra-Re)/(N*16))):
       altitude = Re + ((altitudeP-Re)/(Ra-Re))**3*(Ra-Re)
       P = altitude * np.array([np.sin(theta), np.cos(theta)])

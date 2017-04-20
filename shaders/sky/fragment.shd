@@ -57,8 +57,8 @@ vec3 getCelestialColor(vec3 direction)
 
 void main()
 {
-  vec3 right = vec3(View[0][0],View[1][0],View[2][0]);
-  vec3 up = vec3(View[0][1],View[1][1],View[2][1]);
+  vec3 right   =  vec3(View[0][0],View[1][0],View[2][0]);
+  vec3 up      =  vec3(View[0][1],View[1][1],View[2][1]);
   vec3 forward = -vec3(View[0][2],View[1][2],View[2][2]);
 
   vec3 screenDirection = normalize(vec3(0,0,1) + vec3(1,0,0) * pos.x * aspectRatio * tan(3.141592/6) + vec3(0,1,0)* pos.y * tan(3.141592/6));
@@ -111,7 +111,6 @@ void main()
       float psi = surfacePos.z;
       objectColor = texture(earthMap, vec2(theta/3.1417, psi)/2+0.5).rgb;
       objectColor *= clamp(ambientLight*normalize(sunDirection).y,0.006,1.0) + sunLight*max(0,dot(normal,normalize(sunDirection)));
-
     }
   }
   if (length(Pa - celestialCameraPosition) > objectDepth)
@@ -131,16 +130,16 @@ void main()
   float opticalDepthM = 0;
 
   float ds = length(Pa - Pc) / numInt;
+  vec3 directionOfIntegration = normalize(Pa - Pc);
+  vec3 P = Pc;
 
   if (intersects(celestialCameraPosition,direction,Ra))
   {
-    for (int i = 1;i<numInt;i++)
+    for (int i = 1; i<numInt; i++)
     {
-      vec3 P = mix(Pc,Pa,float(i)/numInt);
+      P += ds * directionOfIntegration;
       float lightHeight = length(P) - Re;
       if (lightHeight < 0) break;
-      float lightR = largestIntersectionDistance(P,sunDirection,Ra);
-      vec3 Ps = P + lightR * sunDirection;
 
       float hr = exp(-lightHeight/Hr) * ds;
       float hm = exp(-lightHeight/Hm) * ds;
@@ -151,36 +150,30 @@ void main()
       //Decomment if you want the non texture stuff
       float opticalDepthLightR = 0;
       float opticalDepthLightM = 0;
-      float opticalDepthDs = lightR/numInt;
 
-      vec2 xx = vec2(acos(dot(sunDirection,normalize(P)))/(3.141592*0.75),pow((length(P)-Re)/(Ra-Re),0.33333));
+      vec2 xx = vec2(acos(dot(sunDirection,normalize(P)))/(3.141592*0.75),
+                     pow(lightHeight/(Ra-Re),0.33333));
       if (xx.x<0 || xx.x>1) continue;
       opticalDepthLightR = textureLod(opticaldepthmap,xx.xy,0).r;
       opticalDepthLightM = textureLod(opticaldepthmap,xx.xy,0).g;
       if (opticalDepthLightR >= 0 && opticalDepthLightM >=0)
       {
-        vec3 tau = betar * (vec3(opticalDepthLightR) + opticalDepthR) + betam * 1.1 * (vec3(opticalDepthLightM) + opticalDepthM);
+        vec3 tau =   betar * (vec3(opticalDepthLightR) + opticalDepthR)
+                   + betam * (vec3(opticalDepthLightM) + opticalDepthM) * 1.1;
 
-        raleigh += exp(-tau) * hr;
-        mie += exp(-tau) * hm;
+        vec3 e = exp(-tau);
+
+        raleigh += e * hr;
+        mie     += e * hm;
       }
     }
   }
 
-//  vec3 trans = exp(-(betar * opticalDepthR + betam * 1.1 * opticalDepthM));
-float trans = 0;
   raleigh *= phaseR * betar;
-  mie *= phaseM * betam;
+  mie     *= phaseM * betam;
 
-  vec3 atmosphereColor = sunIntensity*(raleigh + mie);
+  vec3 atmosphereColor = sunIntensity * (raleigh + mie);
 
-/*  if (objectDepth >= INF-1)
-  {
-    if (!intersects(celestialCameraPosition,direction,Re))
-      if (mu > 0.9996)
-        atmosphereColor = 2 * exp(-opticalDepthR * betar);
-  }
-*/
-  fragColor = vec4(atmosphereColor + objectColor*(1+0*trans), 1);
+  fragColor = vec4(atmosphereColor + objectColor, 1);
   fragNorm = vec4(0);
 }
