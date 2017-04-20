@@ -1,0 +1,8 @@
+PM4 Key commands
+
+?   | Display this help
+l   | Lock to ground
+~   | Enter console mode
+p   | Toggle wireframe
+o   | Toggle sky
+esc | Exit
