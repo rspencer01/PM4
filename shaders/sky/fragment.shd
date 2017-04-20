@@ -14,6 +14,7 @@ uniform sampler2D depthmap;
 uniform sampler2D noisemap;
 uniform sampler2D opticaldepthmap;
 uniform sampler2D nightSkymap;
+uniform sampler2D earthMap;
 vec3 sunIntensity = vec3(35);
 vec3 betar = vec3(5.8e-6,1.35e-5,3.31e-5);
 vec3 betam = vec3(21e-6);
@@ -29,26 +30,7 @@ float INF = 1e20;
 float g = 0.65;
 int numInt = 80;
 
-bool intersects(vec3 position, vec3 direction, float radius)
-{
-  if (dot(direction,position)*dot(direction,position) - dot(position,position)+radius*radius > 0)
-    return true;
-  return false;
-}
-
-float largestIntersectionDistance(vec3 position, vec3 direction, float radius)
-{
-  return - dot(position,direction) + 
-            sqrt(dot(direction,position)*dot(direction,position) 
-                 - dot(position,position)+radius*radius);
-}
-
-float smallestIntersectionDistance(vec3 position, vec3 direction, float radius)
-{
-  return - dot(position,direction) -
-            sqrt(dot(direction,position)*dot(direction,position) 
-                 - dot(position,position)+radius*radius);
-}
+#include shaders/include/SphereOps.shd;
 
 vec3 getCelestialColor(vec3 direction)
 {
@@ -125,33 +107,10 @@ void main()
       if (dot(normal,sunDirection)<0) spec = 0;
       // Water
       //objectColor = vec3(0.02,0.04,0.08)*(0.1+0.005*pow(max(0,spec),.01));
-      objectColor = vec3(0.02,0.04,0.08)+vec3(1)*2.*pow(spec,58);
-      if (
-          (
-          textureLod(noisemap,surfacePos.xy/14e6+vec2(0.5),0).a+
-          textureLod(noisemap,surfacePos.yz/14e6+vec2(0.5),0).a+
-          textureLod(noisemap,surfacePos.zx/14e6+vec2(0.5),0).a+
-
-          textureLod(noisemap,surfacePos.xy/14e5+vec2(0.5),0).a*0.1+
-          textureLod(noisemap,-surfacePos.xy/14e5+vec2(0.5),0).a*0.1+
-          textureLod(noisemap,surfacePos.xz/14e5+vec2(0.5),0).a*0.1+
-          textureLod(noisemap,-surfacePos.xz/14e5+vec2(0.5),0).a*0.1+
-          textureLod(noisemap,surfacePos.yz/14e5+vec2(0.5),0).a*0.1+
-          textureLod(noisemap,-surfacePos.yz/14e5+vec2(0.5),0).a*0.1+
-
-          textureLod(noisemap,surfacePos.xy/14e4+vec2(0.5),0).a*0.01+
-          textureLod(noisemap,-surfacePos.xy/14e4+vec2(0.5),0).a*0.01+
-          textureLod(noisemap,surfacePos.xz/14e4+vec2(0.5),0).a*0.01+
-          textureLod(noisemap,-surfacePos.xz/14e4+vec2(0.5),0).a*0.01+
-          textureLod(noisemap,surfacePos.yz/14e4+vec2(0.5),0).a*0.01+
-          textureLod(noisemap,-surfacePos.yz/14e4+vec2(0.5),0).a*0.01
-          )
-          >0)
-      {
-        float f = clamp(2*pow(abs(surfacePos.x/7e6),6),0,1);
-        objectColor = vec3(117,133,58)/255.0 * (1-f)
-                      + vec3(0.8,0.8,0.9) * f;
-      }
+      surfacePos /= Re;
+      float theta = atan(surfacePos.x, surfacePos.y);
+      float psi = surfacePos.z;
+      objectColor = texture(earthMap, vec2(theta/3.1417, psi)/2+0.5).rgb;
       objectColor *= clamp(ambientLight*normalize(sunDirection).y,0.006,1.0) + sunLight*max(0,dot(normal,normalize(sunDirection)));
 
     }

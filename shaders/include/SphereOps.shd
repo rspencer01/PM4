@@ -1,0 +1,20 @@
+bool intersects(vec3 position, vec3 direction, float radius)
+{
+  if (dot(direction,position)*dot(direction,position) - dot(position,position)+radius*radius > 0)
+    return true;
+  return false;
+}
+
+float largestIntersectionDistance(vec3 position, vec3 direction, float radius)
+{
+  return - dot(position,direction) + 
+            sqrt(dot(direction,position)*dot(direction,position) 
+                 - dot(position,position)+radius*radius);
+}
+
+float smallestIntersectionDistance(vec3 position, vec3 direction, float radius)
+{
+  return - dot(position,direction) -
+            sqrt(dot(direction,position)*dot(direction,position) 
+                 - dot(position,position)+radius*radius);
+}

@@ -1,5 +1,8 @@
 import OpenGL.GL as gl
 import numpy as np
+import Image
+import logging
+import sys
 
 HEIGHTMAP = gl.GL_TEXTURE0
 HEIGHTMAP_NUM = 0
@@ -23,7 +26,14 @@ COLORMAP3 = gl.GL_TEXTURE9
 COLORMAP3_NUM = 9
 FOLIAGEMAP = gl.GL_TEXTURE10
 FOLIAGEMAP_NUM = 10
+EARTHMAP = gl.GL_TEXTURE11
+EARTHMAP_NUM = 11
 
+textureUnits = gl.glGetIntegerv(gl.GL_MAX_TEXTURE_IMAGE_UNITS)
+logging.info("Found {} texture units".format(textureUnits))
+if textureUnits < 32:
+  logging.fatal("Insufficient texture units.  Require 32, have {}".format(textureUnits))
+  sys.exit(1)
 
 class Texture:
   def __init__(self,type):
@@ -66,7 +76,6 @@ class Texture:
     gl.glBindTexture(gl.GL_TEXTURE_2D, self.id)
 
 
-
   def getData(self):
     self.load()
     return gl.glGetTexImage(gl.GL_TEXTURE_2D,0,gl.GL_RGBA,gl.GL_FLOAT)
@@ -80,6 +89,18 @@ class Texture:
     data = np.load(fileName)
     self.loadData(data.shape[0],data.shape[1],data)
     del data
+
+
+  def loadFromImage(self, filename):
+    teximag = Image.open(filename)
+    texdata = np.array(teximag.getdata()).astype(np.float32)
+    # Make this a 4 color file
+    if (texdata.shape[1]!=4):
+      add = np.zeros((texdata.shape[0],1),dtype=np.float32)+256
+      texdata = np.append(texdata,add,axis=1)
+
+    texdata = texdata.reshape(teximag.size[0], teximag.size[1], 4)
+    self.loadData(texdata.shape[0],texdata.shape[1],texdata/256)
 
 
   def __del__(self):
