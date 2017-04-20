@@ -42,7 +42,7 @@ if not os.path.exists('opdepth.npy') or args.args.remake_sky:
 else:
   opdepth = np.load('opdepth.npy')
 
-opticalDepthmap = Texture.Texture(Texture.BUMPMAP)
+opticalDepthmap = Texture.Texture(Texture.OPTICAL_DEPTHMAP)
 opticalDepthmap.load()
 gl.glTexParameteri(gl.GL_TEXTURE_2D, gl.GL_TEXTURE_WRAP_S, gl.GL_CLAMP)
 gl.glTexParameteri(gl.GL_TEXTURE_2D, gl.GL_TEXTURE_WRAP_T, gl.GL_CLAMP)
@@ -55,7 +55,7 @@ I = [0,1,2, 1,2,3]
 indices = np.array(I,dtype=np.int32)
 
 print "Constructing Night Sky"
-nightSkyTexture = Texture.Texture(Texture.COLORMAP2)
+nightSkyTexture = Texture.Texture(Texture.NIGHTSKY)
 if not os.path.exists('nightSky.npy'):
   framebuffer = gl.glGenFramebuffers(1)
   gl.glBindFramebuffer(gl.GL_FRAMEBUFFER,framebuffer)
@@ -106,22 +106,18 @@ earthTexture = Texture.Texture(Texture.EARTHMAP)
 earthTexture.loadFromImage('assets/earthmap.ppm')
 earthTexture.load()
 
-shader = getShader('sky',forceReload=True)
-shader['model'] = np.eye(4,dtype=np.float32)
-shader['colormap'] = Texture.COLORMAP_NUM
-shader['noisemap'] = Texture.NOISE_NUM
-shader['depthmap'] = Texture.DEPTHMAP_NUM
-shader['nightSkymap'] = Texture.COLORMAP2_NUM
-shader['earthMap'] = Texture.EARTHMAP_NUM
-shader['opticaldepthmap'] = Texture.BUMPMAP_NUM
+shader = getShader('sky',forceReload  = True)
+shader['colormap']        = Texture.COLORMAP_NUM
+shader['depthmap']        = Texture.DEPTHMAP_NUM
+shader['nightSkymap']     = Texture.NIGHTSKY_NUM
+shader['earthMap']        = Texture.EARTHMAP_NUM
+shader['opticaldepthmap'] = Texture.OPTICAL_DEPTHMAP_NUM
 renderID = shader.setData(data,indices)
 
 def display(previousStage):
   previousStage.displayColorTexture.load()
   # TODO Is this needed?
   previousStage.displayDepthTexture.load()
-  nightSkyTexture.load();
-  opticalDepthmap.load()
   shader.load()
   noiseG.noiseT.load()
   shader.draw(gl.GL_TRIANGLES,renderID,1)
