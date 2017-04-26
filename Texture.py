@@ -3,6 +3,8 @@ import numpy as np
 import Image
 import logging
 import sys
+import threading
+import taskQueue
 
 HEIGHTMAP = gl.GL_TEXTURE0
 HEIGHTMAP_NUM = 0
@@ -32,6 +34,8 @@ OPTICAL_DEPTHMAP = gl.GL_TEXTURE12
 OPTICAL_DEPTHMAP_NUM = 12
 NIGHTSKY = gl.GL_TEXTURE13
 NIGHTSKY_NUM = 13
+NORMALMAP = gl.GL_TEXTURE14
+NORMALMAP_NUM = 14
 
 textureUnits = gl.glGetIntegerv(gl.GL_MAX_TEXTURE_IMAGE_UNITS)
 logging.info("Found {} texture units".format(textureUnits))
@@ -51,6 +55,8 @@ class Texture:
     gl.glTexParameteri(gl.GL_TEXTURE_2D, gl.GL_TEXTURE_WRAP_T, gl.GL_REPEAT)
     gl.glTexParameteri(gl.GL_TEXTURE_2D, gl.GL_TEXTURE_MAG_FILTER, gl.GL_LINEAR)
     gl.glTexParameteri(gl.GL_TEXTURE_2D, gl.GL_TEXTURE_MIN_FILTER, gl.GL_LINEAR_MIPMAP_LINEAR)
+
+    logging.info("New texture {}".format(self.id))
 
 
   def loadData(
@@ -95,18 +101,41 @@ class Texture:
     del data
 
 
-  def loadFromImage(self, filename):
-    teximag = Image.open(filename)
-    texdata = np.array(teximag.getdata()).astype(np.float32)
-    # Make this a 4 color file
-    if (texdata.shape[1]!=4):
-      add = np.zeros((texdata.shape[0],1),dtype=np.float32)+256
-      texdata = np.append(texdata,add,axis=1)
+  def loadFromImage(self, filename, daemon=True):
+    def preloadFile():
+      logging.info("Preloading {} into texture {}".format(filename, self.id))
 
-    texdata = texdata.reshape(teximag.size[0], teximag.size[1], 4)
-    self.loadData(texdata.shape[0],texdata.shape[1],texdata/256)
+      teximag = Image.open(filename)
+      data = np.array(teximag.getdata()).astype(np.float32)
+
+      ## Make this a 4 color file
+      if (data.shape[1] != 4):
+        add = np.zeros((data.shape[0],1),dtype=np.float32)+256
+        data = np.append(data, add, axis=1)
+
+      data = data.reshape(teximag.size[0], teximag.size[1], 4)
+
+      def uploadToGPU(data):
+        logging.info("Uploading texture {}".format(self.id))
+        self.loadData(data.shape[0], data.shape[1], data/256)
+
+      # We have now loaded the image data.  We need to upload it to the GPU.
+      # Either we do this on the main thread, or if we are not using a daemon
+      # style, we are the main thread and we must do it now.
+      if daemon:
+        taskQueue.addToMainThreadQueue(uploadToGPU, (data,))
+      else:
+        uploadToGPU(data)
+
+    # If we are doing this daemon style, we start a new thread.
+    if daemon:
+      thread = threading.Thread(target=preloadFile)
+      thread.setDaemon(True)
+      thread.start()
+    else:
+      preloadFile()
 
 
   def __del__(self):
-    print "Freeing texture",self.id
+    logging.info("Freeing texture {}".format(self.id))
     gl.glDeleteTextures(self.id)

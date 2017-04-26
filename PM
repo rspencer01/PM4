@@ -5,11 +5,12 @@ import logging
 from transforms import *
 import numpy as np
 import numpy.linalg
+import taskQueue
 import OpenGL.GL as gl
 import OpenGL.GLU as glu
 import OpenGL.GLUT as glut
 import OpenGL.GL.framebufferobjects as glfbo
-logging.basicConfig(format ='%(asctime)-15s - [%(module)-10s] - %(message)s',level=logging.INFO)
+logging.basicConfig(format ='%(asctime)-15s <%(threadName)-12s> [%(module)-12s] - %(message)s',level=logging.INFO)
 
 import args
 args.parse()
@@ -103,6 +104,9 @@ def timer(fps):
     camera.rotLeftRight(1.5/fps)
   if 'h' in keys:
     camera.pos = camera.pos * 0.98
+
+  taskQueue.doNextTask()
+
   glut.glutTimerFunc(1000/fps, timer, fps)
   glut.glutPostRedisplay()
 
