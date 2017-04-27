@@ -73,6 +73,8 @@ class Shader(object):
       currentShader = self
 
   def setData(self,data,indices,instanced=False):
+    """Given vertex data and triangle indices, gives a unique identifier to be
+    used when rendering this object."""
     vbo = gl.glGenBuffers(1)
     ibo = gl.glGenBuffers(1)
     vertexArray = gl.glGenVertexArrays(1)
@@ -252,7 +254,7 @@ def readShaderFile(filename):
     m = p.search(source)
   return source
 
-def getShader(name,tess=False,instance=False,geom=False,forceReload=False):
+def getShader(name,tess=False,instance=False,geom=False,forceReload=True):
   global shaders
   if name not in shaders or forceReload:
     logging.info("Loading shader '{:s}'".format(name))
