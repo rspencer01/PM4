@@ -44,11 +44,22 @@ if textureUnits < 32:
   sys.exit(1)
 
 class Texture:
-  def __init__(self,type):
+  def __init__(self, type, nonblocking=False):
+    """Creates a new texture of the given type.  If nonblocking is specified
+    true, the creation of the texture handle will be added to the GPU queue.  If
+    this is done, all texture loads _must_ occur after the handle has been
+    acquired."""
     self.textureType =  type
-    self.id = gl.glGenTextures(1)
-    self.size = ()
+    self.id = None
 
+    if nonblocking:
+      taskQueue.addToMainThreadQueue(self.initialise)
+    else:
+      self.initialise()
+
+
+  def initialise(self):
+    self.id = gl.glGenTextures(1)
     self.load()
 
     gl.glTexParameteri(gl.GL_TEXTURE_2D, gl.GL_TEXTURE_WRAP_S, gl.GL_REPEAT)
@@ -68,7 +79,6 @@ class Texture:
       type=gl.GL_FLOAT):
     self.load()
     gl.glTexImage2D(gl.GL_TEXTURE_2D, 0 ,internal_format, width, height, 0, gl.GL_RGBA, type, data)
-    self.size = (width,height)
     self.makeMipmap()
 
 
