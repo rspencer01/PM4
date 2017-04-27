@@ -11,8 +11,6 @@ uniform mat4 shadow1View;
 uniform mat4 shadow2View;
 uniform mat4 shadow3View;
 uniform sampler2D noise;
-uniform sampler2D pageTable;
-uniform sampler2D pageTexture;
 
 in vec3 evaluationpoint_wor[];
 

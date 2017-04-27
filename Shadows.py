@@ -10,6 +10,7 @@ import Texture
 import Shaders
 #import grass
 import transforms
+import Characters
 
 print "Initialising Shadows"
 
@@ -95,6 +96,7 @@ def render():
     shadowCamera.render('shadow'+str(i+1))
 
     Terrain.display(lockCam)
+    Characters.display()
  #   grass.display(lockCam)
  #   Forest.display(lockCam.pos,i)
 

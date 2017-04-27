@@ -2,6 +2,8 @@ uniform int numPages;
 uniform int worldSize;
 uniform int pageSize;
 uniform sampler2D heightmap;
+uniform sampler2D pageTable;
+uniform sampler2D pageTexture;
 
 // Given a position in worldspace, finds the page id
 int getPageID(vec3 pos)
