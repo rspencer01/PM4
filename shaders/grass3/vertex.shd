@@ -1,4 +1,4 @@
-#version 330
+#version 410
 in vec3 position;
 
 out VertexData
@@ -11,51 +11,13 @@ out VertexData
 
 uniform mat4 View;
 uniform mat4 projection;
-uniform vec3 CameraPosition;
 uniform vec3 userCameraPosition;
 uniform float patchSize;
-uniform sampler2D heightmap;
 uniform sampler2D noise;
-
-// Second derivitive of the heightmap, ie div^2(H)
-float getCurvature()
-{ float c = texture(heightmap,VertexOut.position.xz/60000+vec2(0.5)).a;
-  float d = texture(heightmap,(VertexOut.position.xz+vec2(30,0))/60000+vec2(0.5)).a+
-            texture(heightmap,(VertexOut.position.xz+vec2(0,30))/60000+vec2(0.5)).a+
-            texture(heightmap,(VertexOut.position.xz+vec2(-30,0))/60000+vec2(0.5)).a+
-            texture(heightmap,(VertexOut.position.xz+vec2(0,-30))/60000+vec2(0.5)).a;
-  d/=4;
-  return abs(c-d);
-}
 
 #include shaders/include/TextureBicubic.shd;
 #include shaders/include/NormalOps.shd;
-
-float getFineAmount()
-{
-  float theta = acos(normalize(texture(heightmap,VertexOut.position.xz/60000+vec2(0.5)).xyz).y);
-  if (theta<0.3)
-    return 4;
-  theta = (theta -0.5)/(3.1415/2 - 0.5);
-  return (theta*30+5) + 2*getCurvature();
-}
-
-vec4 getFineValue(vec3 pos)
-{
-  vec4 ans1 =textureLod(noise,pos.xz/800,0);
-  ans1.xz /= 800;
-  ans1.xyz = normalize(ans1.xyz);
-  vec4 ans2 =textureLod(noise,pos.xz/200+vec2(0.1,0.3),0);
-  ans2.xz /= 200;
-  ans2.xyz = normalize(ans2.xyz);
-  ans2 = scaleNormal(ans2,0.1);
-  vec4 ans3 =textureLod(noise,pos.xz/1200+vec2(0.1,0.3),0);
-  ans3.xz /= 1200;
-  ans3.xyz = normalize(ans3.xyz);
-  ans3 = scaleNormal(ans3,3);
-  return  addNormals(ans3,addNormals(ans1,ans2));
-}
-
+#include shaders/include/TerrainPagedTexture.shd;
 
 void main()
 {
@@ -70,16 +32,11 @@ void main()
   if (texture2D(noise,cos(VertexOut.position.xz)*0.300+vec2(.5)).a > .3)
     VertexOut.type=vec2(.5,0.);
 
-
-  vec3 displacement = vec3(0,1,0) * textureBicubic(heightmap,VertexOut.position.xz/60000 + vec2(0.5)).a;
+  vec3 offst = getOffset(VertexOut.position.xyz);
+  VertexOut.position.xyz += offst;
 
   vec3 normal = textureBicubic(heightmap,(VertexOut.position.xz/60000)+vec2(0.5)).zyx;
   normal = normalize(normal);
-
-  displacement += normal * getFineAmount() * getFineValue(VertexOut.position.xyz).a;
-
-  VertexOut.position.xyz += displacement;
-  VertexOut.position.y += 0;
 
   VertexOut.up= normal;
   VertexOut.north = normalize(cross(vec3(texture2D(noise,VertexOut.position.xz).a,
@@ -87,5 +44,4 @@ void main()
                          texture2D(noise,VertexOut.position.yz).a),VertexOut.up));
 
   gl_Position = projection * View * VertexOut.position;
-  gl_PointSize = 5.;
 }

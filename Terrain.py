@@ -219,3 +219,14 @@ def getGradAt(x,y):
   dx = (getAt(x+0.1,y)-getAt(x,y))/0.1
   dy = (getAt(x,y+0.1)-getAt(x,y))/0.1
   return [dx[3],dy[3]]
+
+def setTerrainUniforms(shader):
+  """Sets all the integers and samplers that are required for the texture page
+  sampling etc."""
+  shader['heightmap']   = Texture.HEIGHTMAP_NUM
+  shader['pageTable']   = Texture.COLORMAP2_NUM
+  shader['pageTexture'] = Texture.COLORMAP3_NUM
+  shader['noise']       = Texture.NOISE_NUM
+  shader['worldSize']   = planetSize
+  shader['numPages']    = numPages
+  shader['pageSize']    = pageSize

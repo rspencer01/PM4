@@ -69,7 +69,7 @@ def display():
   camera.render('user')
   Terrain.display(camera)
   Characters.display()
-  #grass.display(camera)
+  grass.display(camera)
   #Forest.display(camera.pos)
 
   gl.glPolygonMode(gl.GL_FRONT_AND_BACK,gl.GL_FILL);
@@ -206,7 +206,7 @@ setUniform('maxFog',1000.0)
 import Shadows
 import postrender
 import Sky
-#import grass
+import grass
 import Characters
 
 camera = Camera.Camera(np.array([ -185., 2139.92767998,-2938.]))

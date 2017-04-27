@@ -8,7 +8,7 @@ import Texture
 #import Marker
 #import Forest
 import Shaders
-#import grass
+import grass
 import transforms
 import Characters
 
@@ -97,7 +97,7 @@ def render():
 
     Terrain.display(lockCam)
     Characters.display()
- #   grass.display(lockCam)
+    grass.display(lockCam)
  #   Forest.display(lockCam.pos,i)
 
     textures[i].makeMipmap()
