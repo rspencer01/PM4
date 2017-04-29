@@ -23,29 +23,37 @@ numPages = 5
 pageMapping = Pager.Pager(numPages**2)
 logging.info(" + {:d} (={:d}x{:d}) patches at {:d}m on a side".format((patches-1)**2,patches-1,patches-1,patchSize))
 
+def setTerrainUniforms(shader):
+  """Sets all the integers and samplers that are required for the texture page
+  sampling etc."""
+  shader['heightmap']   = Texture.HEIGHTMAP_NUM
+  shader['pageTable']   = Texture.COLORMAP2_NUM
+  shader['pageTexture'] = Texture.COLORMAP3_NUM
+  shader['noise']       = Texture.NOISE_NUM
+  shader['worldSize']   = planetSize
+  shader['numPages']    = numPages
+  shader['pageSize']    = pageSize
+
 # Construct patches
 logging.info(" + Constructing geometry")
-data = np.zeros((patches-1)**2*6,dtype=[("position" , np.float32,3)])
+patchData = np.zeros((patches-1)**2*6,dtype=[("position" , np.float32,3)])
 for i in range(patches-1):
   for j in range(patches-1):
-    data['position'][(i*(patches-1)+j)*6] = (i,0,j)
-    data['position'][(i*(patches-1)+j)*6+1] = (i,0,j+1)
-    data['position'][(i*(patches-1)+j)*6+2] = (i+1,0,j)
-    data['position'][(i*(patches-1)+j)*6+3] = (i+1,0,j)
-    data['position'][(i*(patches-1)+j)*6+4] = (i,0,j+1)
-    data['position'][(i*(patches-1)+j)*6+5] = (i+1,0,j+1)
-data['position']=(data['position']-np.array([patches/2,0,patches/2]))*patchSize
-indices = np.array([],dtype=np.int32)
+    patchData['position'][(i*(patches-1)+j)*6] = (i,0,j)
+    patchData['position'][(i*(patches-1)+j)*6+1] = (i,0,j+1)
+    patchData['position'][(i*(patches-1)+j)*6+2] = (i+1,0,j)
+    patchData['position'][(i*(patches-1)+j)*6+3] = (i+1,0,j)
+    patchData['position'][(i*(patches-1)+j)*6+4] = (i,0,j+1)
+    patchData['position'][(i*(patches-1)+j)*6+5] = (i+1,0,j+1)
+patchData['position']=(patchData['position']-np.array([patches/2,0,patches/2]))*patchSize
+patchIndices = np.array([],dtype=np.int32)
 
 # Set up renderer
 shader = getShader('terrain',tess=True,geom=False,forceReload=True)
+setTerrainUniforms(shader)
 shader['model'] = np.eye(4,dtype=np.float32)
-shader['heightmap'] = Texture.HEIGHTMAP_NUM
 shader['colormap'] = Texture.COLORMAP_NUM
-shader['worldSize'] = planetSize
-shader['numPages'] = numPages
-shader['pageSize'] = pageSize
-renderID = shader.setData(data,indices)
+renderID = shader.setData(patchData, patchIndices)
 
 # Texture sizes
 heightmap = Texture.Texture(Texture.HEIGHTMAP)
@@ -220,13 +228,3 @@ def getGradAt(x,y):
   dy = (getAt(x,y+0.1)-getAt(x,y))/0.1
   return [dx[3],dy[3]]
 
-def setTerrainUniforms(shader):
-  """Sets all the integers and samplers that are required for the texture page
-  sampling etc."""
-  shader['heightmap']   = Texture.HEIGHTMAP_NUM
-  shader['pageTable']   = Texture.COLORMAP2_NUM
-  shader['pageTexture'] = Texture.COLORMAP3_NUM
-  shader['noise']       = Texture.NOISE_NUM
-  shader['worldSize']   = planetSize
-  shader['numPages']    = numPages
-  shader['pageSize']    = pageSize
