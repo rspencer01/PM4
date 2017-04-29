@@ -10,6 +10,7 @@ import OpenGL.GL as gl
 import OpenGL.GLU as glu
 import OpenGL.GLUT as glut
 import OpenGL.GL.framebufferobjects as glfbo
+import Image
 logging.basicConfig(format ='%(asctime)-15s <%(threadName)-12s> [%(module)-12s] - %(message)s',level=logging.INFO)
 
 import args
@@ -26,11 +27,12 @@ cameraSpeed = 20
 frametime = 0.
 lastframe = time.time()
 enableAtmosphere = not args.args.disable_atmosphere
+screenshotDest = None
 
 aboveGround = 1
 
 def display():
-  global frametime,lastframe,cputime,lastcpucycle
+  global frametime,lastframe,cputime,lastcpucycle, screenshotDest
   frametime = frametime*.8 + 0.2*(time.time()-lastframe)
   lastframe = time.time()
 
@@ -86,6 +88,16 @@ def display():
   postrender.display(lastRenderStage,windowWidth,windowHeight)
   lastRenderStage = renderStages[3]
 
+  if screenshotDest:
+    pixels = gl.glReadPixels(0, 0, lastRenderStage.width, lastRenderStage.height, gl.GL_RGB, gl.GL_UNSIGNED_BYTE)
+
+    image = Image.fromstring("RGB", (windowWidth, windowHeight), pixels)
+    image = image.transpose( Image.FLIP_TOP_BOTTOM)
+    image.save(screenshotDest if type(screenshotDest) == str else "screenshot.png")
+    # Do a nice flash effect
+    postrender.exposure = 5
+    screenshotDest = None
+
   glut.glutSwapBuffers()
   glut.glutSetWindowTitle("PM4 {:.2f} ({:.0f}ms) {:.6f}".format(1./frametime,frametime*1000, time.time()-lastframe))
 
@@ -128,7 +140,7 @@ def reshape(width,height):
 
 keys = set()
 def keyboard(key,x,y):
-  global line,enableAtmosphere
+  global line,enableAtmosphere, screenshotDest
   if key=='\033':
     #    Shadows.cleanup()
     sys.exit(0)
@@ -143,6 +155,8 @@ def keyboard(key,x,y):
     reload(Terrain)
   if key=='o':
     enableAtmosphere = not enableAtmosphere
+  if key=='t':
+    screenshotDest = True
   if key=='?':
     print open('help').read()
   keys.add(key)
