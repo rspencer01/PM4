@@ -25,14 +25,16 @@ in TesselationData
 #include shaders/include/TerrainOps.shd;
 #include shaders/include/NormalOps.shd;
 
-vec3 averageNormal(vec3 pos, vec3 newPos)
+vec3 averageNormal(vec3 pos)
 {
   return normalize(textureBicubic(heightmap,pos.xz/60000+vec2(0.5)).zyx);
 }
 
 vec3 getNormal(vec3 pos, vec3 newPos)
 {
-  vec3 n = averageNormal(pos,newPos);
+  vec3 n = averageNormal(pos);
+  if (length(newPos-CameraPosition) > 4e3)
+    return normalize(n + textureLod(noise,TesselationOut.position.zx/10000,0).rgb*0.015);
   vec3 t = cross(vec3(1,0,0),n);
   vec3 b = cross(t,n);
   vec4 displacement = getFineValue(pos.xz+vec2(30000));
@@ -48,18 +50,16 @@ vec3 getNormal(vec3 pos, vec3 newPos)
 
 vec3 colorOffset()
 {
-  return vec3(1)+vec3(0.2*textureLod(noise,TesselationOut.position.xz/10000,0).a,
-              0.2*textureLod(noise,TesselationOut.position.zx/4000+vec2(0.1,0.2),0).a,
-              0.2*textureLod(noise,TesselationOut.position.zx/4000+vec2(0.5,0.1),0).a);
+  return vec3(1)+0.01*textureLod(noise,TesselationOut.position.xz/20000,0).rgb;
 }
 
 vec3 color(vec3 norm,vec3 pos,vec3 averageNorm)
 {
-  float f = 0.7;
+  float f = 0.8;
   norm = f*normalize(norm) + (1-f)*normalize(averageNorm);
   norm = normalize(norm);
-  float texAmount = max(0,1-length(vec3(TesselationOut.position.xyz)-CameraPosition)/2600);
-  vec3 texCol = textureLod(colormap,(mod(vec2(TesselationOut.position.xz)/16,vec2(1)))/2,0).xyz * colorOffset();
+  float texAmount = max(0,1-length(vec3(TesselationOut.position.xyz)-CameraPosition)/1500);
+  vec3 texCol = texture(colormap,(mod(vec2(TesselationOut.position.xz)/16,vec2(1)))/2).xyz * colorOffset();
   vec3 norCol = vec3(100,117,48)/255 * colorOffset();
   // Rock
   if (norm.y<0.80)
@@ -88,8 +88,8 @@ vec3 color(vec3 norm,vec3 pos,vec3 averageNorm)
 
 void main()
 {
-  vec3 averageNorm = averageNormal(TesselationOut.origPosition.xyz,TesselationOut.position.xyz);
-  vec3 norm = getNormal(TesselationOut.origPosition.xyz,TesselationOut.position.xyz);
+  vec3 averageNorm = averageNormal(TesselationOut.origPosition.xyz);
+  vec3 norm        = getNormal(TesselationOut.origPosition.xyz, TesselationOut.position.xyz);
   fragColor = vec4(
     color(norm,TesselationOut.position.xyz,averageNorm),
     1);
