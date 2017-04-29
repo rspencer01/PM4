@@ -1,6 +1,13 @@
-timing*
-profiling*
-nsight_profiler.cfg
 *.npy
 *.pyc
 height
+
+*.swp
+
+# Debugging things
+timing*
+profiling*
+nsight_profiler.cfg
+*.trace
+
+*.log
