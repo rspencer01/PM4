@@ -249,7 +249,7 @@ def readShaderFile(filename):
   p = re.compile(r"#include\W(.+);")
   m = p.search(source)
   while m:
-    included = open(m.group(1)).read()
+    included = readShaderFile(m.group(1))
     source = source.replace("#include {};".format(m.group(1)), included)
     m = p.search(source)
   return source
