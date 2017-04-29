@@ -3,12 +3,10 @@
 // define the number of CPs in the output patch
 layout (vertices = 3) out;
 
-// The rendering camera (could be shadow)
-uniform vec3 CameraPosition;
-uniform vec3 CameraDirection;
 // The user camera
 uniform vec3 userCameraPosition;
 uniform vec3 userCameraDirection;
+uniform vec3 CameraDirection;
 uniform int shadowLevel;
 
 in vec3 pos[];
@@ -16,34 +14,28 @@ in vec3 pos[];
 out vec3 evaluationpoint_wor[];
 out vec4 shadowPosFS[];
 
-uniform sampler2D heightmap;
-uniform sampler2D noise;
-
 int detailLevel(vec3 position)
 {
   vec3 dir = position - userCameraPosition;
   float dist = length(dir.xz);
   if (dist < 300)
     return 100;
-  if (dist < 7000)
+  if (dist < 10000)
     return max(2,
-        int(100*(pow(1-max(0,dist-300)/8000.0,4))));
-  if (dot(normalize(dir),CameraDirection) < 0.7)
+        int(100*(pow(1-max(0,dist-300)/9000.0,4))));
+  if (dot(normalize(dir),CameraDirection) < 0.5)
     return 0;
   return 1;
-} 
+}
 
 
 void main()
 {
   // Set the control points of the output patch
-  //TexCoord_ES_in[gl_InvocationID] = TexCoord_CS_in[gl_InvocationID];
-  //Normal_ES_in[gl_InvocationID] = Normal_CS_in[gl_InvocationID];
   evaluationpoint_wor[gl_InvocationID] = pos[gl_InvocationID];
 
-  // Calculate the tessellation levels
-  gl_TessLevelInner[0] = detailLevel((pos[0]+pos[1]+pos[2])/3.0);
-  gl_TessLevelOuter[0] = detailLevel((pos[1]+pos[2])/2.0);
-  gl_TessLevelOuter[1] = detailLevel((pos[0]+pos[2])/2.0);
-  gl_TessLevelOuter[2] = detailLevel((pos[1]+pos[0])/2.0);
-} 
+  gl_TessLevelInner[0] = detailLevel((pos[0] + pos[1] + pos[2]) / 3.0);
+  gl_TessLevelOuter[0] = detailLevel((pos[1] + pos[2]) / 2.0);
+  gl_TessLevelOuter[1] = detailLevel((pos[0] + pos[2]) / 2.0);
+  gl_TessLevelOuter[2] = detailLevel((pos[1] + pos[0]) / 2.0);
+}
