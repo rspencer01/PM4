@@ -4,6 +4,9 @@ height
 
 *.swp
 
+*.jpg
+screenshots/
+
 # Debugging things
 timing*
 profiling*
