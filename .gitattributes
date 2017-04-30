@@ -1,0 +1,10 @@
+assets/knight/models/knight.fbx filter=lfs diff=lfs merge=lfs -text
+assets/knight/models/textures/clothColor.png filter=lfs diff=lfs merge=lfs -text
+assets/knight/models/textures/weaponsColor.png filter=lfs diff=lfs merge=lfs -text
+assets/knight/models/textures/weaponsNormal.png filter=lfs diff=lfs merge=lfs -text
+assets/knight/models/textures/knight1Color.png filter=lfs diff=lfs merge=lfs -text
+assets/knight/models/textures/knight1Normal.png filter=lfs diff=lfs merge=lfs -text
+assets/knight/models/textures/clothNormal.png filter=lfs diff=lfs merge=lfs -text
+assets/stars.csv/hygxyz.csv filter=lfs diff=lfs merge=lfs -text
+assets/grass.png filter=lfs diff=lfs merge=lfs -text
+assets/Cederberg[[:space:]]Mountains[[:space:]]Height[[:space:]]Map[[:space:]](Merged).png filter=lfs diff=lfs merge=lfs -text
