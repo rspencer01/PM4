@@ -1,6 +1,8 @@
 import Camera
 import numpy as np
 import OpenGL.GL as gl
+from RenderStage import RenderStage
+import logging
 #import Road
 import Terrain
 #import Grass
@@ -12,9 +14,11 @@ import grass
 import transforms
 import Characters
 
-print "Initialising Shadows"
+logging.info("Initialising Shadows")
 
 shadowSize = 1024
+
+logging.info("3 shadow maps at {}x{} ~ {}Mb".format(shadowSize, shadowSize, 3*shadowSize**2*16/1024**2))
 
 sunDeclination = 22/180.0*3.141592
 latitude = 3.1415/4
@@ -27,48 +31,37 @@ shadowCamera.rotLeftRight(sunPhi)
 shadowCamera.update()
 
 sunDirection = shadowCamera.direction
-#sunDirection[0],sunDirection[2] = sunDirection[2],sunDirection[0] Shaders.setUniform('sunDirection',sunDirection*np.array((1,1,-1)))
 
-shadowTexture1 = Texture.Texture(Texture.SHADOWS1)
-shadowTexture2 = Texture.Texture(Texture.SHADOWS2)
-shadowTexture3 = Texture.Texture(Texture.SHADOWS3) 
-frameBuffers = [-1]*4
+renderStages = [RenderStage(depth_only=True) for _ in xrange(3)]
+for i in renderStages:
+  i.reshape(shadowSize, shadowSize)
+renderStages[0].displayDepthTexture.loadAs(Texture.SHADOWS1)
+renderStages[1].displayDepthTexture.loadAs(Texture.SHADOWS2)
+renderStages[2].displayDepthTexture.loadAs(Texture.SHADOWS3)
 
-textures = [shadowTexture1,shadowTexture2,shadowTexture3]
-
-for i in range(1,4):
-  frameBuffers[i] = gl.glGenFramebuffers(1)
-  gl.glBindFramebuffer(gl.GL_FRAMEBUFFER,frameBuffers[i] );
-
-  textures[i-1].load()
-  gl.glTexParameteri(gl.GL_TEXTURE_2D, gl.GL_TEXTURE_WRAP_S, gl.GL_REPEAT)
-  gl.glTexParameteri(gl.GL_TEXTURE_2D, gl.GL_TEXTURE_WRAP_T, gl.GL_REPEAT)
-  gl.glTexParameteri(gl.GL_TEXTURE_2D, gl.GL_TEXTURE_MAG_FILTER, gl.GL_NEAREST)
-  gl.glTexParameteri(gl.GL_TEXTURE_2D, gl.GL_TEXTURE_MIN_FILTER, gl.GL_NEAREST)    
-  gl.glTexParameteri(gl.GL_TEXTURE_2D, gl.GL_TEXTURE_COMPARE_FUNC,gl.GL_LEQUAL)
-  gl.glTexParameteri(gl.GL_TEXTURE_2D, gl.GL_TEXTURE_COMPARE_MODE,gl.GL_NONE)
-
-  gl.glTexImage2D(gl.GL_TEXTURE_2D, 0,gl.GL_DEPTH_COMPONENT32, shadowSize, shadowSize, 0,gl.GL_DEPTH_COMPONENT, gl.GL_FLOAT, None)
-  gl.glFramebufferTexture(gl.GL_FRAMEBUFFER, gl.GL_DEPTH_ATTACHMENT, textures[i-1].id, 0)
-  gl.glDrawBuffer(gl.GL_NONE)
-  if(gl.glCheckFramebufferStatus(gl.GL_FRAMEBUFFER) != gl.GL_FRAMEBUFFER_COMPLETE):
-    raise "Error!"
-  gl.glBindFramebuffer(gl.GL_FRAMEBUFFER, 0);
-    
+projections = []
+for i in range(3):
+  width = 20 * 10**i
+  projections.append(transforms.ortho(-width,width,-width,width, 40000. - 2*width, 40000. + 2*width))
+  Shaders.setUniform('shadowProjection'+str(i+1),projections[i])
 
 lockCam = None
 
 count = 0
 
+Shaders.setUniform('shadowTexture1',Texture.SHADOWS1_NUM)
+Shaders.setUniform('shadowTexture2',Texture.SHADOWS2_NUM)
+Shaders.setUniform('shadowTexture3',Texture.SHADOWS3_NUM)
+
 def render():
   global count,sunTheta
   # Get this right some day
-  sunTheta = np.cos(count/200.0)*0.1
-  sunTheta = -count/500.0+2.005
- # sunTheta = 1.1+0.9*np.sin(count/50.)
+  sunTheta = -count/2000.0+2.005
+
   shadowCamera.direction = np.array([0.,0.,1.])
   shadowCamera.theta = 0
   shadowCamera.phi = 0
+
   shadowCamera.rotUpDown(sunTheta)
   shadowCamera.rotLeftRight(sunPhi)
   shadowCamera.direction *= -1
@@ -77,22 +70,15 @@ def render():
   Shaders.setUniform('sunDirection',sunDirection*np.array((1,1,1)))
   shadowCamera.update()
   shadowCamera.render()
-  shadowTexture1.load()
-  shadowTexture2.load()
-  shadowTexture3.load()
-  gl.glViewport(0,0,shadowSize,shadowSize)
 
   for i in range(3):
+    if count % 5 ** i != 0:
+      continue
     if np.sum(lockCam.pos*lockCam.pos) > 6e4**2 or lockCam.pos[1]>4e3:
       if i<2:
-        continue 
-    gl.glBindFramebuffer(gl.GL_FRAMEBUFFER,frameBuffers[i+1] );
-    gl.glClear(gl.GL_COLOR_BUFFER_BIT|gl.GL_DEPTH_BUFFER_BIT);
-    width = 10 * 25**i
-    projection = transforms.ortho(-width,width,-width,width, 40000. - 2*width, 40000. + 2*width)
-    Shaders.setUniform('projection',projection)
-    Shaders.setUniform('shadowProjection'+str(i+1),projection)
-    Shaders.setUniform('shadowLevel',i)
+        continue
+    renderStages[i].load(shadowSize, shadowSize)
+    Shaders.setUniform('projection',projections[i])
     shadowCamera.render('shadow'+str(i+1))
 
     Terrain.display(lockCam)
@@ -100,18 +86,6 @@ def render():
     grass.display(lockCam)
  #   Forest.display(lockCam.pos,i)
 
-    textures[i].makeMipmap()
   Shaders.setUniform('shadowLevel',-1)
 
-  gl.glBindFramebuffer(gl.GL_FRAMEBUFFER, 0);
-
-  Shaders.setUniform('shadowTexture1',Texture.SHADOWS1_NUM)
-  Shaders.setUniform('shadowTexture2',Texture.SHADOWS2_NUM)
-  Shaders.setUniform('shadowTexture3',Texture.SHADOWS3_NUM)
-
   count+=1
-
-def cleanup():
-  gl.glDeleteFramebuffers(frameBuffers[1:])
-  for i in textures:
-    del i

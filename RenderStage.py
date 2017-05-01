@@ -4,10 +4,11 @@ import Texture
 
 
 class RenderStage(object):
-  def __init__(self, final_stage=False):
+  def __init__(self, final_stage=False, depth_only=False):
     self.final_stage = final_stage
     self.width = None
     self.height = None
+    self.depth_only = depth_only
     if not final_stage:
       self.create_fbos()
 
@@ -35,9 +36,10 @@ class RenderStage(object):
   def reshape(self, width, height):
     if self.final_stage:
       return
-    self.displayColorTexture.loadData(width, height, None)
-    self.displaySecondaryColorTexture.loadData(width, height, None)
-    self.displayAuxColorTexture.loadData(width, height, None)
+    if not self.depth_only:
+      self.displayColorTexture.loadData(width, height, None)
+      self.displaySecondaryColorTexture.loadData(width, height, None)
+      self.displayAuxColorTexture.loadData(width, height, None)
     self.displayDepthTexture.load()
     gl.glTexImage2D(
         gl.GL_TEXTURE_2D,
@@ -55,29 +57,30 @@ class RenderStage(object):
 
     gl.glBindFramebuffer(gl.GL_FRAMEBUFFER, self.displayFBO)
 
-    self.displayColorTexture = Texture.Texture(Texture.COLORMAP)
-    self.displayColorTexture.load()
-    gl.glTexParameteri(gl.GL_TEXTURE_2D, gl.GL_TEXTURE_WRAP_S, gl.GL_REPEAT)
-    gl.glTexParameteri(gl.GL_TEXTURE_2D, gl.GL_TEXTURE_WRAP_T, gl.GL_REPEAT)
-    gl.glTexParameteri(gl.GL_TEXTURE_2D, gl.GL_TEXTURE_MAG_FILTER, gl.GL_NEAREST)
-    gl.glTexParameteri(gl.GL_TEXTURE_2D, gl.GL_TEXTURE_MIN_FILTER, gl.GL_LINEAR_MIPMAP_LINEAR)
-    self.displayColorTexture.loadData(1, 1, None)
+    if not self.depth_only:
+      self.displayColorTexture = Texture.Texture(Texture.COLORMAP)
+      self.displayColorTexture.load()
+      gl.glTexParameteri(gl.GL_TEXTURE_2D, gl.GL_TEXTURE_WRAP_S, gl.GL_REPEAT)
+      gl.glTexParameteri(gl.GL_TEXTURE_2D, gl.GL_TEXTURE_WRAP_T, gl.GL_REPEAT)
+      gl.glTexParameteri(gl.GL_TEXTURE_2D, gl.GL_TEXTURE_MAG_FILTER, gl.GL_NEAREST)
+      gl.glTexParameteri(gl.GL_TEXTURE_2D, gl.GL_TEXTURE_MIN_FILTER, gl.GL_LINEAR_MIPMAP_LINEAR)
+      self.displayColorTexture.loadData(1, 1, None)
 
-    self.displaySecondaryColorTexture = Texture.Texture(Texture.COLORMAP2)
-    self.displaySecondaryColorTexture.load()
-    gl.glTexParameteri(gl.GL_TEXTURE_2D, gl.GL_TEXTURE_WRAP_S, gl.GL_REPEAT)
-    gl.glTexParameteri(gl.GL_TEXTURE_2D, gl.GL_TEXTURE_WRAP_T, gl.GL_REPEAT)
-    gl.glTexParameteri(gl.GL_TEXTURE_2D, gl.GL_TEXTURE_MAG_FILTER, gl.GL_NEAREST)
-    gl.glTexParameteri(gl.GL_TEXTURE_2D, gl.GL_TEXTURE_MIN_FILTER, gl.GL_NEAREST_MIPMAP_NEAREST)
-    self.displaySecondaryColorTexture.loadData(1, 1, None)
+      self.displaySecondaryColorTexture = Texture.Texture(Texture.COLORMAP2)
+      self.displaySecondaryColorTexture.load()
+      gl.glTexParameteri(gl.GL_TEXTURE_2D, gl.GL_TEXTURE_WRAP_S, gl.GL_REPEAT)
+      gl.glTexParameteri(gl.GL_TEXTURE_2D, gl.GL_TEXTURE_WRAP_T, gl.GL_REPEAT)
+      gl.glTexParameteri(gl.GL_TEXTURE_2D, gl.GL_TEXTURE_MAG_FILTER, gl.GL_NEAREST)
+      gl.glTexParameteri(gl.GL_TEXTURE_2D, gl.GL_TEXTURE_MIN_FILTER, gl.GL_NEAREST_MIPMAP_NEAREST)
+      self.displaySecondaryColorTexture.loadData(1, 1, None)
 
-    self.displayAuxColorTexture = Texture.Texture(Texture.COLORMAP3)
-    self.displayAuxColorTexture.load()
-    gl.glTexParameteri(gl.GL_TEXTURE_2D, gl.GL_TEXTURE_WRAP_S, gl.GL_REPEAT)
-    gl.glTexParameteri(gl.GL_TEXTURE_2D, gl.GL_TEXTURE_WRAP_T, gl.GL_REPEAT)
-    gl.glTexParameteri(gl.GL_TEXTURE_2D, gl.GL_TEXTURE_MAG_FILTER, gl.GL_NEAREST)
-    gl.glTexParameteri(gl.GL_TEXTURE_2D, gl.GL_TEXTURE_MIN_FILTER, gl.GL_NEAREST_MIPMAP_NEAREST)
-    self.displayAuxColorTexture.loadData(1, 1, None)
+      self.displayAuxColorTexture = Texture.Texture(Texture.COLORMAP3)
+      self.displayAuxColorTexture.load()
+      gl.glTexParameteri(gl.GL_TEXTURE_2D, gl.GL_TEXTURE_WRAP_S, gl.GL_REPEAT)
+      gl.glTexParameteri(gl.GL_TEXTURE_2D, gl.GL_TEXTURE_WRAP_T, gl.GL_REPEAT)
+      gl.glTexParameteri(gl.GL_TEXTURE_2D, gl.GL_TEXTURE_MAG_FILTER, gl.GL_NEAREST)
+      gl.glTexParameteri(gl.GL_TEXTURE_2D, gl.GL_TEXTURE_MIN_FILTER, gl.GL_NEAREST_MIPMAP_NEAREST)
+      self.displayAuxColorTexture.loadData(1, 1, None)
 
     self.displayDepthTexture = Texture.Texture(Texture.DEPTHMAP)
     self.displayDepthTexture.load()
@@ -90,8 +93,16 @@ class RenderStage(object):
     gl.glTexImage2D(gl.GL_TEXTURE_2D, 0, gl.GL_DEPTH_COMPONENT32, 1, 1, 0, gl.GL_DEPTH_COMPONENT, gl.GL_FLOAT, None)
 
     gl.glFramebufferTexture(gl.GL_FRAMEBUFFER, gl.GL_DEPTH_ATTACHMENT,   self.displayDepthTexture.id, 0)
-    gl.glFramebufferTexture(gl.GL_FRAMEBUFFER, gl.GL_COLOR_ATTACHMENT0,  self.displayColorTexture.id, 0)
-    gl.glFramebufferTexture(gl.GL_FRAMEBUFFER, gl.GL_COLOR_ATTACHMENT1,  self.displaySecondaryColorTexture.id, 0)
-    gl.glFramebufferTexture(gl.GL_FRAMEBUFFER, gl.GL_COLOR_ATTACHMENT2,  self.displayAuxColorTexture.id, 0)
-    gl.glDrawBuffers(3, [gl.GL_COLOR_ATTACHMENT0, gl.GL_COLOR_ATTACHMENT1, gl.GL_COLOR_ATTACHMENT2])
+    if not self.depth_only:
+      gl.glFramebufferTexture(gl.GL_FRAMEBUFFER, gl.GL_COLOR_ATTACHMENT0,  self.displayColorTexture.id, 0)
+      gl.glFramebufferTexture(gl.GL_FRAMEBUFFER, gl.GL_COLOR_ATTACHMENT1,  self.displaySecondaryColorTexture.id, 0)
+      gl.glFramebufferTexture(gl.GL_FRAMEBUFFER, gl.GL_COLOR_ATTACHMENT2,  self.displayAuxColorTexture.id, 0)
+      gl.glDrawBuffers(3, [gl.GL_COLOR_ATTACHMENT0, gl.GL_COLOR_ATTACHMENT1, gl.GL_COLOR_ATTACHMENT2])
+    else:
+      gl.glDrawBuffers(gl.GL_NONE)
     glfbo.checkFramebufferStatus()
+
+  def __del__(self):
+    """When the stage is deleted, we must get rid of any GPU resources we have
+    requested."""
+    gl.glDeleteFramebuffers([self.displayFBO])

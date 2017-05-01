@@ -42,7 +42,7 @@ def display():
   global cameraSpeed
 
   p = camera.pos + np.array([0,Re,0])
-  cameraSpeed = max((p.dot(p)**0.5-Re-1000)*2+90,0)
+  cameraSpeed = max((p.dot(p)**0.5-Re-1000)*.1+90,0)
   f = np.clip((p.dot(p)**0.5 - Re*1.03) /(Re*0.3),0,1)
   globUp = np.array([np.array([1.0,0.0,0.0]),
                      p/p.dot(p)**0.5])
@@ -142,7 +142,6 @@ keys = set()
 def keyboard(key,x,y):
   global line,enableAtmosphere, screenshotDest
   if key=='\033':
-    #    Shadows.cleanup()
     sys.exit(0)
   if key=='l':
     global lockToGround
@@ -217,8 +216,8 @@ setUniform('fogLevel',8.0)
 setUniform('maxFog',1000.0)
 #import Forest
 
-import Shadows
 import postrender
+import Shadows
 import Sky
 import grass
 import Characters

@@ -7,7 +7,6 @@ layout (vertices = 3) out;
 uniform vec3 userCameraPosition;
 uniform vec3 userCameraDirection;
 uniform vec3 CameraDirection;
-uniform int shadowLevel;
 
 in vec3 pos[];
 
