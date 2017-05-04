@@ -5,7 +5,6 @@ import logging
 import random
 import threading
 import Image
-import Camera
 import noiseG
 import MultiObject
 import args

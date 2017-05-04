@@ -227,7 +227,6 @@ camera.radiusCentre = np.array([0,-Re,0])
 camera.minRadius = Re
 camera.render()
 Shadows.lockCam = camera
-#camera.locked = True
 #for i in xrange(-10,10):
 #  for j in xrange(-10,10):
 #    Marker.addMarker(400*np.array([i,0,j]))

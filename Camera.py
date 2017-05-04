@@ -25,8 +25,8 @@ class Camera:
 
   def move(self,d):
     self.update()
-    if (self.pos-self.radiusCentre-d*self.direction).dot(self.pos-self.radiusCentre-d*self.direction) >= self.minRadius**2:
-      self.pos += d*self.direction
+    if np.linalg.norm(self.pos-self.radiusCentre-d*self.direction) >= self.minRadius:
+      self.pos += d * self.direction
       self.update()
 
   def rotUpDown(self,d):
@@ -38,20 +38,25 @@ class Camera:
     self.update()
 
   def update(self):
+    """Updates the internal representation of the camera, such as the view
+    matrix and direction vector."""
     self.view = np.eye(4,dtype=np.float32)
-    self.view2 = np.eye(4,dtype=np.float32)
+    view2 = np.eye(4,dtype=np.float32)
     translate(self.view,-self.pos[0],-self.pos[1],-self.pos[2])
-    self.view2[0:3,0] = np.cross(self.globalUp,self.globalRight)
-    self.view2[0:3,1] = self.globalUp[:]
-    self.view2[0:3,2] = self.globalRight[:]
-    self.view = self.view.dot(self.view2)
+    view2[0:3,0] = np.cross(self.globalUp,self.globalRight)
+    view2[0:3,1] = self.globalUp[:]
+    view2[0:3,2] = self.globalRight[:]
+    self.view = self.view.dot(view2)
     rotate(self.view,self.phi*180/3.1415,0,1,0)
     rotate(self.view,self.theta*180/3.1415,1,0,0)
 
     self.direction = np.array([0,0,-1])
     self.direction = self.view[:3,:3].dot(self.direction)
 
-  def render(self,name=''):
+  def render(self, name=''):
+    """Set the uniforms in all the shaders.  Uniform names are `{name}View`,
+    `{name}CameraDirection` and `{name}CameraPosition` for a given name.  This
+    allows for multiple cameras to be "rendered" simultaniously."""
     self.update()
     setUniform(name+'View',self.view.T)
     setUniform(name+'CameraDirection',self.direction)
