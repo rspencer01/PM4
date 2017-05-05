@@ -101,7 +101,7 @@ if not os.path.exists('terrain.npy') or args.args.remake_terrain:
 else:
   d=np.load('terrain.npy')
 
-heightmap.loadData(d.shape[0],d.shape[1],d)
+heightmap.loadData(d, keep_copy=True)
 
 logging.info(" + Loading textures")
 
@@ -135,14 +135,14 @@ stone = np.array([stone[i*a.size[0]:(i+1)*a.size[0]] for i in xrange(a.size[1])]
 texData[0:colorMapSize/2,0:colorMapSize/2] = grass
 texData[0:colorMapSize/2,colorMapSize/2:] = stone
 texData[colorMapSize/2:,0:colorMapSize/2] = dirt
-texture.loadData(texData.shape[0],texData.shape[1],texData)
+texture.loadData(texData)
 del texData
 setUniform('heightmap',Texture.HEIGHTMAP_NUM)
 
 pageTableTexture = Texture.Texture(Texture.COLORMAP2)
 gl.glTexParameteri(gl.GL_TEXTURE_2D, gl.GL_TEXTURE_MAG_FILTER, gl.GL_NEAREST)
 gl.glTexParameteri(gl.GL_TEXTURE_2D, gl.GL_TEXTURE_MIN_FILTER, gl.GL_NEAREST_MIPMAP_NEAREST)
-pageTableTexture.loadData(1,1, np.zeros((1,1,4))-1)
+pageTableTexture.loadData(np.zeros((1,1,4))-1)
 pageRenderStage = RenderStage.RenderStage()
 pageRenderStage.reshape(pageResoultion*numPages,pageResoultion*numPages)
 pageTexture = pageRenderStage.displayAuxColorTexture
@@ -197,7 +197,7 @@ def updatePageTable(camera):
         generatePage(page)
       index = pageMapping[page]
       data[i][j][0] = index / float(numPages**2)
-  pageTableTexture.loadData(data.shape[0], data.shape[1], data[::-1,:])
+  pageTableTexture.loadData(data[::-1,:])
 
 def display(camera):
   if np.sum(camera.pos*camera.pos) > 6e6**2:

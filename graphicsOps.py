@@ -32,7 +32,7 @@ def extractHighColor(inputTexture,threshhold,outputTexture):
 
   gl.glBindFramebuffer(gl.GL_FRAMEBUFFER, highColorFBO)
   outputTexture.load()
-  outputTexture.loadData(size[0],size[1],None)
+  outputTexture.loadData(None, width=size[0], height=size[1])
   highColorDepth.load()
   gl.glTexImage2D(gl.GL_TEXTURE_2D, 0,gl.GL_DEPTH_COMPONENT32, size[0], size[1], 0,gl.GL_DEPTH_COMPONENT, gl.GL_FLOAT, None)
   gl.glFramebufferTexture(gl.GL_FRAMEBUFFER, gl.GL_DEPTH_ATTACHMENT, highColorDepth.id, 0)
@@ -74,7 +74,7 @@ def gaussianBlur(inputTexture,radius,outputTexture):
 
   gl.glBindFramebuffer(gl.GL_FRAMEBUFFER, gaussianFBO)
   outputTexture.load()
-  outputTexture.loadData(size[0],size[1],None)
+  outputTexture.loadData(None, width=size[0], height=size[1])
   gaussianDepth.load()
   gl.glTexImage2D(gl.GL_TEXTURE_2D, 0,gl.GL_DEPTH_COMPONENT32, size[0], size[1], 0,gl.GL_DEPTH_COMPONENT, gl.GL_FLOAT, None)
   gl.glFramebufferTexture(gl.GL_FRAMEBUFFER, gl.GL_DEPTH_ATTACHMENT, gaussianDepth.id, 0)

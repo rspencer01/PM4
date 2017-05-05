@@ -79,7 +79,7 @@ else:
 # Warning.  Must redo this Overdone in Forest
 foliageMap = Texture.Texture(Texture.FOLIAGEMAP)
 
-foliageMap.loadData(size,size,data)
+foliageMap.loadData(data)
 
 def display(cameraPos):
   foliageMap.load()

@@ -37,9 +37,9 @@ class RenderStage(object):
     if self.final_stage:
       return
     if not self.depth_only:
-      self.displayColorTexture.loadData(width, height, None)
-      self.displaySecondaryColorTexture.loadData(width, height, None)
-      self.displayAuxColorTexture.loadData(width, height, None)
+      self.displayColorTexture.loadData(None, width=width, height=height)
+      self.displaySecondaryColorTexture.loadData(None, width=width, height=height)
+      self.displayAuxColorTexture.loadData(None, width=width, height=height)
     self.displayDepthTexture.load()
     gl.glTexImage2D(
         gl.GL_TEXTURE_2D,
@@ -64,7 +64,7 @@ class RenderStage(object):
       gl.glTexParameteri(gl.GL_TEXTURE_2D, gl.GL_TEXTURE_WRAP_T, gl.GL_REPEAT)
       gl.glTexParameteri(gl.GL_TEXTURE_2D, gl.GL_TEXTURE_MAG_FILTER, gl.GL_NEAREST)
       gl.glTexParameteri(gl.GL_TEXTURE_2D, gl.GL_TEXTURE_MIN_FILTER, gl.GL_LINEAR_MIPMAP_LINEAR)
-      self.displayColorTexture.loadData(1, 1, None)
+      self.displayColorTexture.loadData(None, width=1, height=1)
 
       self.displaySecondaryColorTexture = Texture.Texture(Texture.COLORMAP2)
       self.displaySecondaryColorTexture.load()
@@ -72,7 +72,7 @@ class RenderStage(object):
       gl.glTexParameteri(gl.GL_TEXTURE_2D, gl.GL_TEXTURE_WRAP_T, gl.GL_REPEAT)
       gl.glTexParameteri(gl.GL_TEXTURE_2D, gl.GL_TEXTURE_MAG_FILTER, gl.GL_NEAREST)
       gl.glTexParameteri(gl.GL_TEXTURE_2D, gl.GL_TEXTURE_MIN_FILTER, gl.GL_NEAREST_MIPMAP_NEAREST)
-      self.displaySecondaryColorTexture.loadData(1, 1, None)
+      self.displaySecondaryColorTexture.loadData(None, width=1, height=1)
 
       self.displayAuxColorTexture = Texture.Texture(Texture.COLORMAP3)
       self.displayAuxColorTexture.load()
@@ -80,7 +80,7 @@ class RenderStage(object):
       gl.glTexParameteri(gl.GL_TEXTURE_2D, gl.GL_TEXTURE_WRAP_T, gl.GL_REPEAT)
       gl.glTexParameteri(gl.GL_TEXTURE_2D, gl.GL_TEXTURE_MAG_FILTER, gl.GL_NEAREST)
       gl.glTexParameteri(gl.GL_TEXTURE_2D, gl.GL_TEXTURE_MIN_FILTER, gl.GL_NEAREST_MIPMAP_NEAREST)
-      self.displayAuxColorTexture.loadData(1, 1, None)
+      self.displayAuxColorTexture.loadData(None, width=1, height=1)
 
     self.displayDepthTexture = Texture.Texture(Texture.DEPTHMAP)
     self.displayDepthTexture.load()

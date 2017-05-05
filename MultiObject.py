@@ -91,7 +91,7 @@ class MultiObject(object):
       add = np.zeros((texdata.shape[0],1),dtype=np.float32)+256
       texdata = np.append(texdata,add,axis=1)
     texdata = texdata.reshape(teximag.size[0], teximag.size[1], 4)
-    texture.loadData(texdata.shape[0],texdata.shape[1],texdata/256)
+    texture.loadData(texdata/256)
 
     #Add the textures and the mesh data
     self.textures.append(texture)
@@ -146,9 +146,9 @@ class MultiObject(object):
     gl.glBindFramebuffer(gl.GL_FRAMEBUFFER,framebuffer)
 
     self.billboardTexture = Texture.Texture(Texture.COLORMAP)
-    self.billboardTexture.loadData(texSize*numberOfSwatches,texSize,np.ones((texSize*numberOfSwatches,texSize),dtype=[('',np.float32,4)]))
+    self.billboardTexture.loadData(np.ones((texSize*numberOfSwatches,texSize),dtype=[('',np.float32,4)]))
     self.billboardnormalTexture = Texture.Texture(Texture.BUMPMAP)
-    self.billboardnormalTexture.loadData(texSize*numberOfSwatches,texSize,np.ones((texSize*numberOfSwatches,texSize),dtype=[('',np.float32,4)]))
+    self.billboardnormalTexture.loadData(np.ones((texSize*numberOfSwatches,texSize),dtype=[('',np.float32,4)]))
 
     depthbuffer = gl.glGenRenderbuffers(1)
     gl.glBindRenderbuffer(gl.GL_RENDERBUFFER,depthbuffer)

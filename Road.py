@@ -112,7 +112,7 @@ else:
     
 
 bumpmap.load()
-bumpmap.loadData(data.shape[0],data.shape[1],data)
+bumpmap.loadData(data)
 
 path = [np.array((6*i,0,snoise2(float(i)/10,0.2))) for i in range(100)]
 data = np.zeros((len(path)-1)*6,dtype=[("position" , np.float32,3),("uv" , np.float32,2)])

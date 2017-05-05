@@ -47,7 +47,7 @@ else:
   d=np.load('noise.npy')
 
 logging.info(" + Uploading texture to GPU")
-noiseT.loadData(d.shape[0],d.shape[1],d)
+noiseT.loadData(d)
 noiseT.load()
 
 def load(setUniform):

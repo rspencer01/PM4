@@ -46,7 +46,8 @@ opticalDepthmap = Texture.Texture(Texture.OPTICAL_DEPTHMAP)
 opticalDepthmap.load()
 gl.glTexParameteri(gl.GL_TEXTURE_2D, gl.GL_TEXTURE_WRAP_S, gl.GL_CLAMP)
 gl.glTexParameteri(gl.GL_TEXTURE_2D, gl.GL_TEXTURE_WRAP_T, gl.GL_CLAMP)
-opticalDepthmap.loadData(N,N,opdepth)
+# Why???
+opticalDepthmap.loadData(opdepth, width=N, height=N)
 del opdepth
 
 data = np.zeros(4,dtype=[("position" , np.float32,3)])
@@ -60,7 +61,7 @@ if not os.path.exists('nightSky.npy'):
   framebuffer = gl.glGenFramebuffers(1)
   gl.glBindFramebuffer(gl.GL_FRAMEBUFFER,framebuffer)
   texSize = 2048
-  nightSkyTexture.loadData(2*texSize,texSize,None)
+  nightSkyTexture.loadData(None, width=2*texSize, height=texSize)
 
   depthbuffer = gl.glGenRenderbuffers(1)
   gl.glBindRenderbuffer(gl.GL_RENDERBUFFER,depthbuffer)
@@ -77,7 +78,7 @@ if not os.path.exists('nightSky.npy'):
   shader.load()
   gl.glClear(gl.GL_DEPTH_BUFFER_BIT| gl.GL_COLOR_BUFFER_BIT)
   gl.glDisable(gl.GL_DEPTH_TEST)
-  nightSkyTexture.loadData(2*texSize,texSize,None)
+  nightSkyTexture.loadData(None, width=2*texSize, height=texSize)
 
   stars = np.loadtxt(open("assets/stars.csv/hygxyz.csv","rb"),delimiter=",",skiprows=1,usecols=(17,18,19,13))
   stars = stars[stars.argsort(0)[:,3]]

@@ -77,7 +77,7 @@ for i in xrange(patches-1):
       xx = textSize*(t[0]+30000)/60000
       yy = textSize*(t[2]+30000)/60000
       textData[xx,yy][0] = 1
-foliageMap.loadData(textSize,textSize,textData)
+foliageMap.loadData(textData)
 Shaders.setUniform('foliageMap',Texture.FOLIAGEMAP_NUM)
 logging.info(" + Total trees {:d}".format(totalTrees))
 tree1.freeze()

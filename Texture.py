@@ -72,14 +72,26 @@ class Texture:
 
   def loadData(
       self,
-      width,
-      height,
       data,
+      width=None,
+      height=None,
       internal_format=gl.GL_RGBA32F,
-      type=gl.GL_FLOAT):
+      type=gl.GL_FLOAT,
+      keep_copy=False,
+      make_mipmap=True):
+    """Loads data to the GPU.  Parameter `data` may either be a numpy array of
+    shape `(width,height,4)` or `None` (in which case `width` and `height` must
+    be specified)."""
+    if width == None:
+      width = data.shape[0]
+    if height == None:
+      height = data.shape[1]
     self.load()
     gl.glTexImage2D(gl.GL_TEXTURE_2D, 0 ,internal_format, width, height, 0, gl.GL_RGBA, type, data)
-    self.makeMipmap()
+    if keep_copy:
+      self._data = data.copy()
+    if make_mipmap:
+      self.makeMipmap()
 
 
   def makeMipmap(self):
@@ -107,7 +119,7 @@ class Texture:
 
   def loadFromFile(self,fileName):
     data = np.load(fileName)
-    self.loadData(data.shape[0],data.shape[1],data)
+    self.loadData(data)
     del data
 
 
@@ -127,7 +139,7 @@ class Texture:
 
       def uploadToGPU(data):
         logging.info("Uploading texture {}".format(self.id))
-        self.loadData(data.shape[0], data.shape[1], data/256)
+        self.loadData(data/256)
 
       # We have now loaded the image data.  We need to upload it to the GPU.
       # Either we do this on the main thread, or if we are not using a daemon
