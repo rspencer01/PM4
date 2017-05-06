@@ -3,8 +3,10 @@ from transforms import *
 from Shaders import *
 
 class Camera:
-  def __init__(self,pos):
+  def __init__(self, pos, lockObject=None, lockDistance=10):
     self.pos = pos
+    self.lockObject = lockObject
+    self.lockDistance = lockDistance
     # Spherical coordinates are used to show the direction we
     # are looking in
     self.theta = 0
@@ -52,6 +54,10 @@ class Camera:
 
     self.direction = np.array([0,0,-1])
     self.direction = self.view[:3,:3].dot(self.direction)
+
+    if self.lockObject is not None:
+      self.pos = self.lockObject.pos + self.lockDistance * self.direction * np.array((1,-1,-1))
+
 
   def render(self, name=''):
     """Set the uniforms in all the shaders.  Uniform names are `{name}View`,
