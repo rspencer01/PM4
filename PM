@@ -41,7 +41,7 @@ def display():
 
   global cameraSpeed
 
-  p = camera.pos + np.array([0,Re,0])
+  p = camera.position + np.array([0,Re,0])
   cameraSpeed = max((p.dot(p)**0.5-Re-1000)*.1+90,0)
   f = np.clip((p.dot(p)**0.5 - Re*1.03) /(Re*0.3),0,1)
   globUp = np.array([np.array([1.0,0.0,0.0]),
@@ -72,7 +72,7 @@ def display():
   Terrain.display(camera)
   Characters.display()
   grass.display(camera)
-  #Forest.display(camera.pos)
+  #Forest.display(camera.position)
 
   gl.glPolygonMode(gl.GL_FRONT_AND_BACK,gl.GL_FILL);
   renderStages[1].load(windowWidth, windowHeight)
@@ -116,7 +116,7 @@ def timer(fps):
   if 'd' in keys:
     camera.rotLeftRight(1.5/fps)
   if 'h' in keys:
-    camera.pos = camera.pos * 0.98
+    camera.position = camera.position * 0.98
 
   taskQueue.doNextTask()
 

@@ -3,8 +3,11 @@ from transforms import *
 from Shaders import *
 
 class Camera:
-  def __init__(self, pos, lockObject=None, lockDistance=10):
-    self.pos = pos
+  def __init__(self, position=np.array([0,0,0]), lockObject=None, lockDistance=50):
+    """Initialises this camera at the given position.  If `lockObject` is not
+    None, it must be a python object with a `position` attribute.  The camera
+    will "follow" this object, as in a 3rd person game."""
+    self.position = position
     self.lockObject = lockObject
     self.lockDistance = lockDistance
     # Spherical coordinates are used to show the direction we
@@ -27,8 +30,8 @@ class Camera:
 
   def move(self,d):
     self.update()
-    if np.linalg.norm(self.pos-self.radiusCentre-d*self.direction) >= self.minRadius:
-      self.pos += d * self.direction
+    if np.linalg.norm(self.position-self.radiusCentre-d*self.direction) >= self.minRadius:
+      self.position += d * self.direction
       self.update()
 
   def rotUpDown(self,d):
@@ -44,7 +47,7 @@ class Camera:
     matrix and direction vector."""
     self.view = np.eye(4,dtype=np.float32)
     view2 = np.eye(4,dtype=np.float32)
-    translate(self.view,-self.pos[0],-self.pos[1],-self.pos[2])
+    translate(self.view,-self.position[0],-self.position[1],-self.position[2])
     view2[0:3,0] = np.cross(self.globalUp,self.globalRight)
     view2[0:3,1] = self.globalUp[:]
     view2[0:3,2] = self.globalRight[:]
@@ -56,7 +59,7 @@ class Camera:
     self.direction = self.view[:3,:3].dot(self.direction)
 
     if self.lockObject is not None:
-      self.pos = self.lockObject.pos + self.lockDistance * self.direction * np.array((1,-1,-1))
+      self.position = self.lockObject.position + self.lockDistance * self.direction * np.array((-1,-1,-1))
 
 
   def render(self, name=''):
@@ -66,4 +69,4 @@ class Camera:
     self.update()
     setUniform(name+'View',self.view.T)
     setUniform(name+'CameraDirection',self.direction)
-    setUniform(name+'CameraPosition',self.pos)
+    setUniform(name+'CameraPosition',self.position)

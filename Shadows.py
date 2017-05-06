@@ -68,7 +68,7 @@ def render():
   for i in range(3):
     if count % 5 ** i != 0:
       continue
-    if np.sum(shadowCamera.lockObject.pos*shadowCamera.lockObject.pos) > 6e4**2 or shadowCamera.lockObject.pos[1]>4e3:
+    if np.sum(shadowCamera.lockObject.position*shadowCamera.lockObject.position) > 6e4**2 or shadowCamera.lockObject.position[1]>4e3:
       if i<2:
         continue
     renderStages[i].load(shadowSize, shadowSize)
@@ -78,7 +78,7 @@ def render():
     Terrain.display(shadowCamera.lockObject)
     Characters.display()
     grass.display(shadowCamera.lockObject)
- #   Forest.display(shadowCamera.lockObject.pos,i)
+ #   Forest.display(shadowCamera.lockObject.position,i)
 
   Shaders.setUniform('shadowLevel',-1)
 

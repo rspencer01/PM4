@@ -175,11 +175,11 @@ def generatePage(page):
   pageTexture.makeMipmap()
 
 def updatePageTable(camera):
-  if camera.pos[1] > 5000:
+  if camera.position[1] > 5000:
     pageMapping.clear()
     return
 
-  currentPage = (pagesAcross - int(camera.pos[2] / (pageSize) + pagesAcross/2) , int(camera.pos[0] / (pageSize) + pagesAcross/2))
+  currentPage = (pagesAcross - int(camera.position[2] / (pageSize) + pagesAcross/2) , int(camera.position[0] / (pageSize) + pagesAcross/2))
   data = np.zeros((pagesAcross, pagesAcross, 4),dtype=np.float32) - 1
   toredo = False
   for i in xrange(max(0,currentPage[0]-numPages/2),min(pagesAcross,currentPage[0]+numPages/2+1)):
@@ -200,7 +200,7 @@ def updatePageTable(camera):
   pageTableTexture.loadData(data[::-1,:])
 
 def display(camera):
-  if np.sum(camera.pos*camera.pos) > 6e6**2:
+  if np.sum(camera.position*camera.position) > 6e6**2:
     return
   shader.load()
   texture.load()
