@@ -210,18 +210,10 @@ def display(camera):
   shader.draw((patches-1)**2*6,renderID)
 
 def getAt(x,y):
-  x,y = x,y
-  x+=planetSize/2
-  y+=planetSize/2
-  y = float(y) / planetSize*textWidth
-  x = float(x) / planetSize*textWidth
-  x = min(textWidth-2,x)
-  y = min(textWidth-2,y)
-  f1 = (x-int(x))
-  f2 = (y-int(y))
-  return (d[int(y),int(x)] * (1-f2) + d[int(y+1),int(x)] * f2) * (1-f1)+\
-         (d[int(y),int(x+1)] * (1-f2) + d[int(y+1),int(x+1)] * f2) * f1+\
-         1000
+  x += planetSize / 2
+  y += planetSize / 2
+  s = heightmap.read(float(x)/planetSize, float(y)/planetSize)[3] + 1000
+  return s
 
 def getGradAt(x,y):
   dx = (getAt(x+0.1,y)-getAt(x,y))/0.1

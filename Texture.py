@@ -51,6 +51,7 @@ class Texture:
     acquired."""
     self.textureType =  type
     self.id = None
+    self._data = None
 
     if nonblocking:
       taskQueue.addToMainThreadQueue(self.initialise)
@@ -156,6 +157,19 @@ class Texture:
       thread.start()
     else:
       preloadFile()
+
+
+  def read(self, x, y):
+    assert self._data is not None
+    y = float(y) * self._data.shape[0] - 0.5
+    x = float(x) * self._data.shape[1] - 0.5
+    x = min(self._data.shape[1]-2,x)
+    y = min(self._data.shape[0]-2,y)
+    f1 = (x-int(x))
+    f2 = (y-int(y))
+    r = (self._data[int(y),int(x)] * (1-f2) + self._data[int(y+1),int(x)] * f2) * (1-f1)+\
+        (self._data[int(y),int(x+1)] * (1-f2) + self._data[int(y+1),int(x+1)] * f2) * f1
+    return r
 
 
   def __del__(self):
