@@ -41,12 +41,6 @@ void main()
   VertexOut.color = color;
   VertexOut.uv = textcoord;
 
-  // Lets not clip on the Earth's surface due to the atmospheric renderer
-  VertexOut.position.y += 1e3;
-
-  vec3 offst = getOffset(VertexOut.position.xyz);
-  VertexOut.position.xyz += offst;
-
   vec4 temp = shadowProjection1 * shadow1View * VertexOut.position;
   VertexOut.shadowPos1 = (temp.xyz / temp.w)/2+vec3(0.5);
   temp = shadowProjection2 * shadow2View * VertexOut.position;
