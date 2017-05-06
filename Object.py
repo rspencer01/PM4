@@ -10,6 +10,7 @@ import transforms
 import logging
 import taskQueue
 import threading
+import Terrain
 from collections import namedtuple
 
 MeshDatum = namedtuple("MeshDatum", ('data', 'indices', 'colormap', 'normalmap'))
@@ -24,6 +25,7 @@ def getTextureFile(material, textureType):
   return material.properties[('file', textureType)]
 
 shader             = Shaders.getShader('general-noninstanced', forceReload=True)
+Terrain.setTerrainUniforms(shader)
 shader['colormap'] = Texture.COLORMAP_NUM
 
 class Object:
