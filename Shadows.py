@@ -76,7 +76,7 @@ def render():
     shadowCamera.render('shadow'+str(i+1))
 
     Terrain.display(shadowCamera.lockObject)
-    Characters.display()
+    Characters.display(shadowCamera.lockObject)
     grass.display(shadowCamera.lockObject)
  #   Forest.display(shadowCamera.lockObject.position,i)
 

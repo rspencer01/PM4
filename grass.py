@@ -11,8 +11,8 @@ texture = Texture.Texture(Texture.COLORMAP)
 texture.loadFromImage('assets/grass.png')
 
 numberOfPatches = 100
-patchSize = 1.
-logging.info(" + {:d} ({:d}x{:d}) patches at {:f}m on a side".format((numberOfPatches)**2,numberOfPatches,numberOfPatches,patchSize))
+patchSize = .3
+logging.info(" + {:d} ({:d}x{:d}) patches at {:.3f}m on a side".format((numberOfPatches)**2,numberOfPatches,numberOfPatches,patchSize))
 
 data = np.zeros(numberOfPatches**2,dtype=[("position" , np.float32,3)])
 for i in range(numberOfPatches):
@@ -29,7 +29,7 @@ shader['colormap'] = Texture.COLORMAP_NUM
 renderID = shader.setData(data,indices)
 
 def display(cam):
-  if np.sum(cam.pos*cam.pos) > 6e4**2 or cam.pos[1]>4e3:
+  if np.sum(cam.position*cam.position) > 6e4**2 or cam.position[1]>4e3:
     return
   texture.load()
   shader.load()

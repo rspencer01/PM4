@@ -52,6 +52,8 @@ class Object:
     self.scale = scale
     self.position = np.array(position, dtype=np.float32)
     self.offset = np.array(offset, dtype=np.float32)
+    self.direction = np.array((0,0,1), dtype=float)
+    self.bidirection = np.array((1,0,0), dtype=float)
 
     thread = threading.Thread(target=self.loadFromFile)
     thread.setDaemon(True)
@@ -153,6 +155,8 @@ class Object:
   def display(self):
     shader.load()
     t = np.eye(4, dtype=np.float32)
+    t[2,0:3] = self.direction
+    t[0,0:3] = self.bidirection
     transforms.translate(t, self.position[0],self.position[1],self.position[2])
     shader['model'] = t
     shader['options'] = 1

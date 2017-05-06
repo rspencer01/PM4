@@ -21,7 +21,6 @@ Re = 6.360e6
 program = None
 windowHeight = 512
 windowWidth = 512
-lockToGround = False
 line = False
 cameraSpeed = 20
 frametime = 0.
@@ -35,9 +34,6 @@ def display():
   global frametime,lastframe,cputime,lastcpucycle, screenshotDest
   frametime = frametime*.8 + 0.2*(time.time()-lastframe)
   lastframe = time.time()
-
-  if lockToGround:
-    camera.pos[1] = Terrain.getAt(camera.pos[0],camera.pos[2])[3]+aboveGround
 
   global cameraSpeed
 
@@ -70,7 +66,7 @@ def display():
   camera.render()
   camera.render('user')
   Terrain.display(camera)
-  Characters.display()
+  Characters.display(camera)
   grass.display(camera)
   #Forest.display(camera.position)
 
@@ -105,8 +101,14 @@ def timer(fps):
 #  Marker.timeUpdate(1.0/fps)
   if 'w' in keys:
     camera.move(cameraSpeed * 1.0/fps)
+    if camera.lockObject:
+      Characters.setCharacterDirection(camera.direction)
+      Characters.move(0.5)
   if 's' in keys:
     camera.move(cameraSpeed * -1.0/fps)
+    if camera.lockObject:
+      Characters.setCharacterDirection(camera.direction)
+      Characters.move(-0.5)
   if 'e' in keys:
     camera.rotUpDown(1.5/fps)
   if 'q' in keys:
@@ -144,8 +146,10 @@ def keyboard(key,x,y):
   if key=='\033':
     sys.exit(0)
   if key=='l':
-    global lockToGround
-    lockToGround = not lockToGround
+    if camera.lockObject:
+      camera.lockObject = None
+    else:
+      camera.lockObject = Characters.character
   if key=='~':
     userCommand()
   if key=='p':
@@ -166,6 +170,8 @@ def keyboardUp(key,x,y):
 
 def mouse(button,state,x,y):
   global mouseX,mouseY
+  if button in (3,4):
+    camera.lockDistance += button - 3.5
   glut.glutWarpPointer(windowWidth/2,windowHeight/2)
   mouseX = windowWidth/2
   mouseY = windowHeight/2
