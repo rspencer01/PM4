@@ -19,7 +19,6 @@ def setCharacterDirection(d):
   character.direction[0] = d[0]
   character.direction[1] = 0.
   character.direction[2] = d[2]
-  print character.direction
   character.direction = character.direction / character.direction.dot(character.direction)**0.5
   character.bidirection = np.cross((0.,1.,0.),character.direction)
 
