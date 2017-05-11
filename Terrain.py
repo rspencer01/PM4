@@ -218,5 +218,5 @@ def getAt(x,y):
 def getGradAt(x,y):
   dx = (getAt(x+0.1,y)-getAt(x,y))/0.1
   dy = (getAt(x,y+0.1)-getAt(x,y))/0.1
-  return [dx[3],dy[3]]
+  return [dx,dy]
 

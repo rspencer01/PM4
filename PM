@@ -176,6 +176,9 @@ def mouse(button,state,x,y):
   mouseX = windowWidth/2
   mouseY = windowHeight/2
 
+def accio():
+  Characters.character.position = camera.position.copy()
+
 def userCommand():
   command = raw_input('>>> ')
   while (command not in ['continue','exit']):
