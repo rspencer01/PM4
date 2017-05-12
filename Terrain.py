@@ -6,7 +6,8 @@ from Shaders import *
 import OpenGL.GL as gl
 import Texture
 import RenderStage
-import noise
+import noiseG
+from math import *
 import os
 import sys
 import Pager
@@ -14,14 +15,15 @@ import Pager
 logging.info("Constructing Terrain")
 
 planetSize = 60000
-patches = 200
+patches = 300
 patchSize = planetSize/patches
-pageSize = 1000
+pageSize = 100
 pagesAcross = planetSize / pageSize
-pageResoultion = 256
-numPages = 5
+pageResoultion = 512
+numPages = 3
 pageMapping = Pager.Pager(numPages**2)
 logging.info(" + {:d} (={:d}x{:d}) patches at {:d}m on a side".format((patches-1)**2,patches-1,patches-1,patchSize))
+logging.info(" + {}m on a side of a page square for a resolution of {}m".format(pageSize, pageSize/pageResoultion))
 
 def setTerrainUniforms(shader):
   """Sets all the integers and samplers that are required for the texture page
@@ -209,11 +211,32 @@ def display(camera):
   pageTexture.load()
   shader.draw((patches-1)**2*6,renderID)
 
+def getCurvature(x, y):
+  x,y = float(x), float(y)
+  c = heightmap.read(x/planetSize,      y/planetSize)[3]
+  d = heightmap.read((x+10)/planetSize, y/planetSize)[3]+\
+      heightmap.read(x/planetSize,      (y+10)/planetSize)[3]+\
+      heightmap.read((x-10)/planetSize, y/planetSize)[3]+\
+      heightmap.read(x/planetSize,      (y-10)/planetSize)[3];
+  d/=4;
+  return c-d if c>d else d-c;
+
+def getFineAmount(x, y):
+  s = heightmap.read(float(x)/planetSize, float(y)/planetSize)
+  s[:3] /= s[:3].dot(s[:3])**0.5
+  theta = acos(s[1])
+  if theta < 0.4:
+      return 30
+  return 30 + (theta - 0.4)*100 + 10*(theta-0.4)*getCurvature(x,y);
+
 def getAt(x,y):
   x += planetSize / 2
   y += planetSize / 2
   s = heightmap.read(float(x)/planetSize, float(y)/planetSize)[3] + 1000
-  return s
+
+  offset = noiseG.noiseT.read(x/600., y/600.)[3] * getFineAmount(x, y)
+
+  return s + offset
 
 def getGradAt(x,y):
   dx = (getAt(x+0.1,y)-getAt(x,y))/0.1

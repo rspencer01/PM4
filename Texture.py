@@ -165,11 +165,17 @@ class Texture:
 
     x = fmod(x, 1)
     if x < 0: x += 1
+    if x >= 1: x -= 1
     y = fmod(y, 1)
     if y < 0: y += 1
+    if y >= 1: y -= 1
 
-    y = float(y) * self._data.shape[0] - 0.5
-    x = float(x) * self._data.shape[1] - 0.5
+    y = float(y) * (self._data.shape[0]) - 0.5
+    x = float(x) * (self._data.shape[1]) - 0.5
+    if x > self._data.shape[1] -2:
+      x = self._data.shape[1] -2
+    if y > self._data.shape[0] -2:
+      y = self._data.shape[0] -2
 
     f1 = (x-int(x))
     f2 = (y-int(y))

@@ -21,8 +21,8 @@ float getFineAmount(vec2 ps)
 
 vec4 getFineValue(vec2 ps)
 {
-  vec4 ans1 = textureBicubic(noise, ps/1200);
-  ans1.xz /= 1200;
+  vec4 ans1 = texture(noise, ps/600);
+  ans1.xz /= 600;
   ans1.xzw *= getFineAmount(ps);
   return ans1;
 }
