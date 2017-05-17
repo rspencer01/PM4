@@ -3,13 +3,26 @@ from transforms import *
 from Shaders import *
 
 class Camera:
-  def __init__(self, position=np.array([0,0,0]), lockObject=None, lockDistance=50):
+  def __init__(
+          self,
+          position=np.array([0,0,0]),
+          lockObject=None,
+          lockDistance=50,
+          move_hook=lambda x:x):
     """Initialises this camera at the given position.  If `lockObject` is not
     None, it must be a python object with a `position` attribute.  The camera
-    will "follow" this object, as in a 3rd person game."""
+    will "follow" this object, as in a 3rd person game.
+
+    The `move_hook` function will be called when the position of the camera
+    changes with the new position.  It must return the actual position of the
+    camera.  This is useful, for example to prevent the camera from moving
+    within objects."""
     self.position = position
     self.lockObject = lockObject
     self.lockDistance = lockDistance
+
+    self.move_hook = move_hook
+
     # Spherical coordinates are used to show the direction we
     # are looking in
     self.theta = 0
@@ -45,6 +58,8 @@ class Camera:
   def update(self):
     """Updates the internal representation of the camera, such as the view
     matrix and direction vector."""
+    self.position = self.move_hook(self.position)
+
     self.view = np.eye(4,dtype=np.float32)
     view2 = np.eye(4,dtype=np.float32)
     translate(self.view,-self.position[0],-self.position[1],-self.position[2])

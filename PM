@@ -231,7 +231,11 @@ import Sky
 import grass
 import Characters
 
-camera = Camera.Camera(np.array([ -185., 2139.92767998,-2938.]))
+camera = Camera.Camera(
+        np.array([ -185., 2139.92767998,-2938.]),
+        move_hook=lambda x:np.array((x[0],
+            max(Terrain.getAt(x[0],x[2])+0.6,x[1]),x[2]))
+        )
 camera.radiusCentre = np.array([0,-Re,0])
 camera.minRadius = Re
 camera.render()
