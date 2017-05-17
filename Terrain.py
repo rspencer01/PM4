@@ -10,18 +10,19 @@ import noise
 import os
 import sys
 import Pager
+from configuration import config
 
 logging.info("Constructing Terrain")
 
-planetSize = 60000
-patches = 200
-patchSize = planetSize/patches
-pageSize = 1000
-pagesAcross = planetSize / pageSize
-pageResoultion = 512
-numPages = 5
-pageMapping = Pager.Pager(numPages**2)
-logging.info(" + {:d} (={:d}x{:d}) patches at {:d}m on a side".format((patches-1)**2,patches-1,patches-1,patchSize))
+planetSize              = 60000
+patches                 = config.terrain_num_patches
+patchSize               = planetSize/patches
+pageSize                = config.terrain_page_size
+pagesAcross             = planetSize / pageSize
+pageResoultion          = config.terrain_page_resolution
+numPages                = config.terrain_num_pages
+pageMapping             = Pager.Pager(numPages**2)
+logging.info(" + {:d} ( = {:d}x{:d}) patches at {:d}m on a side".format((patches-1)**2,patches-1,patches-1,patchSize))
 
 def setTerrainUniforms(shader):
   """Sets all the integers and samplers that are required for the texture page

@@ -16,6 +16,8 @@ logging.basicConfig(format ='%(asctime)-15s <%(threadName)-12s> [%(module)-12s] 
 import args
 args.parse()
 
+import configuration
+
 Re = 6.360e6
 
 program = None
