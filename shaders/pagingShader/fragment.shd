@@ -9,7 +9,6 @@ uniform int pageSize;
 uniform int numPages;
 uniform sampler2D noise;
 
-#include shaders/include/TextureBicubic.shd;
 #include shaders/include/TerrainOps.shd;
 
 void main()
@@ -17,9 +16,8 @@ void main()
   vec2 ps = ((pos.xy/(2*0.8)+0.5) + pagePosition.zx) * pageSize;
   ps.y = - ps.y;
 
-  vec3 displacement = vec3(0,1,0) * textureBicubic(heightmap, ps/60000).a;
-  vec3 normal = normalize(textureBicubic(heightmap, ps/60000).zyx);
-  displacement += normal * getFineValue(ps).a;
+  vec3 displacement = vec3(0,1,0) * texture(heightmap, ps/60000).a;
+  displacement.y += getFineValue(ps).a;
 
   offst = vec4(displacement,1);
 }

@@ -6,4 +6,5 @@ l   | Lock to ground
 p   | Toggle wireframe
 o   | Toggle sky
 t   | Take screenshot
+r   | Toggle mouse hold
 esc | Exit

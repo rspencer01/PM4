@@ -3,22 +3,22 @@ terrain_page_size:
   help: |
     The size of each page of the texture in meters.
   type: integer
-  default: 1000
+  default: 100
 terrain_page_resolution:
   help: |
     The size of each page of the texture in pixels.
   type: integer
-  default: 512
+  default: 1024
 terrain_num_patches:
   help: |
     The number of tesselated patches on the side of the planet.  Thus if this
     number is `n` the total number of patches is `(n-1)^2`.
   type: integer
-  default: 200
+  default: 300
 terrain_num_pages:
   help: |
     The number of pages of fine data maintained on a side in the paged textures.
     Thus if this number is `n` the total number of pages is `n^2`.
   type: integer
-  default: 5
+  default: 3
 ...

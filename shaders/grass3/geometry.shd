@@ -22,8 +22,8 @@ uniform mat4 projection;
 
 void main()
 {
-  vec3 up = VertexOut[0].up * .2;
-  vec3 north = VertexOut[0].north * .2;
+  vec3 up = VertexOut[0].up * .5;
+  vec3 north = VertexOut[0].north * .5;
   vec3 east = length(north) * normalize(cross(north,up));
   vec3 pos;
 

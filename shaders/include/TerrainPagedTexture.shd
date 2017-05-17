@@ -41,7 +41,7 @@ vec4 readPagedTexture(vec3 pos)
 
 vec3 getOffset(vec3 pos)
 {
-  vec4 offst = vec4(0,readPagedTexture(pos).y,0,0);
+  vec4 offst = vec4(0,readPagedTexture(pos).y,0,readPagedTexture(pos).a);
   if (offst.a < 0.5)
   {
     offst.xyz = vec3(0,textureLod(heightmap, pos.xz/worldSize + vec2(0.5),0).a,0);

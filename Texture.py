@@ -5,6 +5,7 @@ import logging
 import sys
 import threading
 import taskQueue
+from math import fmod
 
 HEIGHTMAP = gl.GL_TEXTURE0
 HEIGHTMAP_NUM = 0
@@ -161,15 +162,28 @@ class Texture:
 
   def read(self, x, y, interpolate=True):
     assert self._data is not None
-    y = float(y) * self._data.shape[0] - 0.5
-    x = float(x) * self._data.shape[1] - 0.5
-    x = min(self._data.shape[1]-2,x)
-    y = min(self._data.shape[0]-2,y)
+
+    x = fmod(x, 1)
+    if x < 0: x += 1
+    if x >= 1: x -= 1
+    y = fmod(y, 1)
+    if y < 0: y += 1
+    if y >= 1: y -= 1
+
+    y = float(y) * (self._data.shape[0]) - 0.5
+    x = float(x) * (self._data.shape[1]) - 0.5
+    if x > self._data.shape[1] -2:
+      x = self._data.shape[1] -2
+    if y > self._data.shape[0] -2:
+      y = self._data.shape[0] -2
+
     f1 = (x-int(x))
     f2 = (y-int(y))
+
     if not interpolate:
       f1 = 1 if f1 > 0.5 else 0
       f2 = 1 if f2 > 0.5 else 0
+
     r = (self._data[int(y),int(x)] * (1-f2) + self._data[int(y+1),int(x)] * f2) * (1-f1)+\
         (self._data[int(y),int(x+1)] * (1-f2) + self._data[int(y+1),int(x+1)] * f2) * f1
     return r
