@@ -27,6 +27,7 @@ frametime = 0.
 lastframe = time.time()
 enableAtmosphere = not args.args.disable_atmosphere
 screenshotDest = None
+hold_mouse = True
 
 aboveGround = 1
 
@@ -125,13 +126,13 @@ def timer(fps):
   glut.glutTimerFunc(1000/fps, timer, fps)
   glut.glutPostRedisplay()
 
-mouseX,mouseY = 0,0
 def mouseMotion(x,y):
-  global mouseX,mouseY
-  camera.rotUpDown(0.01*(y-mouseY))
-  camera.rotLeftRight(0.01*(x-mouseX))
-  mouseX = x
-  mouseY = y
+  if x != windowWidth/2 or \
+     y != windowHeight/2:
+    if hold_mouse:
+      camera.rotUpDown(0.01*(y-windowHeight/2.))
+      camera.rotLeftRight(0.01*(x-windowWidth/2.))
+      glut.glutWarpPointer(windowWidth/2,windowHeight/2)
 
 def reshape(width,height):
   global windowHeight,windowWidth
@@ -142,7 +143,7 @@ def reshape(width,height):
 
 keys = set()
 def keyboard(key,x,y):
-  global line,enableAtmosphere, screenshotDest
+  global line,enableAtmosphere, screenshotDest, hold_mouse
   if key=='\033':
     sys.exit(0)
   if key=='l':
@@ -160,6 +161,12 @@ def keyboard(key,x,y):
     enableAtmosphere = not enableAtmosphere
   if key=='t':
     screenshotDest = True
+  if key=='r':
+    if hold_mouse:
+      glut.glutSetCursor(glut.GLUT_CURSOR_INHERIT)
+    else:
+      glut.glutSetCursor(glut.GLUT_CURSOR_NONE)
+    hold_mouse = not hold_mouse
   if key=='?':
     print open('help').read()
   keys.add(key)
@@ -169,12 +176,10 @@ def keyboardUp(key,x,y):
     keys.remove(key)
 
 def mouse(button,state,x,y):
-  global mouseX,mouseY
   if button in (3,4):
     camera.lockDistance += button - 3.5
-  glut.glutWarpPointer(windowWidth/2,windowHeight/2)
-  mouseX = windowWidth/2
-  mouseY = windowHeight/2
+  if not hold_mouse:
+    glut.glutWarpPointer(windowWidth/2,windowHeight/2)
 
 def accio():
   Characters.character.position = camera.position.copy()
@@ -196,6 +201,7 @@ glut.glutInitContextProfile(glut.GLUT_CORE_PROFILE);
 glut.glutInitDisplayMode(glut.GLUT_DOUBLE | glut.GLUT_RGBA | glut.GLUT_DEPTH)
 glut.glutInitWindowSize(512,512);
 glut.glutCreateWindow("PM4")
+logging.info("Obtained OpenGL "+gl.glGetString(gl.GL_VERSION))
 gl.glEnable(gl.GL_DEPTH_TEST)
 gl.glPolygonMode(gl.GL_FRONT_AND_BACK,gl.GL_FILL);
 gl.glEnable(gl.GL_BLEND)
@@ -207,7 +213,7 @@ glut.glutMouseFunc(mouse)
 glut.glutKeyboardUpFunc(keyboardUp)
 glut.glutTimerFunc(1000/60, timer, 60)
 glut.glutPassiveMotionFunc(mouseMotion)
-logging.info("Obtained OpenGL "+gl.glGetString(gl.GL_VERSION))
+glut.glutSetCursor(glut.GLUT_CURSOR_NONE)
 
 import RenderStage
 
