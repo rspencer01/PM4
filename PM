@@ -225,8 +225,8 @@ setUniform('maxFog',1000.0)
 #import Forest
 
 import postrender
-import Shadows
 import Sky
+import Shadows
 import grass
 import Characters
 

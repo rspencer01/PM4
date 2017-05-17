@@ -4,38 +4,35 @@ import OpenGL.GL.framebufferobjects as glfbo
 import Texture
 import OpenGL.GL as gl
 import os,sys
+import logging
 import noiseG
 import args
 
-print "Constructing opticalDepths"
 N = 256
 Re = 6.360e6
-Ra = 6540e3
-Hr = 1e4
-Hm = 1.15e3
+Ra = 6.420e6
+Hr = 8e3
+Hm = 1.2e3
 
 if not os.path.exists('opdepth.npy') or args.args.remake_sky:
+  logging.info("Constructing optical depths")
   opdepth = np.zeros((N*16,N,4),dtype=np.float32)
 
   for j,theta in enumerate(np.arange(0, np.pi*0.75, np.pi*0.75/N)):
-    for k,altitudeP in enumerate(np.arange(Re,Ra,(Ra-Re)/(N*16))):
-      altitude = Re + ((altitudeP-Re)/(Ra-Re))**3*(Ra-Re)
+    sys.stdout.write('{}/{}\r'.format(j,N))
+    sys.stdout.flush()
+    for k,altitudeP in enumerate(np.arange(0,1,1./(N*16))):
+      altitude = Re + (altitudeP)**3*(Ra-Re)
       P = altitude * np.array([np.sin(theta), np.cos(theta)])
-      #P = altitude * np.array([(1-costheta**2)**0.5, costheta])
       if np.cos(theta)<0:
-      #if costheta<0:
         if (P[0] <= Re):
           opdepth[k][j] = [-1,-1,0,0]
-      #    continue
       r = (Ra**2-P[0]**2)**0.5-P[1]
       nn = 400
       dx = r/nn
-      opdepthR = 0;
-      opdepthM = 0;
-     # for lam in np.arange(0,r,dx):
-      ints = (P[0]**2+(P[1]+np.arange(0,r,dx))**2)**0.5-Re
-      opdepthR = sum(np.exp(-ints/Hr))*dx
-      opdepthM = sum(np.exp(-ints/Hm))*dx
+      heights = (P[0]**2+(P[1]+np.arange(0,r,dx))**2)**0.5-Re
+      opdepthR = sum(np.exp(-heights/Hr))*dx
+      opdepthM = sum(np.exp(-heights/Hm))*dx
 
       opdepth[k][j] = [opdepthR,opdepthM,0,0]
   np.save('opdepth.npy',opdepth)
@@ -46,8 +43,7 @@ opticalDepthmap = Texture.Texture(Texture.OPTICAL_DEPTHMAP)
 opticalDepthmap.load()
 gl.glTexParameteri(gl.GL_TEXTURE_2D, gl.GL_TEXTURE_WRAP_S, gl.GL_CLAMP)
 gl.glTexParameteri(gl.GL_TEXTURE_2D, gl.GL_TEXTURE_WRAP_T, gl.GL_CLAMP)
-# Why???
-opticalDepthmap.loadData(opdepth, width=N, height=N)
+opticalDepthmap.loadData(opdepth, height=N*16, width=N)
 del opdepth
 
 data = np.zeros(4,dtype=[("position" , np.float32,3)])
@@ -113,6 +109,11 @@ shader['depthmap']        = Texture.DEPTHMAP_NUM
 shader['nightSkymap']     = Texture.NIGHTSKY_NUM
 shader['earthMap']        = Texture.EARTHMAP_NUM
 shader['opticaldepthmap'] = Texture.OPTICAL_DEPTHMAP_NUM
+shader['Re'] = Re
+shader['Ra'] = Ra
+shader['Hr'] = Hr
+shader['Hm'] = Hm
+shader['shadowTexture3'] = Texture.SHADOWS3_NUM
 renderID = shader.setData(data,indices)
 
 def display(previousStage):

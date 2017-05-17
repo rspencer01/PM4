@@ -41,7 +41,7 @@ renderStages[2].displayDepthTexture.loadAs(Texture.SHADOWS3)
 
 projections = []
 for i in range(3):
-  width = 20 * 10**i
+  width = 20 * 15**i
   projections.append(transforms.ortho(-width,width,-width,width, 40000. - 2*width, 40000. + 2*width))
   Shaders.setUniform('shadowProjection'+str(i+1),projections[i])
 

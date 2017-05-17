@@ -117,8 +117,6 @@ float lighting(vec4 normal, vec4 position)
       }
     }
   }
-//  if (shadowAmount>0.1)
-//    shadowAmount=1;
   return clamp(ambientLight*sunLight,0.006,1.0) + sunLight * diffuse * (1-shadowAmount*0.8);
 }
 
