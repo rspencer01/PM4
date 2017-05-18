@@ -27,3 +27,10 @@ vec4 getFineValue(vec2 ps)
   return ans1;
 }
 
+vec3 getDisplacement(vec2 ps)
+{
+  vec3 displacement = vec3(0,1,0) * texture(heightmap, ps/60000).a;
+  displacement.y += getFineValue(ps).a;
+  return displacement;
+}
+

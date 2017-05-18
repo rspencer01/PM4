@@ -16,8 +16,5 @@ void main()
   vec2 ps = ((pos.xy/(2*0.8)+0.5) + pagePosition.zx) * pageSize;
   ps.y = - ps.y;
 
-  vec3 displacement = vec3(0,1,0) * texture(heightmap, ps/60000).a;
-  displacement.y += getFineValue(ps).a;
-
-  offst = vec4(displacement,1);
+  offst = vec4(getDisplacement(ps), 1);
 }

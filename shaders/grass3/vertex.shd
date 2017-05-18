@@ -13,7 +13,6 @@ uniform mat4 View;
 uniform mat4 projection;
 uniform vec3 userCameraPosition;
 uniform float patchSize;
-uniform sampler2D noise;
 
 #include shaders/include/TextureBicubic.shd;
 #include shaders/include/NormalOps.shd;
