@@ -10,7 +10,6 @@ uniform mat4 shadowProjection3;
 uniform mat4 shadow1View;
 uniform mat4 shadow2View;
 uniform mat4 shadow3View;
-uniform sampler2D noise;
 
 in vec3 evaluationpoint_wor[];
 

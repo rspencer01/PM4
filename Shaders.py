@@ -29,8 +29,9 @@ class ShaderCompileException(Exception):
       return
     line = int(m.groups()[0])
     ret = '\n\n'+message+'\n'
-    for i in xrange(max(0,line-5),min(len(source),line+4)):
-      ret += ('  |' if i != line-1 else '>>|') + source.split('\n')[i]+'\n'
+    sourceLines = source.split('\n')
+    for i in xrange(max(0,line-4),min(len(sourceLines)-1,line+5)):
+      ret += ('>>|' if i == line-1 else '  |') + sourceLines[i]+'\n'
     Exception.__init__(self, ret)
 
 class Shader(object):
