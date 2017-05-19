@@ -21,4 +21,10 @@ terrain_num_pages:
     Thus if this number is `n` the total number of pages is `n^2`.
   type: integer
   default: 3
+sky_integration_steps:
+  help: |
+    Indicates the accuracy of the sky integration system.  Typical values are from 
+    10 to 100.
+  type: integer
+  default: 20
 ...

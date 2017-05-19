@@ -30,7 +30,7 @@ uniform float Hr;
 uniform float Hm;
 float INF = 1e20;
 float g = 0.76;
-int numInt = 80;
+uniform int numInt;
 
 #include shaders/include/SphereOps.shd;
 
@@ -161,7 +161,7 @@ void main()
   float opticalDepthR = 0;
   float opticalDepthM = 0;
 
-  float ds = length(rayExit - Pc) / numInt;
+  float ds = 2 * length(rayExit - Pc) / (numInt*numInt + numInt);
   vec3 directionOfIntegration = normalize(rayExit - Pc);
   // Our position of integration
   vec3 P = Pc;
@@ -171,6 +171,7 @@ void main()
     for (int i = 1; i<numInt; i++)
     {
       P += ds * directionOfIntegration;
+      ds += 2 * length(rayExit - Pc) / (numInt*numInt + numInt);
 
       float lightHeight = length(P) - Re;
       if (lightHeight < 0) break;
