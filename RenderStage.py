@@ -33,9 +33,11 @@ class RenderStage(object):
     self.height = height
     gl.glViewport(offsetx, offsety, width, height)
 
-  def reshape(self, width, height):
+  def reshape(self, width, height=None):
     if self.final_stage:
       return
+    if height is None:
+      height = width
     if not self.depth_only:
       self.displayColorTexture.loadData(None, width=width, height=height)
       self.displaySecondaryColorTexture.loadData(None, width=width, height=height)

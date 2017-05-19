@@ -10,21 +10,15 @@ import noiseG
 from math import *
 import os
 import sys
-import Pager
 from configuration import config
+from pagedTextures import *
 
 logging.info("Constructing Terrain")
 
 planetSize              = 60000
 patches                 = config.terrain_num_patches
 patchSize               = planetSize/patches
-pageSize                = config.terrain_page_size
-pagesAcross             = planetSize / pageSize
-pageResoultion          = config.terrain_page_resolution
-numPages                = config.terrain_num_pages
-pageMapping             = Pager.Pager(numPages**2)
 logging.info(" + {:d} (={:d}x{:d}) patches at {:d}m on a side".format((patches-1)**2,patches-1,patches-1,patchSize))
-logging.info(" + {}m on a side of a page square for a resolution of {}m".format(pageSize, pageSize/pageResoultion))
 
 def setTerrainUniforms(shader):
   """Sets all the integers and samplers that are required for the texture page
@@ -147,65 +141,8 @@ texture.loadData(texData)
 del texData
 setUniform('heightmap',Texture.HEIGHTMAP_NUM)
 
-pageTableTexture = Texture.Texture(Texture.COLORMAP2)
-gl.glTexParameteri(gl.GL_TEXTURE_2D, gl.GL_TEXTURE_MAG_FILTER, gl.GL_NEAREST)
-gl.glTexParameteri(gl.GL_TEXTURE_2D, gl.GL_TEXTURE_MIN_FILTER, gl.GL_NEAREST_MIPMAP_NEAREST)
-pageTableTexture.loadData(np.zeros((1,1,4))-1)
-pageRenderStage = RenderStage.RenderStage()
-pageRenderStage.reshape(pageResoultion*numPages,pageResoultion*numPages)
-pageTexture = pageRenderStage.displayAuxColorTexture
-
 setUniform('pageTable',Texture.COLORMAP2_NUM)
 setUniform('pageTexture',Texture.COLORMAP3_NUM)
-
-pagingShader = getShader('pagingShader', forceReload=True)
-data = np.zeros(4,dtype=[("position" , np.float32,3)])
-data['position'] = [(-1,-1,0.999999),(-1,1,0.999999),(1,-1,0.999999),(1,1,0.999999)]
-I = [0,1,2, 1,2,3]
-indices = np.array(I,dtype=np.int32)
-pagingRenderID = pagingShader.setData(data,indices)
-
-def getCoordinate(id):
-  return id % numPages, id / numPages
-
-def generatePage(page):
-  assert page in pageMapping
-  c = getCoordinate(pageMapping[page])
-  pageRenderStage.load(pageResoultion,pageResoultion, pageResoultion*c[0],pageResoultion*(numPages-c[1]-1),False)
-  pagingShader.load()
-  pagingShader['pagePosition'] = np.array([page[0],0.,page[1]],dtype=np.float32)
-  pagingShader['id'] = pageMapping[page]
-  pagingShader['pageSize'] = pageSize
-  pagingShader['numPages'] = numPages
-  pagingShader['pagesAcross'] = pagesAcross
-  pagingShader['worldSize'] = planetSize
-  pagingShader.draw(gl.GL_TRIANGLES, pagingRenderID)
-  pageTexture.makeMipmap()
-
-def updatePageTable(camera):
-  if camera.position[1] > 5000:
-    pageMapping.clear()
-    return
-
-  currentPage = (pagesAcross - int(camera.position[2] / (pageSize) + pagesAcross/2) , int(camera.position[0] / (pageSize) + pagesAcross/2))
-  data = np.zeros((pagesAcross, pagesAcross, 4),dtype=np.float32) - 1
-  toredo = False
-  for i in xrange(max(0,currentPage[0]-numPages/2),min(pagesAcross,currentPage[0]+numPages/2+1)):
-    for j in xrange(max(0,currentPage[1]-numPages/2),min(pagesAcross,currentPage[1]+numPages/2+1)):
-      page = (i,j)
-      if page not in pageMapping:
-        toredo = True
-  if not toredo: return
-
-  for i in xrange(max(0,currentPage[0]-numPages/2),min(pagesAcross,currentPage[0]+numPages/2+1)):
-    for j in xrange(max(0,currentPage[1]-numPages/2),min(pagesAcross,currentPage[1]+numPages/2+1)):
-      page = (i,j)
-      if page not in pageMapping:
-        pageMapping.add(page)
-        generatePage(page)
-      index = pageMapping[page]
-      data[i][j][0] = index / float(numPages**2)
-  pageTableTexture.loadData(data[::-1,:])
 
 def display(camera):
   if np.sum(camera.position*camera.position) > 6e6**2:
