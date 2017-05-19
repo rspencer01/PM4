@@ -8,6 +8,7 @@ parser.add_argument('--remake-sky', action='store_true')
 parser.add_argument('--remake-terrain', action='store_true')
 parser.add_argument('--disable-atmosphere', action='store_true')
 parser.add_argument('--remake-config-file', action='store_true')
+parser.add_argument('--monolith', action='store_true')
 
 def parse():
   global args

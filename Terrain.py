@@ -81,6 +81,11 @@ if not os.path.exists('terrain.npy') or args.args.remake_terrain:
   d /= np.max(d)
   d *= 1920
 
+  if args.args.monolith:
+    for i in xrange(20):
+      for j in xrange(20):
+        d[d.shape[0]/2+i][d.shape[1]/2+j] = 3e3
+
   # Boundary conditions
   for i in xrange(textWidth):
     d[i,0] = -1000
