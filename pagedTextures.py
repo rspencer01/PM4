@@ -1,5 +1,6 @@
 from configuration import config
 import Pager
+import OpenGL.GL as gl
 import logging
 from Shaders import *
 import Texture
@@ -37,20 +38,29 @@ def getCoordinate(id):
   """Given a page id, returns the page coordinates in the page table."""
   return id % numPages, id / numPages
 
+callbacks = []
+
+def registerCallback(callback):
+  callbacks.append(callback)
+
 def generatePage(page):
   assert page in pageMapping
   c = getCoordinate(pageMapping[page])
-  logging.info("Generating global page {} (in page {})".format(page, c))
+  logging.debug("Generating global page {} (in page {})".format(page, c))
   pageRenderStage.load(pageResoultion,pageResoultion, pageResoultion*c[0],pageResoultion*(numPages-c[1]-1),False)
   pagingShader.load()
   pagingShader['pagePosition'] = np.array([page[0],0.,page[1]],dtype=np.float32)
   pagingShader['id'] = pageMapping[page]
   pagingShader.draw(gl.GL_TRIANGLES, pagingRenderID)
+  gl.glDisable(gl.GL_DEPTH_TEST)
+  for callback in callbacks:
+    callback(page[0]*pageSize, page[1]*pageSize, pageSize, pageSize)
+  gl.glEnable(gl.GL_DEPTH_TEST)
 
 def updatePageTable(camera):
   if camera.position[1] > 5000:
     if len(pageMapping):
-      logging.info("Clearing all pages due to high camera.")
+      logging.debug("Clearing all pages due to high camera.")
       pageMapping.clear()
     return
 
@@ -60,7 +70,7 @@ def updatePageTable(camera):
   for i in xrange(max(0,currentPage[0]-numPages/2),min(pagesAcross,currentPage[0]+numPages/2+1)):
     for j in xrange(max(0,currentPage[1]-numPages/2),min(pagesAcross,currentPage[1]+numPages/2+1)):
       if (i,j) not in pageMapping:
-        logging.info("Page {} not present.".format((i,j)))
+        logging.debug("Page {} not present.".format((i,j)))
         toredo = True
         break
   if not toredo: return
