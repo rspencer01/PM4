@@ -70,6 +70,7 @@ def display():
   camera.render('user')
   Terrain.display(camera)
   Characters.display(camera)
+  Buildings.display()
   grass.display(camera)
   #Forest.display(camera.position)
 
@@ -238,9 +239,10 @@ import Sky
 import Shadows
 import grass
 import Characters
+import Buildings
 
 camera = Camera.Camera(
-        np.array([ -185., 2139.92767998,-2938.]),
+        np.array([ 0., 2139.92767998,0]),
         move_hook=lambda x:np.array((x[0],
             max(Terrain.getAt(x[0],x[2])+0.6,x[1]),x[2]))
         )

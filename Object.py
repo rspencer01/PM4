@@ -13,7 +13,15 @@ import threading
 import Terrain
 from collections import namedtuple
 
-MeshDatum = namedtuple("MeshDatum", ('data', 'indices', 'colormap', 'normalmap'))
+MeshOptions = namedtuple("MeshOptions", ('has_bumpmap'))
+MeshDatum = namedtuple("MeshDatum", ('data', 'indices', 'colormap', 'normalmap', 'options'))
+
+def getOptionNumber(meshOptions):
+  ans = 0
+  for i,v in enumerate(meshOptions):
+    if v:
+      ans += 2 ** i
+  return ans
 
 def getTexturePath(path):
   """This is a stupid hack required for particular unity assets."""
@@ -22,8 +30,9 @@ def getTexturePath(path):
   return path
 
 def getTextureFile(material, textureType):
-  return material.properties[('file', textureType)]
-
+  if ('file', textureType) in material.properties:
+    return material.properties[('file', textureType)]
+  return ''
 shader             = Shaders.getShader('general-noninstanced', forceReload=True)
 Terrain.setTerrainUniforms(shader)
 shader['colormap'] = Texture.COLORMAP_NUM
@@ -77,11 +86,14 @@ class Object:
       for nod in node.children:
         addNode(nod, newtrans)
 
-    addNode(self.scene.rootnode, np.eye(4))
+    t = np.eye(4)
+    t[:3] *= self.scale
+    addNode(self.scene.rootnode, t)
 
 
   def addMesh(self, mesh, trans):
     logging.info("Loading mesh {}".format(mesh.__repr__()))
+    options = MeshOptions(False)
     data = np.zeros(len(mesh.vertices),
                       dtype=[("position" , np.float32,3),
                              ("normal"   , np.float32,3),
@@ -97,12 +109,11 @@ class Object:
     add = np.zeros((vertNorm.shape[0],1),dtype=np.float32)
     vertNorm = np.append(vertNorm, add, axis=1)
 
-    trans[:3,:4] *= self.scale
     tinvtrans = np.linalg.inv(trans).transpose()
     # Transform all the vertex positions.
     for i in xrange(len(vertPos)):
       vertPos[i] = trans.dot(vertPos[i])
-      vertNorm[i] = tinvtrans.dot(vertNorm[i])
+      vertNorm[i] = tinvtrans.dot(vertNorm[i]) * self.scale
     # Splice correctly, killing last components
     vertPos = vertPos[:,0:3] - self.offset
     vertNorm = vertNorm[:,0:3]
@@ -136,20 +147,26 @@ class Object:
 
     # Load the texture
     texture = Texture.Texture(Texture.COLORMAP, nonblocking=True)
-    texture.loadFromImage(self.directory+'/'+getTexturePath(getTextureFile(mesh.material, pyassimp.material.aiTextureType_DIFFUSE)))
+    if getTextureFile(mesh.material, pyassimp.material.aiTextureType_DIFFUSE):
+      texture.loadFromImage(self.directory+'/'+getTexturePath(getTextureFile(mesh.material, pyassimp.material.aiTextureType_DIFFUSE)))
 
-    normalTexture = Texture.Texture(Texture.NORMALMAP, nonblocking=True)
-    normalTexture.loadFromImage(self.directory+'/'+getTexturePath(getTextureFile(mesh.material, pyassimp.material.aiTextureType_NORMALS)))
+    if getTextureFile(mesh.material, pyassimp.material.aiTextureType_NORMALS):
+      normalTexture = Texture.Texture(Texture.NORMALMAP, nonblocking=True)
+      options = options._replace(has_bumpmap=True)
+      normalTexture.loadFromImage(self.directory+'/'+getTexturePath(getTextureFile(mesh.material, pyassimp.material.aiTextureType_NORMALS)))
+    else:
+      normalTexture = None
+      options = options._replace(has_bumpmap=False)
 
     # Add the textures and the mesh data
     self.textures.append(texture)
-    self.meshes.append(MeshDatum(data, indices, texture, normalTexture))
+    self.meshes.append(MeshDatum(data, indices, texture, normalTexture, options))
 
     def uploadMesh():
       self.renderIDs.append(shader.setData(data, indices))
+      logging.info("Loaded mesh {}".format(mesh.__repr__()))
 
     taskQueue.addToMainThreadQueue(uploadMesh)
-    logging.info("Loaded mesh {}".format(mesh.__repr__()))
 
 
   def display(self):
@@ -159,14 +176,16 @@ class Object:
     t[0,0:3] = self.bidirection
     transforms.translate(t, self.position[0],self.position[1],self.position[2])
     shader['model'] = t
-    shader['options'] = 1
     shader['colormap'] = Texture.COLORMAP_NUM
     shader['normalmap'] = Texture.NORMALMAP_NUM
 
     for meshdatum,renderID in zip(self.meshes,self.renderIDs):
-      # Load texture
+      # Set options
+      shader['options'] = getOptionNumber(meshdatum.options)
+      # Load textures
       meshdatum.colormap.load()
-      meshdatum.normalmap.load()
+      if meshdatum.options.has_bumpmap:
+        meshdatum.normalmap.load()
       shader.draw(gl.GL_TRIANGLES, renderID)
 
 

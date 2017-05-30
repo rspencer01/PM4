@@ -7,6 +7,7 @@ import logging
 import Terrain
 #import Grass
 import Texture
+import Buildings
 #import Marker
 #import Forest
 import Shaders
@@ -77,6 +78,7 @@ def render():
 
     Terrain.display(shadowCamera.lockObject)
     Characters.display(shadowCamera.lockObject)
+    Buildings.display()
     grass.display(shadowCamera.lockObject)
  #   Forest.display(shadowCamera.lockObject.position,i)
 

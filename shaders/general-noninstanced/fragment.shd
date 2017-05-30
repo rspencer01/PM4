@@ -18,6 +18,7 @@ in VertexData
 
 uniform sampler2D colormap;
 uniform sampler2D normalmap;
+uniform int options;
 
 void main()
 {
@@ -27,7 +28,12 @@ void main()
   vec3 bitangent    = normalize(VertexOut.bitangent.xyz);
   mat3 mt           = mat3(tangent, bitangent, normal);
 
-  vec3 actualNormal = mt * normalDetail;
+  vec3 actualNormal;
+
+  if (options % 2 == 1)
+    actualNormal = mt * normalDetail;
+  else
+    actualNormal = normal;
 
   fragmentColor  = texture(colormap, VertexOut.uv);
   fragmentNorm   = vec4(actualNormal, 1);
