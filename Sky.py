@@ -7,6 +7,7 @@ import os,sys
 import logging
 import noiseG
 import args
+from configuration import config
 
 N = 256
 Re = 6.360e6
@@ -114,6 +115,7 @@ shader['Ra'] = Ra
 shader['Hr'] = Hr
 shader['Hm'] = Hm
 shader['shadowTexture3'] = Texture.SHADOWS3_NUM
+shader['numInt'] = config.sky_integration_steps
 renderID = shader.setData(data,indices)
 
 def display(previousStage):

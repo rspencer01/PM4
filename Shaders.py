@@ -251,7 +251,7 @@ def setUniversalUniforms(shader):
     shader[key] = value
 
 def updateUniversalUniform(key, value):
-  for shader in shaders:
+  for name, shader in shaders.items():
     shader[key] = value
   universalUniforms[key] = value
 

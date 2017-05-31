@@ -28,6 +28,11 @@ class Pager(object):
     return index
 
 
+  def clear(self):
+    while len(self):
+      self.remove_oldest()
+
+
   def __getitem__(self, item):
     v = self.mapping[item][1]
     self.mapping[item] = (time.time(),v)
@@ -40,8 +45,3 @@ class Pager(object):
 
   def __len__(self):
     return len(self.mapping)
-
-
-  def clear(self):
-    while len(self):
-      self.remove_oldest()

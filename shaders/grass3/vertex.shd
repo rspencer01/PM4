@@ -1,5 +1,6 @@
 #version 410
 in vec3 position;
+in vec3 occlusion;
 
 out VertexData
 {
@@ -41,6 +42,8 @@ void main()
   VertexOut.north = normalize(cross(vec3(texture2D(noise,VertexOut.position.xz).a,
                          0,
                          texture2D(noise,VertexOut.position.yz).a),VertexOut.up));
+
+  VertexOut.position.xyz -= normal * occlusion.r * 0.3;
 
   gl_Position = projection * View * VertexOut.position;
 }
