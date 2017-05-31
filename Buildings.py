@@ -4,14 +4,15 @@ import Shaders
 import numpy as np
 import Object
 import random
+from utils import stepSort
 import OpenGL.GL as gl
 from transforms import *
 
 positions = [[0, 0, -2938]]
-for _ in xrange(10):
-  positions.append([random.randint(-200, 200),
+for _ in xrange(3000):
+  positions.append([random.randint(-10000, 10000),
                     0,
-                    random.randint(-3200, -2700)])
+                    random.randint(-10000, 10000)])
 for position in positions:
   position[1] = Terrain.getAt(position[0], position[2])
 
@@ -46,7 +47,8 @@ def flattenGround(x, y, width, height):
 
 Terrain.registerCallback(flattenGround)
 
-def display():
-  for position in positions:
+def display(camera):
+  stepSort('buildingsDistance', positions, key=lambda x: np.linalg.norm(x-camera.position))
+  for position in positions[:10]:
     building.position = position
     building.display()

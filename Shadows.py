@@ -78,7 +78,7 @@ def render():
 
     Terrain.display(shadowCamera.lockObject)
     Characters.display(shadowCamera.lockObject)
-    Buildings.display()
+    Buildings.display(shadowCamera.lockObject)
     grass.display(shadowCamera.lockObject)
  #   Forest.display(shadowCamera.lockObject.position,i)
 
