@@ -89,18 +89,23 @@ def display():
   postrender.display(lastRenderStage,windowWidth,windowHeight)
   lastRenderStage = renderStages[3]
 
-  if screenshotDest:
-    pixels = gl.glReadPixels(0, 0, lastRenderStage.width, lastRenderStage.height, gl.GL_RGB, gl.GL_UNSIGNED_BYTE)
-
-    image = Image.fromstring("RGB", (windowWidth, windowHeight), pixels)
-    image = image.transpose( Image.FLIP_TOP_BOTTOM)
-    image.save(screenshotDest if type(screenshotDest) == str else "screenshot.png")
-    # Do a nice flash effect
-    postrender.exposure = 5
-    screenshotDest = None
-
   glut.glutSwapBuffers()
   glut.glutSetWindowTitle("PM4 {:.2f} ({:.0f}ms) {:.6f}".format(1./frametime,frametime*1000, time.time()-lastframe))
+
+  if screenshotDest:
+      takeScreenshot(lastRenderStage)
+
+def takeScreenshot(renderStage):
+  global screenshotDest
+  pixels = gl.glReadPixels(0, 0, renderStage.width, renderStage.height, gl.GL_RGB, gl.GL_UNSIGNED_BYTE)
+
+  image = Image.fromstring("RGB", (renderStage.width, renderStage.height), pixels)
+  image = image.transpose( Image.FLIP_TOP_BOTTOM)
+  image.save(screenshotDest if type(screenshotDest) == str else "screenshot.png")
+  # Do a nice flash effect
+  postrender.exposure = 5
+  screenshotDest = None
+
 
 def timer(fps):
 #  Marker.timeUpdate(1.0/fps)
@@ -237,7 +242,7 @@ import grass
 import Characters
 
 camera = Camera.Camera(
-        np.array([ -185., 2139.92767998e3,-2938.]),
+        np.array([ -185., 2139.92767998,-2938.]),
         move_hook=lambda x:np.array((x[0],
             max(Terrain.getAt(x[0],x[2])+0.6,x[1]),x[2]))
         )
