@@ -21,11 +21,7 @@ patchSize               = planetSize/patches
 logging.info(" + {:d} (={:d}x{:d}) patches at {:d}m on a side".format((patches-1)**2,patches-1,patches-1,patchSize))
 
 updateUniversalUniform('heightmap', Texture.HEIGHTMAP_NUM)
-updateUniversalUniform('pageTable', Texture.COLORMAP2_NUM)
-updateUniversalUniform('pageTexture', Texture.COLORMAP3_NUM)
 updateUniversalUniform('worldSize', planetSize)
-updateUniversalUniform('numPages', numPages)
-updateUniversalUniform('pageSize', pageSize)
 
 # Construct patches
 logging.info(" + Constructing geometry")
@@ -134,10 +130,7 @@ texData[0:colorMapSize/2,colorMapSize/2:] = stone
 texData[colorMapSize/2:,0:colorMapSize/2] = dirt
 texture.loadData(texData)
 del texData
-setUniform('heightmap',Texture.HEIGHTMAP_NUM)
 
-setUniform('pageTable',Texture.COLORMAP2_NUM)
-setUniform('pageTexture',Texture.COLORMAP3_NUM)
 
 def display(camera):
   if np.sum(camera.position*camera.position) > 6e6**2:
@@ -145,8 +138,6 @@ def display(camera):
   shader.load()
   texture.load()
   heightmap.load()
-  pageTableTexture.load()
-  pageTexture.load()
   shader.draw((patches-1)**2*6,renderID)
 
 def getCurvature(x, y):

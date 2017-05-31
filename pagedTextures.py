@@ -11,16 +11,27 @@ pageResoultion          = config.terrain_page_resolution
 numPages                = config.terrain_num_pages
 pageMapping             = Pager.Pager(numPages**2)
 
-pageTableTexture = Texture.Texture(Texture.COLORMAP2)
+logging.info("{}m on a side of a page square for a resolution of {}m".format(pageSize, pageSize/pageResoultion))
+
+updateUniversalUniform('pageTable', Texture.PAGE_TABLE_NUM)
+updateUniversalUniform('pagedOffsetTexture', Texture.PAGED_TEXTURE_1_NUM)
+updateUniversalUniform('pagedNormalTexture', Texture.PAGED_TEXTURE_2_NUM)
+updateUniversalUniform('pageSize', pageSize)
+updateUniversalUniform('numPages', numPages)
+
+pageTableTexture = Texture.Texture(Texture.PAGE_TABLE)
 gl.glTexParameteri(gl.GL_TEXTURE_2D, gl.GL_TEXTURE_MAG_FILTER, gl.GL_NEAREST)
 gl.glTexParameteri(gl.GL_TEXTURE_2D, gl.GL_TEXTURE_MIN_FILTER, gl.GL_NEAREST_MIPMAP_NEAREST)
 pageTableTexture.loadData(np.zeros((1,1,4))-1)
 
 pageRenderStage = RenderStage.RenderStage()
 pageRenderStage.reshape(pageResoultion*numPages)
-pageTexture = pageRenderStage.displayAuxColorTexture
+pageNormalTexture = pageRenderStage.displayColorTexture
+pageOffsetTexture = pageRenderStage.displayAuxColorTexture
 
-logging.info("{}m on a side of a page square for a resolution of {}m".format(pageSize, pageSize/pageResoultion))
+pageTableTexture.loadAs(Texture.PAGE_TABLE)
+pageOffsetTexture.loadAs(Texture.PAGED_TEXTURE_1)
+pageNormalTexture.loadAs(Texture.PAGED_TEXTURE_2)
 
 pagingShader = getShader('pagingShader', forceReload=True)
 pagingShader['pageSize']    = pageSize

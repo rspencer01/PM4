@@ -3,7 +3,7 @@ uniform int worldSize;
 uniform int pageSize;
 uniform sampler2D pageTable;
 uniform sampler2D noise;
-uniform sampler2D pageTexture;
+uniform sampler2D pagedOffsetTexture;
 
 #include shaders/include/TerrainOps.shd;
 
@@ -38,7 +38,7 @@ vec4 readPagedTexture(vec3 pos)
     return vec4(0);
   }
   texCoords.y = 1 - texCoords.y;
-  return vec4(textureLod(pageTexture, texCoords, 0).xyz,1);
+  return vec4(textureLod(pagedOffsetTexture, texCoords, 0).xyz,1);
 }
 
 vec3 getOffset(vec3 pos)

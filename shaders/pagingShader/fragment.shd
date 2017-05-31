@@ -1,6 +1,6 @@
 #version 400
 in vec4 pos;
-out vec4 fragColor;
+out vec4 normal;
 out vec4 fragColor2;
 out vec4 offst;
 uniform vec3 pagePosition;
@@ -17,4 +17,5 @@ void main()
   ps.y = - ps.y;
 
   offst = vec4(getDisplacement(ps), 1);
+//  normal = vec4(0, 1, 0, 1);
 }
