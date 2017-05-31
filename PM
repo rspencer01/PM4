@@ -225,7 +225,6 @@ import Texture
 #import Marker
 import Terrain
 import noiseG
-noiseG.load(setUniform)
 #import Road
 projection = perspective( 60.0, 1, 0.3, 8000.0 )
 setUniform('projection',projection)

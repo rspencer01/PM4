@@ -22,7 +22,6 @@ data['position']=(data['position']-np.array([numberOfPatches/2,0,numberOfPatches
 indices = np.array(range(numberOfPatches**2),dtype=np.int32)
 
 shader = getShader('grass3',geom=True,forceReload=True)
-Terrain.setTerrainUniforms(shader)
 shader['patchSize'] = patchSize
 shader['colormap'] = Texture.COLORMAP_NUM
 

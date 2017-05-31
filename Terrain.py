@@ -26,16 +26,12 @@ pageMapping             = Pager.Pager(numPages**2)
 logging.info(" + {:d} (={:d}x{:d}) patches at {:d}m on a side".format((patches-1)**2,patches-1,patches-1,patchSize))
 logging.info(" + {}m on a side of a page square for a resolution of {}m".format(pageSize, pageSize/pageResoultion))
 
-def setTerrainUniforms(shader):
-  """Sets all the integers and samplers that are required for the texture page
-  sampling etc."""
-  shader['heightmap']   = Texture.HEIGHTMAP_NUM
-  shader['pageTable']   = Texture.COLORMAP2_NUM
-  shader['pageTexture'] = Texture.COLORMAP3_NUM
-  shader['noise']       = Texture.NOISE_NUM
-  shader['worldSize']   = planetSize
-  shader['numPages']    = numPages
-  shader['pageSize']    = pageSize
+updateUniversalUniform('heightmap', Texture.HEIGHTMAP_NUM)
+updateUniversalUniform('pageTable', Texture.COLORMAP2_NUM)
+updateUniversalUniform('pageTexture', Texture.COLORMAP3_NUM)
+updateUniversalUniform('worldSize', planetSize)
+updateUniversalUniform('numPages', numPages)
+updateUniversalUniform('pageSize', pageSize)
 
 # Construct patches
 logging.info(" + Constructing geometry")
@@ -53,7 +49,6 @@ patchIndices = np.array([],dtype=np.int32)
 
 # Set up renderer
 shader = getShader('terrain',tess=True,geom=False,forceReload=True)
-setTerrainUniforms(shader)
 shader['model'] = np.eye(4,dtype=np.float32)
 shader['colormap'] = Texture.COLORMAP_NUM
 renderID = shader.setData(patchData, patchIndices)

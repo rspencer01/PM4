@@ -50,9 +50,7 @@ logging.info(" + Uploading texture to GPU")
 noiseT.loadData(d, keep_copy=True)
 noiseT.load()
 
-def load(setUniform):
-  noiseT.load()
-  setUniform('noise',Texture.NOISE_NUM)
+updateUniversalUniform('noise', Texture.NOISE_NUM)
 
 def get(x,y):
   return d[int(d.shape[0]*x)][int(d.shape[1]*y)]
