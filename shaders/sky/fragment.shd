@@ -28,6 +28,8 @@ uniform float Re;
 uniform float Ra;
 uniform float Hr;
 uniform float Hm;
+uniform float projectionNear;
+uniform float projectionFar;
 float INF = 1e20;
 float g = 0.76;
 uniform int numInt;
@@ -98,19 +100,18 @@ void main()
       up    * pos.y * 0.57735);
 
   vec3 objectColor;
-  float z_b = textureLod(depthmap,pos.xy/2+vec2(0.5),0).r;
+  float z_b = textureLod(depthmap,pos.xy / 2 + 0.5, 0).r;
   gl_FragDepth = clamp(z_b,0.,0.9999999);
 
-  float z_n = 2*z_b - 1;
-  float objectDepth = 2*0.3*1e7/(1e7+0.3-z_n*(1e7-0.3));
+  float z_n = 2 * z_b - 1;
+  float objectDepth = 2*projectionNear*projectionFar/(projectionFar+projectionNear-z_n*(projectionFar-projectionNear));
   objectDepth = sqrt(objectDepth*objectDepth + length(objectDepth*screenDirection.xy)*length(objectDepth*screenDirection.xy));
-  if (objectDepth > 999999)
+
+  if (objectDepth > projectionFar-1)
   {
     objectDepth = INF;
-  }
-
-  if (objectDepth >= INF-1)
     objectColor = getCelestialColor(direction);
+  }
 
   vec3 celestialCameraPosition = CameraPosition + vec3(0,Re,0);
   float height = length(celestialCameraPosition);
@@ -120,14 +121,14 @@ void main()
   float r2 = smallestIntersectionDistance(Pc,direction,Ra);
   if (r2>0)
   {
+    r -= smallestIntersectionDistance(Pc,direction,Ra);
     Pc = Pc + direction * r2;
-    r = largestIntersectionDistance(Pc,direction,Ra) - smallestIntersectionDistance(Pc,direction,Ra);
   }
   vec3 rayExit = Pc + direction * r;
 
 
   // Hits the Earth.  This is temporary.  This should be done elsewhere.
-  if (intersects(celestialCameraPosition,direction,Re) && objectDepth >= 999999)
+  if (intersects(celestialCameraPosition,direction,Re) && objectDepth >= projectionFar-1)
   {
     if (smallestIntersectionDistance(celestialCameraPosition,direction,Re) > 0)
     {
@@ -145,6 +146,7 @@ void main()
       objectColor *= clamp(ambientLight*normalize(sunDirection).y,0.006,1.0) + sunLight*max(0,dot(normal,normalize(sunDirection)));
     }
   }
+
   if (length(rayExit - celestialCameraPosition) > objectDepth)
   {
     rayExit = celestialCameraPosition + objectDepth * direction;

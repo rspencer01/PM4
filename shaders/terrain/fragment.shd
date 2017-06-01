@@ -3,7 +3,6 @@ uniform vec3 sunDirection;
 uniform vec3 CameraPosition;
 uniform sampler2D shadowTexture1; uniform sampler2D shadowTexture2;
 uniform sampler2D shadowTexture3;
-uniform sampler2D noise;
 uniform sampler2D bumpmap;
 uniform sampler2D colormap;
 uniform sampler2D foliageMap;
@@ -22,30 +21,12 @@ in TesselationData
 } TesselationOut;
 
 #include shaders/include/TextureBicubic.shd;
-#include shaders/include/TerrainOps.shd;
 #include shaders/include/NormalOps.shd;
+#include shaders/include/TerrainPagedTexture.shd;
 
 vec3 averageNormal(vec3 pos)
 {
   return normalize(textureBicubic(heightmap,pos.xz/60000+vec2(0.5)).zyx);
-}
-
-vec3 getNormal(vec3 pos, vec3 newPos)
-{
-  vec3 n = averageNormal(pos);
-  if (length(newPos-CameraPosition) > 4e3)
-    return normalize(n + textureLod(noise,TesselationOut.position.zx/10000,0).rgb*0.015);
-  vec3 t = cross(vec3(1,0,0),n);
-  vec3 b = cross(t,n);
-  vec4 displacement = getFineValue(pos.xz+vec2(30000));
-  mat3 J = mat3(
-      1,displacement.x,0,
-      0,1,0,
-      0,displacement.z,1
-      );
-  t = J*t;
-  b = J*b;
-  return normalize(cross(b,t));
 }
 
 vec3 colorOffset()
@@ -89,7 +70,7 @@ vec3 color(vec3 norm,vec3 pos,vec3 averageNorm)
 void main()
 {
   vec3 averageNorm = averageNormal(TesselationOut.origPosition.xyz);
-  vec3 norm        = getNormal(TesselationOut.origPosition.xyz, TesselationOut.position.xyz);
+  vec3 norm        = getPagedNormal(TesselationOut.origPosition.xyz);
   fragColor = vec4(
     color(norm,TesselationOut.position.xyz,averageNorm),
     1);

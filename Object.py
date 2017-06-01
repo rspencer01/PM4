@@ -34,7 +34,6 @@ def getTextureFile(material, textureType):
     return material.properties[('file', textureType)]
   return ''
 shader             = Shaders.getShader('general-noninstanced', forceReload=True)
-Terrain.setTerrainUniforms(shader)
 shader['colormap'] = Texture.COLORMAP_NUM
 
 class Object:

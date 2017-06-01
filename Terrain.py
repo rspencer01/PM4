@@ -20,16 +20,8 @@ patches                 = config.terrain_num_patches
 patchSize               = planetSize/patches
 logging.info(" + {:d} (={:d}x{:d}) patches at {:d}m on a side".format((patches-1)**2,patches-1,patches-1,patchSize))
 
-def setTerrainUniforms(shader):
-  """Sets all the integers and samplers that are required for the texture page
-  sampling etc."""
-  shader['heightmap']   = Texture.HEIGHTMAP_NUM
-  shader['pageTable']   = Texture.COLORMAP2_NUM
-  shader['pageTexture'] = Texture.COLORMAP3_NUM
-  shader['noise']       = Texture.NOISE_NUM
-  shader['worldSize']   = planetSize
-  shader['numPages']    = numPages
-  shader['pageSize']    = pageSize
+updateUniversalUniform('heightmap', Texture.HEIGHTMAP_NUM)
+updateUniversalUniform('worldSize', planetSize)
 
 # Construct patches
 logging.info(" + Constructing geometry")
@@ -47,7 +39,6 @@ patchIndices = np.array([],dtype=np.int32)
 
 # Set up renderer
 shader = getShader('terrain',tess=True,geom=False,forceReload=True)
-setTerrainUniforms(shader)
 shader['model'] = np.eye(4,dtype=np.float32)
 shader['colormap'] = Texture.COLORMAP_NUM
 renderID = shader.setData(patchData, patchIndices)
@@ -139,10 +130,7 @@ texData[0:colorMapSize/2,colorMapSize/2:] = stone
 texData[colorMapSize/2:,0:colorMapSize/2] = dirt
 texture.loadData(texData)
 del texData
-setUniform('heightmap',Texture.HEIGHTMAP_NUM)
 
-setUniform('pageTable',Texture.COLORMAP2_NUM)
-setUniform('pageTexture',Texture.COLORMAP3_NUM)
 
 def display(camera):
   if np.sum(camera.position*camera.position) > 6e6**2:
@@ -150,8 +138,6 @@ def display(camera):
   shader.load()
   texture.load()
   heightmap.load()
-  pageTableTexture.load()
-  pageTexture.load()
   shader.draw((patches-1)**2*6,renderID)
 
 def getCurvature(x, y):
@@ -177,7 +163,7 @@ def getAt(x,y):
   y += planetSize / 2
   s = heightmap.read(float(x)/planetSize, float(y)/planetSize)[3] + 1000
 
-  offset = noiseG.noiseT.read(x/600., y/600.)[3] * getFineAmount(x, y)
+  offset = noiseG.noiseT.read(x/1000., y/1000.)[3] * getFineAmount(x, y)
 
   return s + offset
 

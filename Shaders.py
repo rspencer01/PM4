@@ -6,6 +6,7 @@ from ctypes import c_void_p, sizeof
 import re
 
 currentShader = None
+universalUniforms = {}
 
 class objectInfo:
   def __init__(self,nv,ni,vbo,ver,ibo,renderVerts,instbo=None):
@@ -245,6 +246,15 @@ class TesselationShader(Shader):
 
 shaders = {}
 
+def setUniversalUniforms(shader):
+  for key, value in universalUniforms.items():
+    shader[key] = value
+
+def updateUniversalUniform(key, value):
+  for name, shader in shaders.items():
+    shader[key] = value
+  universalUniforms[key] = value
+
 def readShaderFile(filename):
   source = open(filename).read()
   p = re.compile(r"#include\W(.+);")
@@ -283,7 +293,7 @@ def getShader(name,tess=False,instance=False,geom=False,forceReload=True):
                                readShaderFile('shaders/'+name+'/tesscontrol.shd'),
                                readShaderFile('shaders/'+name+'/tesseval.shd')
                                )
-      
+    setUniversalUniforms(shaders[name])
   return shaders[name]
 
 def setUniform(name,value):

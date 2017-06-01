@@ -62,9 +62,11 @@ def display():
 
   camera.render()
   projection = perspective( 60.0, windowWidth/float(windowHeight), 0.3, 1e7 )
-  setUniform('projection',projection)
-  setUniform('aspectRatio',windowWidth/float(windowHeight))
-  setUniform('windowWidth',float(windowWidth))
+  updateUniversalUniform('projectionNear', 0.3)
+  updateUniversalUniform('projectionFar', 1e7)
+  setUniform('projection', projection)
+  setUniform('aspectRatio', windowWidth/float(windowHeight))
+  setUniform('windowWidth', float(windowWidth))
 
   camera.render()
   camera.render('user')
@@ -88,18 +90,23 @@ def display():
   postrender.display(lastRenderStage,windowWidth,windowHeight)
   lastRenderStage = renderStages[3]
 
-  if screenshotDest:
-    pixels = gl.glReadPixels(0, 0, lastRenderStage.width, lastRenderStage.height, gl.GL_RGB, gl.GL_UNSIGNED_BYTE)
-
-    image = Image.fromstring("RGB", (windowWidth, windowHeight), pixels)
-    image = image.transpose( Image.FLIP_TOP_BOTTOM)
-    image.save(screenshotDest if type(screenshotDest) == str else "screenshot.png")
-    # Do a nice flash effect
-    postrender.exposure = 5
-    screenshotDest = None
-
   glut.glutSwapBuffers()
   glut.glutSetWindowTitle("PM4 {:.2f} ({:.0f}ms) {:.6f}".format(1./frametime,frametime*1000, time.time()-lastframe))
+
+  if screenshotDest:
+      takeScreenshot(lastRenderStage)
+
+def takeScreenshot(renderStage):
+  global screenshotDest
+  pixels = gl.glReadPixels(0, 0, renderStage.width, renderStage.height, gl.GL_RGB, gl.GL_UNSIGNED_BYTE)
+
+  image = Image.fromstring("RGB", (renderStage.width, renderStage.height), pixels)
+  image = image.transpose( Image.FLIP_TOP_BOTTOM)
+  image.save(screenshotDest if type(screenshotDest) == str else "screenshot.png")
+  # Do a nice flash effect
+  postrender.exposure = 5
+  screenshotDest = None
+
 
 def timer(fps):
 #  Marker.timeUpdate(1.0/fps)
@@ -159,7 +166,7 @@ def keyboard(key,x,y):
   if key=='p':
     line = not line
   if key=='#':
-    reload(Terrain)
+    reload(Sky)
   if key=='o':
     enableAtmosphere = not enableAtmosphere
   if key=='t':
@@ -226,12 +233,7 @@ import Texture
 #import Marker
 import Terrain
 import noiseG
-noiseG.load(setUniform)
 #import Road
-projection = perspective( 60.0, 1, 0.3, 8000.0 )
-setUniform('projection',projection)
-setUniform('fogLevel',8.0)
-setUniform('maxFog',1000.0)
 #import Forest
 
 import postrender
@@ -260,5 +262,5 @@ renderStages = [RenderStage.RenderStage(),
                 RenderStage.RenderStage(),
                 RenderStage.RenderStage(final_stage=True)
                 ]
-print "Initialisation finished."
+logging.info("Initialisation finished")
 glut.glutMainLoop()
