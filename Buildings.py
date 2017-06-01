@@ -7,14 +7,21 @@ import random
 from utils import stepSort
 import OpenGL.GL as gl
 from transforms import *
+from collections import namedtuple
 
-positions = [[0, 0, -2938]]
-for _ in xrange(3000):
-  positions.append([random.randint(-10000, 10000),
-                    0,
-                    random.randint(-10000, 10000)])
-for position in positions:
-  position[1] = Terrain.getAt(position[0], position[2])
+BuildingSpec = namedtuple('BuildingSpec', ('position','angle', 'direction', 'bidirection'))
+
+specs = []
+for _ in xrange(30):
+  pos = [random.randint(-500, 500),
+         0,
+         random.randint(-3500, -2500)]
+  pos[1] = Terrain.getAt(pos[0], pos[2])
+  angle = random.random()*2*3.14
+  direction = [np.sin(angle),0.,np.cos(angle)]
+  bidirection = [np.cos(angle),0.,-np.sin(angle)]
+  spec = BuildingSpec(pos, angle, direction, bidirection)
+  specs.append(spec)
 
 building = \
   Object.Object(
@@ -33,22 +40,25 @@ pagingRenderID = pagingShader.setData(data,indices)
 def flattenGround(x, y, width, height):
   """This function writes to the paged texture to flatten the ground underneath
   the buildings."""
-  for position in positions:
+  for spec in specs:
     model = np.eye(4, dtype=np.float32)
-    scale(model, 15, 20, 1)
-    translate(model, position[0], position[2]);
+    zrotate(model, spec.angle*180/3.14)
+    scale(model, 6, 10, 1)
+    translate(model, spec.position[0], spec.position[2]);
     translate(model, 30000 - y - height/2, x +width/2- 30000 );
     scale(model, 1.6/width, -1.6/height, 1)
 
     pagingShader.load()
     pagingShader['model'] = model
-    pagingShader['level'] = position[1] - 1000
+    pagingShader['level'] = spec.position[1] - 1000
     pagingShader.draw(gl.GL_TRIANGLES, pagingRenderID)
 
 Terrain.registerCallback(flattenGround)
 
 def display(camera):
-  stepSort('buildingsDistance', positions, key=lambda x: np.linalg.norm(x-camera.position))
-  for position in positions[:10]:
-    building.position = position
+  stepSort('buildingsDistance', specs, key=lambda x: np.linalg.norm(x.position-camera.position))
+  for spec in specs[:10]:
+    building.position = spec.position
+    building.direction = spec.direction
+    building.bidirection = spec.bidirection
     building.display()
