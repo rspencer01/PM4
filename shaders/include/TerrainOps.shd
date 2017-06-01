@@ -24,6 +24,7 @@ vec4 getFineValue(vec2 ps)
   vec4 ans1 = texture(noise, ps/1000);
   ans1.xz /= 1000;
   ans1.xzw *= getFineAmount(ps);
+  ans1.xyz = normalize(ans1.xyz);
   return ans1;
 }
 
@@ -34,3 +35,11 @@ vec3 getDisplacement(vec2 ps)
   return displacement;
 }
 
+vec3 getNormal(vec2 ps)
+{
+  vec3 n = normalize(texture(heightmap, ps/60000).zyx);
+  vec3 t = cross(vec3(1,0,0),n);
+  vec3 b = cross(t,n);
+  mat3 mt = mat3(t, n, b);
+  return normalize(mt * getFineValue(ps).xyz);
+}

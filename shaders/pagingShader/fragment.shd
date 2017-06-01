@@ -17,5 +17,6 @@ void main()
   ps.y = - ps.y;
 
   offst = vec4(getDisplacement(ps), 1);
-//  normal = vec4(0, 1, 0, 1);
+  normal = vec4(getNormal(ps),1);
+  fragColor2= vec4(0,0,0,1);
 }

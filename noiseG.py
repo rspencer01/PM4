@@ -33,14 +33,12 @@ if not os.path.exists('noise.npy') or args.args.remake_noise:
       d[i,j] = (t,t,t,t)
   for i in range(textWidth):
     for j in range(textHeight):
-      v1= np.array([dx*float(i)/textWidth,   d[i,j][3],                dy*float(j)/textWidth])
-      v2= np.array([dx*float(i+1)/textWidth, d[(i+1)%textWidth,j][3],  dy*float(j)/textWidth])
-      v3= np.array([dx*float(i)/textWidth,   d[i,(j+1)%textHeight][3], dy*float(j+1)/textWidth])
+      v1= np.array([float(i)/textWidth,   d[i,j][3],                float(j)/textWidth])
+      v2= np.array([float(i+1)/textWidth, d[(i+1)%textWidth,j][3],  float(j)/textWidth])
+      v3= np.array([float(i)/textWidth,   d[i,(j+1)%textHeight][3], float(j+1)/textWidth])
       d[i,j][:3] = np.cross(v3-v1,v2-v1)
       d[i,j][:3] /= np.dot(d[i,j][:3],d[i,j][:3])**0.5
 
-      d[i,j,2] = (d[(i+1)%textWidth,j,3] - d[i,j,3] )/ (1. / textWidth)
-      d[i,j,0] = (d[i,(j+1)%textWidth,3] - d[i,j,3] )/ (1. / textHeight)
   np.save('noise.npy',d)
 else:
   logging.info(" + Loaded from file")
