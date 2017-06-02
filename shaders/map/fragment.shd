@@ -1,15 +1,11 @@
 #version 400
 in vec4 pos;
 out vec4 fragColor;
+
 uniform vec3 CameraPosition;
-uniform vec3 CameraDirection;
-
 uniform sampler2D heightmap;
-uniform sampler2D foliageMap;
-uniform sampler2D noise;
-uniform sampler2D shadowTexture3;
-
-uniform float ambientLight;
+uniform int villageCount;
+uniform vec3 villagePosition[100];
 
 void main()
 {
@@ -17,6 +13,14 @@ void main()
   {
     fragColor = vec4(1,0,0,1);
     return;
+  }
+  for (int i = 0; i< villageCount; ++i)
+  {
+    if (length(pos.xy * 30000 - villagePosition[i].xz) < 300)
+    {
+      fragColor = vec4(1,1,0,1);
+      return;
+    }
   }
   fragColor = vec4(vec3(texture2D(heightmap,pos.xy/2+vec2(0.5)).a)/2000,1);
 }

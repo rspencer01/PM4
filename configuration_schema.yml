@@ -27,4 +27,19 @@ sky_integration_steps:
     10 to 100.
   type: integer
   default: 20
+building_clump_count:
+  help: |
+    The number of building clumps or villages in the world.
+  type: integer
+  default: 50
+building_clump_min_size:
+  help: |
+    The minimum number of building in a clump.
+  type: integer
+  default: 4
+building_clump_max_size:
+  help: |
+    The maximum number of building in a clump.
+  type: integer
+  default: 25
 ...

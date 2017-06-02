@@ -134,23 +134,18 @@ class Shader(object):
     if loc==-1:
       if not i in self.warned:
         self.warned.add(i)
-      return
-    if type(v) == np.ndarray and v.shape == (4,4):
+    elif type(v) == np.ndarray and v.shape == (4,4):
       gl.glUniformMatrix4fv(loc,1,gl.GL_FALSE,v)
-      return
-    if type(v) == np.ndarray and len(v.shape)==2 and v.shape[1]==3:
+    elif type(v) == np.ndarray and len(v.shape)==2 and v.shape[1]==3:
       gl.glUniform3fv(loc,v.shape[0],v)
-    if type(v) == np.ndarray and len(v.shape)==2 and v.shape[1]==4:
+    elif type(v) == np.ndarray and len(v.shape)==2 and v.shape[1]==4:
       gl.glUniform4fv(loc,v.shape[0],v)
-    if type(v) in [float,np.float32,np.float64]:
+    elif type(v) in [float,np.float32,np.float64]:
       gl.glUniform1f(loc,v)
-      return
-    if type(v) in [np.ndarray] and v.shape==(3,):
+    elif type(v) in [np.ndarray] and v.shape==(3,):
       gl.glUniform3f(loc,v[0],v[1],v[2])
-      return
-    if type(v) in [int]:
+    elif type(v) in [int]:
       gl.glUniform1i(loc,v)
-      return
 
   def _setitems(self):
     """
