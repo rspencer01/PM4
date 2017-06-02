@@ -4,23 +4,83 @@ out vec4 fragColor;
 
 uniform vec3 CameraPosition;
 uniform sampler2D heightmap;
+uniform sampler2D icons;
+uniform sampler2D noise;
 uniform int villageCount;
 uniform vec3 villagePosition[100];
+uniform float fullscreen;
+
+bool getContour(vec2 pos, float lineDiff, float lineThick)
+{
+  float p = texture2D(heightmap,pos/60000+0.5).a;
+  float pr = texture2D(heightmap,(vec2(lineThick,0)+pos)/60000+0.5).a;
+  float pl = texture2D(heightmap,(vec2(-lineThick,0)+pos)/60000+0.5).a;
+  float pu = texture2D(heightmap,(vec2(0,lineThick)+pos)/60000+0.5).a;
+  float pd = texture2D(heightmap,(vec2(0,-lineThick)+pos)/60000+0.5).a;
+  float pul = texture2D(heightmap,(vec2(-lineThick,lineThick)*.7+pos)/60000+0.5).a;
+  float pur = texture2D(heightmap,(vec2(lineThick,lineThick)*.7+pos)/60000+0.5).a;
+  float pdl = texture2D(heightmap,(vec2(-lineThick,-lineThick)*.7+pos)/60000+0.5).a;
+  float pdr = texture2D(heightmap,(vec2(lineThick,-lineThick)*.7+pos)/60000+0.5).a;
+
+  pr = lineDiff * int(pr/lineDiff);
+  pu = lineDiff * int(pu/lineDiff);
+  pl = lineDiff * int(pl/lineDiff);
+  pd = lineDiff * int(pd/lineDiff);
+  pul = lineDiff * int(pul/lineDiff);
+  pur = lineDiff * int(pur/lineDiff);
+  pdl = lineDiff * int(pdl/lineDiff);
+  pdr = lineDiff * int(pdr/lineDiff);
+  return (p<pr)
+      || (p<pu)
+      || (p<pl)
+      || (p<pd)
+      || (p<pul)
+      || (p<pur)
+      || (p<pdr)
+      || (p<pdl);
+}
+
+bool getContour1(vec2 pos)
+{
+  float lineDiff = 50*int(mix(400, 200, fullscreen)/50);
+  float lineThick = mix(300, 90, fullscreen);
+  return getContour(pos, lineDiff, lineThick);
+}
+
+bool getContour2(vec2 pos)
+{
+  float lineDiff = 800;
+  float lineThick = mix(0, 200, fullscreen);
+  return getContour(pos, lineDiff, lineThick);
+}
 
 void main()
 {
-  if (length(pos.xy * 30000 - CameraPosition.xz) < 500)
+  fragColor = vec4(0);
+  float alpha = 1-0.05*fullscreen;
+  vec2 worldPos = pos.xy*30000;
+  if (length(worldPos - CameraPosition.xz) < 700)
   {
-    fragColor = vec4(1,0,0,1);
+    fragColor = vec4(1,0,0,alpha);
     return;
   }
   for (int i = 0; i< villageCount; ++i)
   {
-    if (length(pos.xy * 30000 - villagePosition[i].xz) < 300)
+    if ((abs(worldPos.x - villagePosition[i].x) < 600+400*fullscreen) &&
+        (abs(worldPos.y - villagePosition[i].z) < 600+400*fullscreen))
     {
-      fragColor = vec4(1,1,0,1);
-      return;
+      vec2 uv = (vec2(worldPos.xy - villagePosition[i].xz)/1000)/2+.5;
+      uv.y = 1-uv.y;
+      fragColor = mix(vec4(140,84,53,256)/256., texture2D(icons,uv).rgba, fullscreen);
     }
   }
-  fragColor = vec4(vec3(texture2D(heightmap,pos.xy/2+vec2(0.5)).a)/2000,1);
+  vec4 backcolor = mix(vec4(194,177,130,256)/256, vec4(213,197,151,256)/256, texture2D(noise, pos.xy/2+.5).a);
+  if (getContour1(worldPos)  || getContour2(worldPos))
+    backcolor = vec4(158,117,70,256)/256;
+  fragColor = mix(
+      backcolor,
+      fragColor,
+      fragColor.a
+      );
+  fragColor.a = alpha;
 }

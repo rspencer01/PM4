@@ -2,6 +2,7 @@ import numpy as np
 import Texture
 import graphicsOps
 from Shaders import *
+import Map
 
 data = np.zeros(4,dtype=[("position" , np.float32,3)])
 data['position'] = [(-1,-1,0.999999),(-1,1,0.999999),(1,-1,0.999999),(1,1,0.999999)]
@@ -23,10 +24,6 @@ lightingShader['normmap'] = Texture.COLORMAP2_NUM
 lightingShader['posmap'] = Texture.COLORMAP3_NUM
 lightingShader['depthmap'] = Texture.DEPTHMAP_NUM
 lightingRenderID = lightingShader.setData(data,indices)
-
-mapShader = getShader('map',forceReload=True)
-mapShader['heightmap'] = Texture.HEIGHTMAP_NUM
-mapRenderID = mapShader.setData(data,indices) 
 
 setUniform('ambientLight',0.1)
 setUniform('sunLight',1.0)
@@ -59,10 +56,6 @@ def display(previousStage,windowWidth,windowHeight):
   shader.load()
   shader['brightness'] = exposure
   shader.draw(gl.GL_TRIANGLES,renderID,1)
-
-  # Render the map
-  mapShader.load()
-  mapShader.draw(gl.GL_TRIANGLES,mapRenderID,1)
 
 def lighting(colorTexture,normTexture,posTexture,depthTexture):
   depthTexture.load()

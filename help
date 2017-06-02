@@ -1,10 +1,14 @@
 PM4 Key commands
 
-?   | Display this help
-l   | Lock to ground
-~   | Enter console mode
-p   | Toggle wireframe
-o   | Toggle sky
-t   | Take screenshot
-r   | Toggle mouse hold
-esc | Exit
+qsde | Rotate camera
+ws   | Move
+?    | Display this help
+l    | Lock to ground
+~    | Enter console mode
+p    | Toggle wireframe
+o    | Toggle sky
+t    | Take screenshot
+r    | Toggle mouse hold
+f    | Toggle fast mode
+m    | Toggle large map
+esc  | Exit

@@ -132,6 +132,7 @@ class Texture:
 
 
   def loadFromImage(self, filename, daemon=True):
+    # TODO this is upside down
     def preloadFile():
       logging.info("Preloading {} into texture {}".format(filename, self.id))
 

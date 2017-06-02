@@ -30,6 +30,7 @@ lastframe = time.time()
 enableAtmosphere = not args.args.disable_atmosphere
 screenshotDest = None
 hold_mouse = True
+fastMode = False
 
 aboveGround = 1
 
@@ -41,7 +42,10 @@ def display():
   global cameraSpeed
 
   p = camera.position + np.array([0,Re,0])
-  cameraSpeed = max((p.dot(p)**0.5-Re-1000)*.1+90,0)
+  if fastMode:
+    cameraSpeed = max((p.dot(p)**0.5-Re-1000)*3+90,0)
+  else:
+    cameraSpeed = max((p.dot(p)**0.5-Re-1000)*.1+90,0)
   f = np.clip((p.dot(p)**0.5 - Re*1.03) /(Re*0.3),0,1)
   globUp = np.array([np.array([1.0,0.0,0.0]),
                      p/p.dot(p)**0.5])
@@ -88,6 +92,7 @@ def display():
 
   renderStages[3].load(windowWidth, windowHeight)
   postrender.display(lastRenderStage,windowWidth,windowHeight)
+  Map.display()
   lastRenderStage = renderStages[3]
 
   glut.glutSwapBuffers()
@@ -110,6 +115,7 @@ def takeScreenshot(renderStage):
 
 def timer(fps):
 #  Marker.timeUpdate(1.0/fps)
+  Map.update(1.0/fps)
   if 'w' in keys:
     camera.move(cameraSpeed * 1.0/fps)
     if camera.lockObject:
@@ -153,7 +159,7 @@ def reshape(width,height):
 
 keys = set()
 def keyboard(key,x,y):
-  global line,enableAtmosphere, screenshotDest, hold_mouse
+  global line,enableAtmosphere, screenshotDest, hold_mouse, fastMode
   if key=='\033':
     sys.exit(0)
   if key=='l':
@@ -166,11 +172,15 @@ def keyboard(key,x,y):
   if key=='p':
     line = not line
   if key=='#':
-    reload(Sky)
+    reload(Map)
   if key=='o':
     enableAtmosphere = not enableAtmosphere
   if key=='t':
     screenshotDest = True
+  if key=='f':
+    fastMode = not fastMode
+  if key=='m':
+    Map.targetFullScreenAmount = 1-Map.targetFullScreenAmount
   if key=='r':
     if hold_mouse:
       glut.glutSetCursor(glut.GLUT_CURSOR_INHERIT)
@@ -194,6 +204,11 @@ def mouse(button,state,x,y):
 def accio():
   Characters.character.position = camera.position.copy()
 
+def horse(i=0):
+  camera.position = Buildings.clumpSpecs[i].position
+  accio()
+  Characters.move(0)
+
 def userCommand():
   command = raw_input('>>> ')
   while (command not in ['continue','exit']):
@@ -212,6 +227,8 @@ glut.glutInitDisplayMode(glut.GLUT_DOUBLE | glut.GLUT_RGBA | glut.GLUT_DEPTH)
 glut.glutInitWindowSize(512,512);
 glut.glutCreateWindow("PM4")
 logging.info("Obtained OpenGL "+gl.glGetString(gl.GL_VERSION))
+logging.info("Uniform limit (vertex) {}".format(
+  str(gl.glGetIntegerv(gl.GL_MAX_VERTEX_UNIFORM_COMPONENTS))))
 gl.glEnable(gl.GL_DEPTH_TEST)
 gl.glPolygonMode(gl.GL_FRONT_AND_BACK,gl.GL_FILL);
 gl.glEnable(gl.GL_BLEND)
@@ -242,6 +259,7 @@ import Shadows
 import grass
 import Characters
 import Buildings
+import Map
 
 camera = Camera.Camera(
         np.array([ 0., 2139.92767998,-3000]),

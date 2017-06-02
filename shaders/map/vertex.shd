@@ -4,9 +4,18 @@ out vec4 pos;
 
 uniform float windowWidth;
 uniform float aspectRatio;
+uniform float fullscreen;
+
 void main()
 {
-  gl_Position = vec4(-1 + position.x*200/windowWidth + 250/windowWidth,
-                    -1 + position.y*200/windowWidth*aspectRatio + 250/windowWidth*aspectRatio,-0.1,1);
+  // Small position
+  float windowHeight = windowWidth / aspectRatio;
+  vec4 pos1 = vec4(-1 + position.x*200/windowWidth + 250/windowWidth,
+                   -1 + position.y*200/windowHeight + 250/windowHeight,-0.1,1);
+  // Fullscreen position
+  float s = min(windowWidth-20, windowHeight-20);
+  vec4 pos2 = vec4(position.x*s/windowWidth,
+                   position.y*s/windowWidth*aspectRatio,-0.1,1);
+  gl_Position = mix(pos1, pos2, fullscreen);
   pos = vec4(position,1);
 }
