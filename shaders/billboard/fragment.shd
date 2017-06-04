@@ -12,7 +12,7 @@ in VertexData
   vec3 shadowPos2;
   vec3 shadowPos3;
   vec2 uv;
-  mat2 normMat;
+  mat4 normMat;
 } VertexOut;
 
 uniform vec3 sunDirection;
@@ -26,19 +26,19 @@ uniform sampler2D  bumpmap;
 
 void main()
 {
-/*  if (abs(VertexOut.position.x - (100*floor(userCameraPosition.x/100)+50)) < 150 && 
-      abs(VertexOut.position.z - (100*floor(userCameraPosition.z/100)+50)) < 150 ) discard;
-      */
-
   float dist = length(VertexOut.position.xyz - userCameraPosition);
-  vec4 textureColor = textureLod(colormap,vec2(VertexOut.uv.x,VertexOut.uv.y),0*min(dist/800,4));
-  vec3 normal = normalize(textureLod(bumpmap,vec2(VertexOut.uv.x,VertexOut.uv.y),0*min(dist/800,4)).xyz - vec3(0.5));
-  if (textureColor.a < 0.4) discard;
-  // I don't know why this doesn't work
-  //Only really applies with single billboards
-  normal.xz = VertexOut.normMat * normal.xz;
-  fragColor = textureColor;
-  // Wut.  Why need this?
-  fragNorm = vec4(-normal.zyx,1);
+  vec4 textureColor = texture(colormap,vec2(VertexOut.uv.x,VertexOut.uv.y));
+  fragColor = vec4(textureColor.rgb,1);
+//  if (textureColor.a < 0.4) discard;j
+
+  vec3 normal = normalize(texture(bumpmap, VertexOut.uv).xyz - vec3(0.5));
+  fragNorm = VertexOut.normMat * vec4(normal, 1);
+
   fragPos = VertexOut.position;
+
+  // I don't know why this doesn't work
+  // Only really applies with single billboards
+  //normal.xz = VertexOut.normMat * normal.xz;
+  //fragColor = textureColor;
+  // Wut.  Why need this?
 }

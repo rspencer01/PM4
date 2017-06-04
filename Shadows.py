@@ -9,7 +9,7 @@ import Terrain
 import Texture
 import Buildings
 #import Marker
-#import Forest
+import Forest
 import Shaders
 import grass
 import transforms
@@ -80,7 +80,7 @@ def render():
     Characters.display(shadowCamera.lockObject)
     Buildings.display(shadowCamera.lockObject)
     grass.display(shadowCamera.lockObject)
- #   Forest.display(shadowCamera.lockObject.position,i)
+    Forest.display(shadowCamera.lockObject.position,i)
 
   Shaders.setUniform('shadowLevel',-1)
 
