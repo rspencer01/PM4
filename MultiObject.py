@@ -1,5 +1,5 @@
 import numpy as np
-from pyassimp import *
+import pyassimp
 import math
 import Camera
 import pdb
@@ -21,23 +21,35 @@ billboardShader['bumpmap'] = Texture.BUMPMAP_NUM
 makeBillboardShader = Shaders.getShader('makeBillboard',instance=True,forceReload=True)
 
 class MultiObject(object):
-  def __init__(self,numSwatches):
+  def __init__(
+      self,
+      filename,
+      numSwatches,
+      name=None,
+      scale=1):
+
+    if name == None:
+      name = os.path.basename(filename)
+
+    self.name = name
     self.meshes = []
     self.renderIDs = []
     self.textures = []
     self.billboardMesh = None
     self.billboardRenderID = None
     self.billboardTexture = None
-    self.instances = np.zeros(0,dtype=[('model',np.float32,(4,4))])
+    self.instances = np.zeros(0, dtype=[('model', np.float32, (4, 4))])
     self.numSwatches = numSwatches
     self.swatches = [[None for i in xrange(numSwatches)] for j in xrange(numSwatches)]
     self.frozen = False
-
-  def loadFromScene(self,scenePath,scale):
-    scene = load(scenePath)
     self.scale = scale
+
+    self.loadFromScene(filename, self.scale)
+
+  def loadFromScene(self, scenePath, scale):
+    scene = pyassimp.load(scenePath)
     self.directory = os.path.dirname(scenePath)
-    self.boundingBox = (helper.get_bounding_box(scene))
+    self.boundingBox = (pyassimp.helper.get_bounding_box(scene))
     for i in xrange(3):
       self.boundingBox[0][i] *= scale
       self.boundingBox[1][i] *= scale
@@ -49,14 +61,14 @@ class MultiObject(object):
         addNode(nod,newtrans)
     addNode(scene.rootnode,np.eye(4))
     self.makeBillboard()
-    self.makeBillboardMesh() 
+    self.makeBillboardMesh()
 
   def addMesh(self,mesh,trans):
     data = np.zeros(len(mesh.vertices),
-                      dtype=[("position" , np.float32,3),
-                             ("normal"  , np.float32,3),
-                             ("textcoord"  , np.float32,2),
-                             ("color"    , np.float32,4)])
+                      dtype=[("position"  , np.float32, 3),
+                             ("normal"    , np.float32, 3),
+                             ("textcoord" , np.float32, 2),
+                             ("color"     , np.float32, 4)])
     # Get the vertex positions and add a w=1 component
     vertPos = mesh.vertices
     add = np.zeros((vertPos.shape[0],1),dtype=np.float32)+1
@@ -77,30 +89,33 @@ class MultiObject(object):
     data["position"] = vertPos*self.scale
     data["normal"] = vertNorm
     data["textcoord"] = mesh.texturecoords[0][:,[0,1]]
-    data["color"] = [(1,1,1,1)]*len(mesh.vertices)
+    data["color"] = 1
 
     # Get the indices
     indices = mesh.faces
 
     # Load the texture
     texture = Texture.Texture(Texture.COLORMAP)
-    teximag = Image.open(self.directory+'/'+dict(mesh.material.properties.items())['file'])
-    texdata = np.array(teximag.getdata()).astype(np.float32)
-    # Make this a 4 color file
-    if (texdata.shape[1]!=4):
-      add = np.zeros((texdata.shape[0],1),dtype=np.float32)+256
-      texdata = np.append(texdata,add,axis=1)
-    texdata = texdata.reshape(teximag.size[0], teximag.size[1], 4)
-    texture.loadData(texdata/256)
+    if 'file' in dict(mesh.material.properties.items()):
+      teximag = Image.open(self.directory+'/'+dict(mesh.material.properties.items())['file'])
+      texdata = np.array(teximag.getdata()).astype(np.float32)
+      # Make this a 4 color file
+      if (texdata.shape[1]!=4):
+        add = np.zeros((texdata.shape[0],1),dtype=np.float32)+256
+        texdata = np.append(texdata,add,axis=1)
+      texdata = texdata.reshape(teximag.size[0], teximag.size[1], 4)
+      texture.loadData(texdata/256)
 
     #Add the textures and the mesh data
     self.textures.append(texture)
     self.meshes.append((data,indices,texture))
 
-  def addInstance(self,model):
+
+  def addInstance(self, model):
+    """Adds a new instance.  The model matrix must be specified."""
     self.instances.resize(len(self.instances)+1)
     self.instances['model'][-1] = model
-    return len(self.instances)-1
+
 
   def freeze(self):
     for data,indices,texture in self.meshes:
@@ -116,18 +131,23 @@ class MultiObject(object):
       mesh[2].load()
       shader.draw(gl.GL_TRIANGLES,renderID,num,offset)
 
-  def renderBillboards(self,offset,num=None):
-    if num==None: num = len(self.instances)
+
+  def renderBillboards(self, offset, count=None):
+    """Renders a particular number of billboards, starting from a certain
+    offset.  If no count is specified, the maximum possible are rendered."""
+    if count == None:
+      count = len(self.instances) - offset
     # Load texture
-    billboardShader.load()
     self.billboardTexture.load()
     self.billboardnormalTexture.load()
-    billboardShader.draw(gl.GL_TRIANGLES,self.billboardRenderID,num,offset)
+    # Do the render
+    billboardShader.draw(gl.GL_TRIANGLES, self.billboardRenderID, count, offset)
+
 
   def makeBillboard(self):
     numberOfSwatches = 1
     texSize = 1050
-    
+
     instance = np.zeros(numberOfSwatches,dtype=[('model',np.float32,(4,4))])
     width = 2*max([(self.boundingBox[0][0]**2 + self.boundingBox[1][2]**2)**0.5,
                    (self.boundingBox[1][0]**2 + self.boundingBox[0][2]**2)**0.5,
@@ -178,25 +198,27 @@ class MultiObject(object):
     gl.glDeleteRenderbuffers(1,[depthbuffer])
     gl.glDeleteFramebuffers(1,[framebuffer])
 
+
   def makeBillboardMesh(self):
+    """Constructs the mesh data for the billboard."""
     width = 2*max([(self.boundingBox[0][0]**2 + self.boundingBox[1][2]**2)**0.5,
                    (self.boundingBox[1][0]**2 + self.boundingBox[0][2]**2)**0.5,
                    (self.boundingBox[1][0]**2 + self.boundingBox[1][2]**2)**0.5,
                    (self.boundingBox[0][0]**2 + self.boundingBox[0][2]**2)**0.5])
-    data = np.zeros(4,
-                      dtype=[("position" , np.float32,3),
-                             ("normal"  , np.float32,3),
-                             ("textcoord"  , np.float32,2),
-                             ("color"    , np.float32,4)])
+    data = np.zeros(4, dtype=[("position"  , np.float32, 3),
+                              ("normal"    , np.float32, 3),
+                              ("textcoord" , np.float32, 2),
+                              ("color"     , np.float32, 4)])
     data["position"] = [(-width/2,self.boundingBox[0][2],0),
                         (-width/2,self.boundingBox[1][2],0),
-                        (width/2,self.boundingBox[1][2],0),
-                        (width/2,self.boundingBox[0][2],0)]
-    data["normal"] = [(1,1,1)]*4
+                        ( width/2,self.boundingBox[1][2],0),
+                        ( width/2,self.boundingBox[0][2],0)]
+    data["normal"] = 1
     data["textcoord"] = [[0,0],[0,1],[1,1],[1,0]]
-    data["color"] = [(1,1,1,1)]*4
+    data["color"] = 1
     indices = np.array([0,1,2,2,0,3],dtype=np.int32)
     self.billboardMesh = (data,indices)
+
 
   def display(self,pos,shadows=False):
     if not self.frozen:
@@ -249,7 +271,7 @@ class MultiObject(object):
     return self.swatches[position[1]][position[0]].endIndex
 
 numSwatch = 80
-class Swatch:
+class Swatch(object):
   def __init__(self,owner,posx,posy,startIndex,points):
     self.posx = posx
     self.posy = posy

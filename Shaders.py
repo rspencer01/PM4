@@ -207,7 +207,7 @@ class InstancedShader(GenericShader):
         raise Exception("Type wrong for instanced variable")
     gl.glBindBuffer(gl.GL_ARRAY_BUFFER,0)
 
-  def draw(self,type,objectIndex,num=0,offset=0):
+  def draw(self, type, objectIndex, num=0, offset=0):
     self.load()
     self._setitems()
     gl.glBindVertexArray(self.objInfo[objectIndex].vertexArray)

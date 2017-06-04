@@ -5,7 +5,6 @@ uniform sampler2D shadowTexture1; uniform sampler2D shadowTexture2;
 uniform sampler2D shadowTexture3;
 uniform sampler2D bumpmap;
 uniform sampler2D colormap;
-uniform sampler2D foliageMap;
 
 layout(location=0) out vec4 fragColor;
 layout(location=1) out vec4 fragNorm;

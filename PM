@@ -78,7 +78,7 @@ def display():
   Characters.display(camera)
   Buildings.display(camera)
   grass.display(camera)
-  #Forest.display(camera.position)
+  Forest.display(camera.position)
 
   gl.glPolygonMode(gl.GL_FRONT_AND_BACK,gl.GL_FILL);
   renderStages[1].load(windowWidth, windowHeight)
@@ -253,7 +253,7 @@ import Texture
 import Terrain
 import noiseG
 #import Road
-#import Forest
+import Forest
 
 import postrender
 import Sky
@@ -264,7 +264,7 @@ import Buildings
 import Map
 
 camera = Camera.Camera(
-        np.array([ 0., 2139.92767998,-3000]),
+        np.array([ 654., 1356.92767998,-120]),
         move_hook=lambda x:np.array((x[0],
             max(Terrain.getAt(x[0],x[2])+0.6,x[1]),x[2]))
         )
