@@ -11,4 +11,5 @@ t    | Take screenshot
 r    | Toggle mouse hold
 f    | Toggle fast mode
 m    | Toggle large map
+n    | Cycle normal, diffuse mode
 esc  | Exit

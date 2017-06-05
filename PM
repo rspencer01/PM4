@@ -181,6 +181,8 @@ def keyboard(key,x,y):
     fastMode = not fastMode
   if key=='m':
     Map.targetFullScreenAmount = 1-Map.targetFullScreenAmount
+  if key=='n':
+    postrender.showNormals = (postrender.showNormals + 1) % 3
   if key=='r':
     if hold_mouse:
       glut.glutSetCursor(glut.GLUT_CURSOR_INHERIT)

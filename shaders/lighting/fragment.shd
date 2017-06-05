@@ -25,6 +25,7 @@ uniform sampler2D shadowTexture3;
 
 uniform float ambientLight;
 uniform float sunLight;
+uniform int options;
 
 float Re = 6.360e6;
 
@@ -127,6 +128,8 @@ void main()
   vec4 inputPos = textureLod(posmap,pos.xy/2+vec2(0.5),0); 
   fragColor = vec4(lighting(inputNorm,inputPos) * inputColor,1);
   gl_FragDepth = textureLod(depthmap,pos.xy/2+vec2(0.5),0).r;
- // fragColor = vec4(inputNorm.rgb/2+vec3(0.5),1);
-//  fragColor = vec4(inputColor,1);
+  if ((options & 0x01) == 1)
+    fragColor = vec4(inputNorm.rgb/2+vec3(0.5),1);
+  if ((options & 0x02) == 2)
+    fragColor = vec4(inputColor,1);
 }

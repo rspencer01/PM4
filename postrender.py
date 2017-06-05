@@ -33,6 +33,8 @@ exposure = 1.0
 highColTexture = Texture.Texture(Texture.COLORMAP2)
 blurredHighColTexture = Texture.Texture(Texture.COLORMAP2)
 
+showNormals = 0
+
 def display(previousStage,windowWidth,windowHeight):
   previousStage.displayDepthTexture.load()
   previousStage.displayColorTexture.load()
@@ -67,4 +69,5 @@ def lighting(colorTexture,normTexture,posTexture,depthTexture):
   lightingShader.load()
   lightingShader['ambientLight'] = 0.1;
   lightingShader['sunLight'] = 0.9
+  lightingShader['options'] = showNormals
   lightingShader.draw(gl.GL_TRIANGLES,lightingRenderID,1)
