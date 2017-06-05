@@ -49,10 +49,7 @@ class MultiObject(object):
   def loadFromScene(self, scenePath, scale):
     scene = pyassimp.load(scenePath)
     self.directory = os.path.dirname(scenePath)
-    self.boundingBox = (pyassimp.helper.get_bounding_box(scene))
-    for i in xrange(3):
-      self.boundingBox[0][i] *= scale
-      self.boundingBox[1][i] *= scale
+    self.boundingBox = [[1e3,1e3,1e3], [-1e3,-1e3,-1e3]]
     def addNode(node,trans):
       newtrans = trans.dot(node.transformation)
       for msh in node.meshes:
@@ -90,6 +87,12 @@ class MultiObject(object):
     data["normal"] = vertNorm
     data["textcoord"] = mesh.texturecoords[0][:,[0,1]]
     data["color"] = 1
+
+    # Update bounding box
+    self.boundingBox[0] = np.min([self.boundingBox[0],
+                                  np.min(data["position"],0)],0)
+    self.boundingBox[1] = np.max([self.boundingBox[1],
+                                  np.max(data["position"],0)],0)
 
     # Get the indices
     indices = mesh.faces
@@ -209,10 +212,10 @@ class MultiObject(object):
                               ("normal"    , np.float32, 3),
                               ("textcoord" , np.float32, 2),
                               ("color"     , np.float32, 4)])
-    data["position"] = [(-width/2,self.boundingBox[0][2],0),
-                        (-width/2,self.boundingBox[1][2],0),
-                        ( width/2,self.boundingBox[1][2],0),
-                        ( width/2,self.boundingBox[0][2],0)]
+    data["position"] = [(-width/2,self.boundingBox[0][1],0),
+                        (-width/2,self.boundingBox[1][1],0),
+                        ( width/2,self.boundingBox[1][1],0),
+                        ( width/2,self.boundingBox[0][1],0)]
     data["normal"] = 1
     data["textcoord"] = [[0,0],[0,1],[1,1],[1,0]]
     data["color"] = 1
