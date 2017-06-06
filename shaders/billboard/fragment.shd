@@ -28,17 +28,11 @@ void main()
 {
   float dist = length(VertexOut.position.xyz - userCameraPosition);
   vec4 textureColor = texture(colormap,vec2(VertexOut.uv.x,VertexOut.uv.y));
+  if (textureColor.a < 0.4) discard;
   fragColor = vec4(textureColor.rgb,1);
-//  if (textureColor.a < 0.4) discard;j
 
   vec3 normal = normalize(texture(bumpmap, VertexOut.uv).xyz - vec3(0.5));
   fragNorm = VertexOut.normMat * vec4(normal, 1);
 
   fragPos = VertexOut.position;
-
-  // I don't know why this doesn't work
-  // Only really applies with single billboards
-  //normal.xz = VertexOut.normMat * normal.xz;
-  //fragColor = textureColor;
-  // Wut.  Why need this?
 }
