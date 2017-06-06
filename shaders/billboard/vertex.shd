@@ -51,7 +51,8 @@ void main()
   VertexOut.normal = model * vec4(normal,0);
   VertexOut.color = color;
   VertexOut.uv = textcoord;
-//VertexOut.uv.x += 1 - 0.1 * int(rotation/(2*3.141592));
+  VertexOut.uv.x /= 5;
+  VertexOut.uv.x += 1./5 * round(rotation/(2*3.141592/5));
 
   vec4 temp = shadowProjection1 * shadow1View * VertexOut.position;
   VertexOut.shadowPos1 = (temp.xyz / temp.w)/2+vec3(0.5);

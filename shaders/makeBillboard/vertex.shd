@@ -26,7 +26,7 @@ void main()
 {
   VertexOut.position = model * vec4(position,1.0);
   gl_Position = projection * View * VertexOut.position;
-  VertexOut.normal = vec4(normal,0);
+  VertexOut.normal = transpose(inverse(model))*vec4(normal,0);
   VertexOut.color = color;
   VertexOut.uv = textcoord;
 }
