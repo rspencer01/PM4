@@ -163,7 +163,7 @@ def getAt(x,y):
   y += planetSize / 2
   s = heightmap.read(float(x)/planetSize, float(y)/planetSize)[3] + 1000
 
-  offset = noiseG.noiseT.read(x/1000., y/1000.)[3] * getFineAmount(x, y)
+  offset = noiseG.noiseTexture.read(x/1000., y/1000.)[3] * getFineAmount(x, y)
 
   return s + offset
 

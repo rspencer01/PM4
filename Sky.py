@@ -123,5 +123,4 @@ def display(previousStage):
   # TODO Is this needed?
   previousStage.displayDepthTexture.load()
   shader.load()
-  noiseG.noiseT.load()
   shader.draw(gl.GL_TRIANGLES,renderID,1)
