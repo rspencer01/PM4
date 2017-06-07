@@ -7,11 +7,12 @@ import noise
 import os
 import sys
 import args
+import tqdm
 
 logging.info("Loading noise texture")
 
 noiseTexture = Texture.Texture(Texture.NOISE)
-texHeight, textWidth = 1024, 1024
+textHeight, textWidth = 1024, 1024
 
 if not os.path.exists('noise.npy') or args.args.remake_noise:
   logging.info("Recreating texture")
@@ -19,10 +20,7 @@ if not os.path.exists('noise.npy') or args.args.remake_noise:
   # How many units?
   dx = 5
   dy = 5
-  for i in range(textWidth):
-    sys.stdout.write(' | '+str(i)+" / "+str(textWidth))
-    sys.stdout.write('\r')
-    sys.stdout.flush()
+  for i in tqdm.trange(textWidth, leave=False):
     for j in range(textHeight):
       s = float(i) / textWidth
       t = float(j) / textHeight
@@ -35,10 +33,7 @@ if not os.path.exists('noise.npy') or args.args.remake_noise:
 
       t = noise.snoise4(nx, ny, nz, nw, octaves=7, persistence=0.5)
       d[i, j] = t
-  for i in range(textWidth):
-    sys.stdout.write(' | '+str(i)+" / "+str(textWidth))
-    sys.stdout.write('\r')
-    sys.stdout.flush()
+  for i in tqdm.trange(textWidth, leave=False):
     for j in range(textHeight):
       v1 = np.array([float(i)/textWidth,   d[i, j][3],                float(j)/textWidth])
       v2 = np.array([float(i+1)/textWidth, d[(i+1)%textWidth, j][3],  float(j)/textWidth])

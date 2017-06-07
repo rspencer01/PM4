@@ -7,6 +7,7 @@ import noiseG
 import MultiObject
 import args
 import Terrain
+import tqdm
 
 logger = logging.getLogger('PM4')
 
@@ -26,17 +27,14 @@ logging.info("{:d} ({:d}x{:d}) patches at {:d}m on a side".format(
 logging.info("Maximum {:d} trees per patch".format(treesPerPatchSide**2))
 logging.info("Maximum {:d} total trees".format(treesPerPatchSide**2 * patches**2))
 
-tree = MultiObject.MultiObject('assets/cyl/cyl.obj', patches-1, scale=20)
-#tree = MultiObject.MultiObject('assets/tree5/Conifers tree 1 N1006162.3DS', patches-1, scale=20)
+#tree = MultiObject.MultiObject('assets/cyl/cyl.obj', patches-1, scale=20)
+tree = MultiObject.MultiObject('assets/tree5/Conifers tree 1 N1006162.3DS', patches-1, scale=20)
 
 logging.info(" + Creating trees")
 totalTrees = 0
 if not os.path.exists('trees.npy') or args.args.remake_trees:
   data = -1000004*np.ones((patches-1, patches-1, treesPerPatchSide**2, 3), dtype=float)
-  for i in xrange(patches-1):
-    sys.stdout.write(str(i)+" / "+str(patches-1))
-    sys.stdout.write('\r')
-    sys.stdout.flush()
+  for i in tqdm.trange(patches-1):
     for j in xrange(patches-1):
       c = 0
       for ii in xrange(treesPerPatchSide):

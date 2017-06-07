@@ -8,6 +8,7 @@ import logging
 import noiseG
 import args
 from configuration import config
+import tqdm
 
 N = 256
 Re = 6.360e6
@@ -19,9 +20,7 @@ if not os.path.exists('opdepth.npy') or args.args.remake_sky:
   logging.info("Constructing optical depths")
   opdepth = np.zeros((N*16,N,4),dtype=np.float32)
 
-  for j,theta in enumerate(np.arange(0, np.pi*0.75, np.pi*0.75/N)):
-    sys.stdout.write('{}/{}\r'.format(j,N))
-    sys.stdout.flush()
+  for j,theta in tqdm.tqdm(enumerate(np.arange(0, np.pi*0.75, np.pi*0.75/N)), leave=False):
     for k,altitudeP in enumerate(np.arange(0,1,1./(N*16))):
       altitude = Re + (altitudeP)**3*(Ra-Re)
       P = altitude * np.array([np.sin(theta), np.cos(theta)])
@@ -54,7 +53,7 @@ indices = np.array(I,dtype=np.int32)
 
 print "Constructing Night Sky"
 nightSkyTexture = Texture.Texture(Texture.NIGHTSKY)
-if not os.path.exists('nightSky.npy'):
+if not os.path.exists('nightSky.npy') or args.args.remake_stars:
   framebuffer = gl.glGenFramebuffers(1)
   gl.glBindFramebuffer(gl.GL_FRAMEBUFFER,framebuffer)
   texSize = 2048
@@ -82,10 +81,7 @@ if not os.path.exists('nightSky.npy'):
 
   gl.glClear(gl.GL_COLOR_BUFFER_BIT)
   gl.glBlendFunc(gl.GL_ONE,gl.GL_ONE);
-  print "=="*20
-  for i in xrange(len(stars)/200):
-    if (i%(len(stars)/4000)==0):
-      print '*',
+  for i in tqdm.trange(len(stars)/200, leave=False):
     shader['starPositions'] = stars[200*i:200*(i+1)]
     gl.glViewport(0,0,texSize,texSize)
     shader['hemisphere'] = 1
@@ -93,7 +89,6 @@ if not os.path.exists('nightSky.npy'):
     shader['hemisphere'] = -1
     gl.glViewport(texSize,0,texSize,texSize)
     shader.draw(gl.GL_TRIANGLES,nightId,1)
-  print
   gl.glBlendFunc(gl.GL_SRC_ALPHA, gl.GL_ONE_MINUS_SRC_ALPHA);
   nightSkyTexture.saveToFile('nightSky.npy')
 else:
