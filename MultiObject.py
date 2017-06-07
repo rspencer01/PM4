@@ -165,9 +165,9 @@ class MultiObject(object):
     gl.glBindFramebuffer(gl.GL_FRAMEBUFFER, framebuffer)
 
     self.billboardTexture = Texture.Texture(Texture.COLORMAP)
-    self.billboardTexture.loadData(np.ones((texSize*numberOfSwatches,texSize),dtype=[('',np.float32,4)]))
+    self.billboardTexture.loadData(np.ones((texSize*numberOfSwatches,texSize, 4),dtype=np.float32))
     self.billboardnormalTexture = Texture.Texture(Texture.BUMPMAP)
-    self.billboardnormalTexture.loadData(np.ones((texSize*numberOfSwatches,texSize),dtype=[('',np.float32,4)]))
+    self.billboardnormalTexture.loadData(np.ones((texSize*numberOfSwatches,texSize, 4),dtype=np.float32))
 
     depthbuffer = gl.glGenRenderbuffers(1)
     gl.glBindRenderbuffer(gl.GL_RENDERBUFFER, depthbuffer)
