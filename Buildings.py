@@ -68,8 +68,8 @@ pagingRenderID = pagingShader.setData(data,indices)
 logging.info("Generating roads connecting villages")
 roads = []
 for i in tqdm.trange(len(clumpSpecs), leave=False):
-    p = sorted(clumpSpecs, key=lambda c: np.linalg.norm(clumpSpecs[i].position-c.position))
-    for j in p[1:4]:
+    p = sorted(clumpSpecs[:i], key=lambda c: np.linalg.norm(clumpSpecs[i].position-c.position))
+    for j in p[:3]:
         roads.append(Road.Road(
             (clumpSpecs[i].position[0], clumpSpecs[i].position[2]),
             (j.position[0], j.position[2])))

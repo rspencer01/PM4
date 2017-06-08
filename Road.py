@@ -17,17 +17,24 @@ def generateControls(start, end):
     end = np.array(end, dtype=np.float32)
     ans = []
     dr = (end - start) / np.linalg.norm(end-start)
-    while (np.linalg.norm(end-curr) > 1000):
+    while (np.linalg.norm(end-curr) > 600):
         ans.append(curr.copy())
         curr += dr*1000
+    ans.append(end.copy())
     return ans
 
 class Road(object):
     def __init__(self, start, end):
         self.controls = generateControls(start, end)
+        self.center = sum(self.controls)/len(self.controls)
+        self.radius = max(
+                [np.linalg.norm(i-self.center) for i in self.controls]
+                )+1000
         Terrain.registerCallback(self.renderHeightmap)
 
     def renderHeightmap(self, x, y, width, height):
+        if (y-30000-self.center[0])**2 + (x-30000-self.center[1])**2 > self.radius**2:
+            return
         for i in xrange(len(self.controls)-1):
             start, end = self.controls[i], self.controls[i+1]
             middle = (start+end)/2
