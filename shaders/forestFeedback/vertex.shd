@@ -1,0 +1,12 @@
+#version 400 core
+in int id;
+out vec2 geoValue;
+
+uniform int scan;
+uniform int worldSize;
+
+void main()
+{
+  vec2 pos = vec2(id % scan, int(id / scan)) * worldSize / scan - worldSize / 2;
+  geoValue = pos;
+}

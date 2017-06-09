@@ -42,4 +42,10 @@ building_clump_max_size:
     The maximum number of building in a clump.
   type: integer
   default: 25
+forest_tree_count:
+  help:
+    The maximum number of trees in the world.  Fewer trees will be more sparsely
+    distributed.
+  type: integer
+  default: 4000000
 ...

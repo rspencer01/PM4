@@ -173,18 +173,24 @@ class InstancedShader(GenericShader):
     super(InstancedShader,self).__init__(name,frag,vert,geom)
     self.instbo = None
 
-  def setData(self,data,indices,instanced):
-    renderId = super(InstancedShader,self).setData(data,indices)
-    self.setInstances(instanced,renderId)
+  def setData(self, data, indices, instanced, bufferID=None):
+    renderId = super(InstancedShader, self).setData(data, indices)
+    self.setInstances(instanced, renderId, bufferID)
     return renderId
 
-  def setInstances(self,instances,renderId):
+  def setInstances(self, instances, renderId, bufferID=None):
+    """Sets instance data for the given renderID.  If bufferID is not None, 
+    then the instances numpy object is used as a template, and the data is read
+    from the buffer specified."""
     gl.glBindVertexArray(self.objInfo[renderId].vertexArray)
-    self.instbo = gl.glGenBuffers(1)
+    if bufferID == None:
+      self.instbo = gl.glGenBuffers(1)
+      gl.glBindBuffer(gl.GL_ARRAY_BUFFER, self.instbo)
+      gl.glBufferData(gl.GL_ARRAY_BUFFER, instances.nbytes, instances, gl.GL_STREAM_DRAW)
+    else:
+      self.instbo = bufferID
     self.objInfo[renderId] = self.objInfo[renderId]._replace(instbo=self.instbo)
 
-    gl.glBindBuffer(gl.GL_ARRAY_BUFFER, self.instbo)
-    gl.glBufferData(gl.GL_ARRAY_BUFFER, instances.nbytes, instances, gl.GL_STREAM_DRAW)
     stride = instances.strides[0]
     offsetc = 0
     for i in instances.dtype.names:
@@ -259,6 +265,8 @@ class TransformFeedbackShader(Shader):
   def draw(self, type, objectIndex, count=0):
     """Starts a transform feedback draw.  Return the number of items actually
     created (may differ from `num` due to geometry shaders)."""
+    self.load()
+    self._setitems()
     gl.glBindVertexArray(self.objInfo[objectIndex].vertexArray)
     gl.glEnable(gl.GL_RASTERIZER_DISCARD)
     query = gl.glGenQueries(1)

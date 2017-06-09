@@ -19,7 +19,6 @@ class MultiObject(object):
   def __init__(
       self,
       filename,
-      numSwatches,
       name=None,
       scale=1):
 
@@ -34,8 +33,7 @@ class MultiObject(object):
     self.billboardRenderID = None
     self.billboardTexture = None
     self.instances = np.zeros(0, dtype=[('model', np.float32, (4, 4))])
-    self.numSwatches = numSwatches
-    self.swatches = [[None for _ in xrange(numSwatches)] for __ in xrange(numSwatches)]
+    self.numInstances = None
     self.frozen = False
     self.scale = scale
 
@@ -109,16 +107,12 @@ class MultiObject(object):
     self.meshes.append((data,indices,texture))
 
 
-  def addInstance(self, model):
-    """Adds a new instance.  The model matrix must be specified."""
-    self.instances.resize(len(self.instances)+1)
-    self.instances['model'][-1] = model
-
-
-  def freeze(self):
+  def freeze(self, instanceBuffer=None):
+    """If instanceBuffer is specified, uses that buffer for the instance data
+    instead of the give instance information."""
     for data,indices,texture in self.meshes:
       self.renderIDs.append(shader.setData(data,indices,self.instances))
-    self.billboardRenderID = billboardShader.setData(self.billboardMesh[0],self.billboardMesh[1],self.instances)
+    self.billboardRenderID = billboardShader.setData(self.billboardMesh[0], self.billboardMesh[1],self.instances, instanceBuffer)
     self.frozen = True
 
   def render(self,offset,num=None):
@@ -133,8 +127,11 @@ class MultiObject(object):
   def renderBillboards(self, offset, count=None):
     """Renders a particular number of billboards, starting from a certain
     offset.  If no count is specified, the maximum possible are rendered."""
-    if count == None:
-      count = len(self.instances) - offset
+    if count is None:
+      if self.numInstances is None:
+        count = len(self.instances) - offset
+      else:
+        count = self.numInstances
     # Load texture
     self.billboardTexture.load()
     self.billboardnormalTexture.load()
@@ -225,66 +222,4 @@ class MultiObject(object):
     if not self.frozen:
       return
     # Render the billboards
-    indexPos = (int((pos[2]+30000)*self.numSwatches/60000),
-                int((pos[0]+30000)*self.numSwatches/60000))
-    #for i in xrange(max(0,indexPos[1]-40),min(self.numSwatches-1,indexPos[1]+41)):
-#    for i in xrange(self.numSwatches-1):
-#      stj,enj  = max(0,indexPos[0]-20),min(self.numSwatches-1,indexPos[0]-3)
-#      stindex = self.swatches[stj][i].startIndex
-#      enindex = self.swatches[enj][i].endIndex
-#      self.renderBillboards(stindex,enindex-stindex)
-#      if (i<indexPos[1]-2 or i>=indexPos[1]+3):
-#        stj,enj  = max(0,indexPos[0]-2),min(self.numSwatches-1,indexPos[0]+3)
-#        stindex = self.swatches[stj][i].startIndex
-#        enindex = self.swatches[enj][i].endIndex
-#        self.renderBillboards(stindex,enindex-stindex)
-#      stj,enj  = max(0,indexPos[0]+4),min(self.numSwatches-1,indexPos[0]+21)
-#      stindex = self.swatches[stj][i].startIndex
-#      enindex = self.swatches[enj][i].endIndex
-#      self.renderBillboards(stindex,enindex-stindex)
-    self.renderBillboards(0, self.swatches[-1][-1].endIndex)
-    return
-
-    # Render the full geometries
-    indexPos = (int((pos[2]+30000)*self.numSwatches/60000),
-                int((pos[0]+30000)*self.numSwatches/60000))
-    shader.load()
-    for i in xrange(max(0,indexPos[1]-2), min(self.numSwatches-1, indexPos[1]+3)):
-      stj, enj  = max(0, indexPos[0]-2), min(self.numSwatches-1, indexPos[0]+3)
-      stindex = self.swatches[stj][i].startIndex
-      enindex = self.swatches[enj][i].endIndex
-      self.render(stindex, enindex-stindex)
-#    clptpos = (pos + 3000) / (8000/self.numSwatches)
-#    for i in xrange(int(math.floor(clptpos[0])-1),int(math.floor(clptpos[0])+2)):
-#      if i<0 or i>=self.numSwatches: continue
-      #      pdb.set_trace()
-#      startj = int(math.floor(((-pos+4000)/(8000/self.numSwatches))[2]))-1
-#      startj = min(self.numSwatches-3,max(0,startj))
-#      self.render(self.swatches[startj][i].startIndex,
-#                  self.swatches[startj+2][i].endIndex-self.swatches[startj][i].startIndex)
-  #self.renderBillboards(0)
-
-  def addSwatch(self, position, startIndex, points):
-    # World position of swatch
-    pos = (60000/self.numSwatches*position[0] - 30000,
-           60000/self.numSwatches*position[1] - 30000)
-    self.swatches[position[1]][position[0]] = Swatch(self, pos[0], pos[1], startIndex, points)
-    return self.swatches[position[1]][position[0]].endIndex
-
-numSwatch = 80
-# TODO This should extend `namedtuple`
-class Swatch(object):
-  def __init__(self, owner, posx, posy, startIndex, points):
-    self.posx = posx
-    self.posy = posy
-    self.startIndex = startIndex
-    self.endIndex = startIndex
-    self.owner = owner
-    self.addTree(points)
-
-  def addTree(self, points):
-    for point in points:
-      b = np.eye(4, dtype=np.float32)
-      translate(b, point[0], point[1], point[2])
-      self.owner.addInstance(b)
-      self.endIndex += 1
+    self.renderBillboards(0)
