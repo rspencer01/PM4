@@ -10,7 +10,7 @@ import OpenGL.GL as gl
 
 shader          = Shaders.getShader('general',instance=True,forceReload=True)
 shader['colormap'] = Texture.COLORMAP_NUM
-billboardShader = Shaders.getShader('billboard',instance=True,forceReload=True)
+billboardShader = Shaders.getShader('billboard',instance=True,forceReload=True, geom=True)
 billboardShader['colormap'] = Texture.COLORMAP_NUM
 billboardShader['bumpmap'] = Texture.BUMPMAP_NUM
 makeBillboardShader = Shaders.getShader('makeBillboard',instance=True,forceReload=True)

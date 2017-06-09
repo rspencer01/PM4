@@ -1,0 +1,51 @@
+#version 410
+layout (triangles) in;
+layout (triangle_strip,max_vertices = 12) out;
+
+uniform vec3 userCameraPosition;
+uniform vec3 userCameraDirection;
+
+in VertexData
+{
+  vec4 position;
+  vec4 normal;
+  vec4 color;
+  vec3 shadowPos1;
+  vec3 shadowPos2;
+  vec3 shadowPos3;
+  vec2 uv;
+  mat4 normMat;
+} VertexOut[];
+
+out GeometryData
+{
+  vec4 position;
+  vec4 normal;
+  vec4 color;
+  vec3 shadowPos1;
+  vec3 shadowPos2;
+  vec3 shadowPos3;
+  vec2 uv;
+  mat4 normMat;
+} GeometryOut;
+
+void main()
+{
+  vec3 dir = VertexOut[0].position.xyz - userCameraPosition;
+  if (dot(normalize(dir),userCameraDirection) < 0.5)
+    return;
+  for (int i = 0; i<3; ++i)
+  {
+    GeometryOut.position = VertexOut[i].position;
+    GeometryOut.normal = VertexOut[i].normal;
+    GeometryOut.color = VertexOut[i].color;
+    GeometryOut.shadowPos1 = VertexOut[i].shadowPos1;
+    GeometryOut.shadowPos2 = VertexOut[i].shadowPos2;
+    GeometryOut.shadowPos3 = VertexOut[i].shadowPos3;
+    GeometryOut.uv = VertexOut[i].uv;
+    GeometryOut.normMat = VertexOut[i].normMat;
+    gl_Position = gl_in[i].gl_Position;
+    EmitVertex();
+  }
+  EndPrimitive();
+}
