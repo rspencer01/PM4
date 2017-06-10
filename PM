@@ -116,6 +116,7 @@ def takeScreenshot(renderStage):
 def timer(fps):
 #  Marker.timeUpdate(1.0/fps)
   Map.update(1.0/fps)
+  Forest.update(camera.position)
   if 'w' in keys:
     camera.move(cameraSpeed * 1.0/fps)
     if camera.lockObject:

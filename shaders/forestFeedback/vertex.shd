@@ -5,8 +5,11 @@ out vec2 geoValue;
 uniform int scan;
 uniform int worldSize;
 
+uniform float range;
+uniform vec2 center;
+
 void main()
 {
-  vec2 pos = vec2(id % scan, int(id / scan)) * worldSize / scan - worldSize / 2;
+  vec2 pos = vec2(id % scan, int(id / scan)) * range / scan - range / 2 + center;
   geoValue = pos;
 }

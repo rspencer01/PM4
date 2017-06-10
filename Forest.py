@@ -22,12 +22,14 @@ shaderObj.load()
 
 N = int(config.forest_tree_count ** 0.5)
 shaderObj['scan'] = N
+shaderObj['range'] = N * 12.
+shaderObj['center'] = np.zeros(0, dtype=np.float32)
 ips = np.zeros(N*N, dtype=[('id', np.int32, 1)])
 ips['id'] = np.arange(N*N)
 
 idd = shaderObj.setData(ips)
 # On average one out of four trees is placed.
-tbo = shaderObj.getOutputBufferObject(idd, 16*N*N*4 / 4)
+tbo = shaderObj.getOutputBufferObject(idd, 16*N*N*4)
 
 count = shaderObj.draw(gl.GL_POINTS, idd, N*N)
 logging.info("Generated {}K/{}K trees".format(count/1000, N**2/1000))
@@ -40,6 +42,21 @@ tree.numInstances = count
 
 tree.freeze(instanceBuffer=tbo)
 del ips
+
+lastPosition = None
+
+def update(position):
+  global lastPosition
+  ps = position[np.array((0,2))]
+  ps = ((ps/120).astype(int)*120).astype(np.float32)
+  if (np.array_equal(ps, lastPosition)):
+    return
+  lastPosition = ps.copy()
+
+  shaderObj['center'] = ps
+  count = shaderObj.draw(gl.GL_POINTS, idd, N*N)
+  logging.info("Generated {}K/{}K trees".format(count/1000, N**2/1000))
+  tree.numInstances = count
 
 def display(pos, shadows=False):
   tree.display(pos, shadows)

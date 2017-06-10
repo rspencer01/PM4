@@ -144,6 +144,8 @@ class Shader(object):
       gl.glUniform1f(loc,v)
     elif type(v) in [np.ndarray] and v.shape==(3,):
       gl.glUniform3f(loc, v[0], v[1], v[2])
+    elif type(v) in [np.ndarray] and v.shape==(2,):
+      gl.glUniform2f(loc, v[0], v[1])
     elif type(v) in [int]:
       gl.glUniform1i(loc, v)
 
