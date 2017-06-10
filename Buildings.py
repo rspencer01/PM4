@@ -9,6 +9,8 @@ import OpenGL.GL as gl
 from transforms import *
 from collections import namedtuple
 from configuration import config
+import Road
+import tqdm
 
 BuildingSpec = namedtuple('BuildingSpec', ('position','angle', 'direction', 'bidirection'))
 ClumpSpec = namedtuple('ClumpSpec', ('position', 'buildings'))
@@ -62,6 +64,15 @@ data['position'] = [(-1,-1,0.999999),(-1,1,0.999999),(1,-1,0.999999),(1,1,0.9999
 I = [0,1,2, 1,2,3]
 indices = np.array(I,dtype=np.int32)
 pagingRenderID = pagingShader.setData(data,indices)
+
+logging.info("Generating roads connecting villages")
+roads = []
+for i in tqdm.trange(len(clumpSpecs), leave=False):
+    p = sorted(clumpSpecs[:i], key=lambda c: np.linalg.norm(clumpSpecs[i].position-c.position))
+    for j in p[:3]:
+        roads.append(Road.Road(
+            (clumpSpecs[i].position[0], clumpSpecs[i].position[2]),
+            (j.position[0], j.position[2])))
 
 def flattenGround(x, y, width, height):
   """This function writes to the paged texture to flatten the ground underneath

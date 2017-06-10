@@ -1,54 +1,56 @@
 import numpy as np
 import logging
-from Shaders import *
 import OpenGL.GL as gl
 import Texture
+import Shaders
 import noise
 import os
+import sys
 import args
+import tqdm
 
-logging.info("Constructing Noise")
+logging.info("Loading noise texture")
 
-noiseT = Texture.Texture(Texture.NOISE)
-textWidth = 1000
-textHeight = textWidth
+noiseTexture = Texture.Texture(Texture.NOISE)
+textHeight, textWidth = 1024, 1024
+
 if not os.path.exists('noise.npy') or args.args.remake_noise:
-  logging.info(" + Creating texture")
-  d = np.zeros((textWidth,textHeight,4),dtype=np.float32)
+  logging.info("Recreating texture")
+  d = np.zeros((textWidth, textHeight, 4), dtype=np.float32)
   # How many units?
   dx = 5
   dy = 5
-  for i in range(textWidth):
+  for i in tqdm.trange(textWidth, leave=False):
     for j in range(textHeight):
-      s = float(i)/textWidth
-      t = float(j)/textHeight
+      s = float(i) / textWidth
+      t = float(j) / textHeight
       x1 = 1
       y1 = 1
-      nx = x1+np.cos(s*2*np.pi)*dx/(2*np.pi)
-      ny = y1+np.cos(t*2*np.pi)*dy/(2*np.pi)
-      nz = x1+np.sin(s*2*np.pi)*dx/(2*np.pi)
-      nw = y1+np.sin(t*2*np.pi)*dy/(2*np.pi)
+      nx = x1+np.cos(s*2*np.pi)*dx / (2*np.pi)
+      ny = y1+np.cos(t*2*np.pi)*dy / (2*np.pi)
+      nz = x1+np.sin(s*2*np.pi)*dx / (2*np.pi)
+      nw = y1+np.sin(t*2*np.pi)*dy / (2*np.pi)
 
-      t = noise.snoise4(nx,ny,nz,nw,octaves=7,persistence=0.5)
-      d[i,j] = (t,t,t,t)
-  for i in range(textWidth):
+      t = noise.snoise4(nx, ny, nz, nw, octaves=7, persistence=0.5)
+      d[i, j] = t
+  for i in tqdm.trange(textWidth, leave=False):
     for j in range(textHeight):
-      v1= np.array([float(i)/textWidth,   d[i,j][3],                float(j)/textWidth])
-      v2= np.array([float(i+1)/textWidth, d[(i+1)%textWidth,j][3],  float(j)/textWidth])
-      v3= np.array([float(i)/textWidth,   d[i,(j+1)%textHeight][3], float(j+1)/textWidth])
-      d[i,j][:3] = np.cross(v3-v1,v2-v1)
-      d[i,j][:3] /= np.dot(d[i,j][:3],d[i,j][:3])**0.5
+      v1 = np.array([float(i)/textWidth,   d[i, j][3],                float(j)/textWidth])
+      v2 = np.array([float(i+1)/textWidth, d[(i+1)%textWidth, j][3],  float(j)/textWidth])
+      v3 = np.array([float(i)/textWidth,   d[i, (j+1)%textHeight][3], float(j+1)/textWidth])
+      d[i, j][:3] = np.cross(v3-v1, v2-v1)
+      d[i, j][:3] /= np.dot(d[i, j][:3], d[i, j][:3])**0.5
 
-  np.save('noise.npy',d)
+  np.save('noise.npy', d)
 else:
-  logging.info(" + Loaded from file")
-  d=np.load('noise.npy')
+  logging.info("Loading from file")
+  d = np.load('noise.npy')
 
-logging.info(" + Uploading texture to GPU")
-noiseT.loadData(d, keep_copy=True)
-noiseT.load()
+logging.info("Uploading texture to GPU")
+noiseTexture.loadData(d, keep_copy=True)
+noiseTexture.load()
 
-updateUniversalUniform('noise', Texture.NOISE_NUM)
+Shaders.updateUniversalUniform('noise', Texture.NOISE_NUM)
 
-def get(x,y):
+def get(x, y):
   return d[int(d.shape[0]*x)][int(d.shape[1]*y)]

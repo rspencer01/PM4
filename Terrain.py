@@ -12,6 +12,7 @@ import os
 import sys
 from configuration import config
 from pagedTextures import *
+import tqdm
 
 logging.info("Constructing Terrain")
 
@@ -80,10 +81,7 @@ if not os.path.exists('terrain.npy') or args.args.remake_terrain:
     d[-1,i] = -1000
 
   logging.info(" + Calculating normalmap")
-  for i in range(textWidth-1):
-    sys.stdout.write(' | '+str(i)+" / "+str(textWidth))
-    sys.stdout.write('\r')
-    sys.stdout.flush()
+  for i in tqdm.trange(textWidth-1, leave=False):
     for j in range(textHeight-1):
       v1= np.array([float(i  )/textWidth*planetSize  , d[i,j][3]   , float(j  )/textWidth*planetSize])
       v2= np.array([float(i+1)/textWidth*planetSize  , d[i+1,j][3] , float(j  )/textWidth*planetSize])
@@ -163,7 +161,7 @@ def getAt(x,y):
   y += planetSize / 2
   s = heightmap.read(float(x)/planetSize, float(y)/planetSize)[3] + 1000
 
-  offset = noiseG.noiseT.read(x/1000., y/1000.)[3] * getFineAmount(x, y)
+  offset = noiseG.noiseTexture.read(x/1000., y/1000.)[3] * getFineAmount(x, y)
 
   return s + offset
 
