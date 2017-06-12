@@ -9,6 +9,7 @@ parser.add_argument('--remake-stars', action='store_true')
 parser.add_argument('--remake-terrain', action='store_true')
 parser.add_argument('--disable-atmosphere', action='store_true')
 parser.add_argument('--remake-config-file', action='store_true')
+parser.add_argument('--remake-roads', action='store_true')
 parser.add_argument('--monolith', action='store_true')
 
 def parse():

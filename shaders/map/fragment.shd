@@ -8,6 +8,8 @@ uniform sampler2D icons;
 uniform sampler2D noise;
 uniform int villageCount;
 uniform vec3 villagePosition[100];
+uniform vec3 roadcontrols[800];
+uniform int roadcontrolscount;
 uniform float fullscreen;
 
 bool getContour(vec2 pos, float lineDiff, float lineThick)
@@ -72,6 +74,13 @@ void main()
       vec2 uv = (vec2(worldPos.xy - villagePosition[i].xz)/1000)/2+.5;
       uv.y = 1-uv.y;
       fragColor = mix(vec4(140,84,53,256)/256., texture2D(icons,uv).rgba, fullscreen);
+    }
+  }
+  for (int i = 0; i< roadcontrolscount; ++i)
+  {
+    if (length(worldPos.xy - roadcontrols[i].xz) < 100)
+    {
+      fragColor = vec4(56,60,56,256)/256.;
     }
   }
   vec4 backcolor = mix(vec4(194,177,130,256)/256, vec4(213,197,151,256)/256, texture2D(noise, pos.xy/2+.5).a);
