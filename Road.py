@@ -11,7 +11,7 @@ import OpenGL.GL as gl
 import logging
 import Terrain
 
-pagingShader = Shaders.getShader('buildingPaging', forceReload=True)
+pagingShader = Shaders.getShader('roadPaging', forceReload=True)
 data = np.zeros(4, dtype=[("position", np.float32, 3)])
 data['position'] = [(-1, -1, 0.999999), (-1, 1, 0.999999), (1, -1, 0.999999), (1, 1, 0.999999)]
 I = [0, 1, 2, 1, 2, 3]
@@ -92,7 +92,7 @@ def generateControls(start, end):
           endpoint = bst[(int(endpoint[0]), int(endpoint[1]))][1]
         ans = ans[::-1]
         ans.append(end.copy())
-      pickle.dump(ans, open('road{}.pickle'.format(hsh), "wb"))
+      pickle.dump(ans, open(filename, "wb"))
     else:
       ans = pickle.load(open(filename, "rb"))
 
@@ -119,21 +119,24 @@ class Road(object):
         Terrain.registerCallback(self.renderHeightmap)
 
     def renderHeightmap(self, x, y, width, height):
-        if (y-30000-self.center[0])**2 + (x-30000-self.center[1])**2 > self.radius**2:
-            return
+      #TODO This seems broken...
+      #  if (y-30000-self.center[0])**2 + (x-30000-self.center[1])**2 > self.radius**2:
+      #    return
         for i in xrange(len(self.controls)-1):
             start, end = self.controls[i], self.controls[i+1]
             middle = (start+end)/2
             angle = np.arctan2(start[0] - end[0], start[1] - end[1])
             model = np.eye(4, dtype=np.float32)
-            transforms.scale(model, 4, np.linalg.norm(end-start)/2, 1)
+            transforms.scale(model, 8, np.linalg.norm(end-start)/2, 1)
             transforms.zrotate(model, angle*180/3.1416)
             transforms.translate(model, x=middle[0], y=middle[1], z=0)
 
-            transforms.translate(model, 30000 - y - height/2, x + width/2- 30000)
-            transforms.scale(model, 1.6/width, -1.6/height, 1)
+            view = np.eye(4, dtype=np.float32)
+            transforms.translate(view, 30000 - y - height/2, x + width/2- 30000)
+            transforms.scale(view, 1.6/width, -1.6/height, 1)
 
             pagingShader.load()
             pagingShader['model'] = model
-            pagingShader['level'] = Terrain.getAt(middle[0], middle[1]) - 1000
+            pagingShader['view'] = view
+            pagingShader['width'] = 4.
             pagingShader.draw(gl.GL_TRIANGLES, pagingRenderID)

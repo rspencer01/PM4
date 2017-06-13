@@ -1,0 +1,26 @@
+#version 400
+in vec4 midpos;
+in vec4 pos;
+out vec4 normal;
+out vec4 fragColor2;
+out vec4 offst;
+
+uniform sampler2D noise;
+uniform float width;
+#include shaders/include/TerrainOps.shd;
+
+void main()
+{
+  vec3 backgroundoffset = getDisplacement(pos.xy+30000);
+  vec3 backgroundnormal = getNormal(pos.xy+30000).xyz;
+  float r = length(midpos.xyz - pos.xyz);
+  offst = mix(
+      vec4(0, texture(heightmap, midpos.xy/60000+0.5).a, 0, 1),
+      vec4(backgroundoffset, 1),
+      max(0, r-width)/4.);
+  normal = mix(
+      vec4(0, 1, 0, 1),
+      vec4(backgroundnormal, 1),
+      max(0, r-width)/4.);
+  fragColor2= vec4(0, 0, 0, 1);
+}
