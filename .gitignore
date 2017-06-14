@@ -1,6 +1,5 @@
-*.npy
 *.pyc
-height
+_assets
 
 *.swp
 

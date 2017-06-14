@@ -8,13 +8,14 @@ import os
 import sys
 import args
 import tqdm
+import assets
 
 logging.info("Loading noise texture")
 
 noiseTexture = Texture.Texture(Texture.NOISE)
 textHeight, textWidth = 1024, 1024
 
-if not os.path.exists('noise.npy') or args.args.remake_noise:
+def generateNoise():
   logging.info("Recreating texture")
   d = np.zeros((textWidth, textHeight, 4), dtype=np.float32)
   # How many units?
@@ -40,11 +41,9 @@ if not os.path.exists('noise.npy') or args.args.remake_noise:
       v3 = np.array([float(i)/textWidth,   d[i, (j+1)%textHeight][3], float(j+1)/textWidth])
       d[i, j][:3] = np.cross(v3-v1, v2-v1)
       d[i, j][:3] /= np.dot(d[i, j][:3], d[i, j][:3])**0.5
+  return d
 
-  np.save('noise.npy', d)
-else:
-  logging.info("Loading from file")
-  d = np.load('noise.npy')
+d = assets.getAsset('noisedata', generateNoise, (), args.args.remake_noise)
 
 logging.info("Uploading texture to GPU")
 noiseTexture.loadData(d, keep_copy=True)

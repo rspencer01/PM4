@@ -1,6 +1,7 @@
 import numpy as np
 import heapq
 import args
+import assets
 import random
 import os
 import Shaders
@@ -24,77 +25,70 @@ def generateControls(start, end):
     start = np.array(start, dtype=np.float32)
     end = np.array(end, dtype=np.float32)
 
+    logging.info("Generating road from {} to {}".format(start, end))
+
     curr = start.copy()
 
-    clampedstart = 100.*np.floor(start/100)
-    clampedend = 100.*np.floor(end/100)
-    hsh = hashlib.sha1(str(clampedstart)+str(clampedend)).hexdigest()
-    filename = 'road-{}.pickle'.format(hsh)
+    ans = []
+    def estimate(x):
+      return np.linalg.norm(x - end)
 
-    if not os.path.exists(filename) or args.args.remake_roads:
-      ans = []
-      def estimate(x):
-        return np.linalg.norm(x - end)
+    heap = [(estimate(start), 0, curr, None, 400, -1)]
+    bst = {}
+    endpoint = None
 
-      heap = [(estimate(start), 0, curr, None, 400, -1)]
-      bst = {}
-      endpoint = None
+    for _ in xrange(300000):
+      d, ln, curr, pth, lst, ang = heapq.heappop(heap)
+      positionTuple = (int(curr[0]), int(curr[1]))
+      if positionTuple not in bst:
+        bst[positionTuple] = (ln,pth)
 
-      for _ in xrange(300000):
-        d, ln, curr, pth, lst, ang = heapq.heappop(heap)
-        positionTuple = (int(curr[0]), int(curr[1]))
-        if positionTuple not in bst:
-          bst[positionTuple] = (ln,pth)
+      if ln > bst[positionTuple][0]:
+        continue
+      bst[positionTuple] = ln, pth
 
-        if ln > bst[positionTuple][0]:
+      # Exit condition
+      if estimate(curr) < 1000:
+        endpoint = curr
+        break
+
+      for __ in xrange(10):
+        if ang == -1:
+          a = 2*3.4*random.random()
+        else:
+          a = ang + random.random() - 0.5
+
+        n1 = curr + 400*np.array((np.cos(a), np.sin(a)))
+        # Round to blocks
+        n1 = 100.*np.floor(n1/100)
+        # Avoid slipping off the world
+        if abs(n1[0])>29000 or abs(n1[1])>29000:
           continue
-        bst[positionTuple] = ln, pth
-
-        # Exit condition
-        if estimate(curr) < 1000:
-          endpoint = curr
-          break
-
-        for __ in xrange(10):
-          if ang == -1:
-            a = 2*3.4*random.random()
-          else:
-            a = ang + random.random() - 0.5
-
-          n1 = curr + 400*np.array((np.cos(a), np.sin(a)))
-          # Round to blocks
-          n1 = 100.*np.floor(n1/100)
-          # Avoid slipping off the world
-          if abs(n1[0])>29000 or abs(n1[1])>29000:
-            continue
-          cost = np.linalg.norm(n1-curr)
-          grd = abs(Terrain.heightmap.read((30000.+n1[0])/Terrain.planetSize,
-                                           (30000.+n1[1])/Terrain.planetSize)[3] -
-                    Terrain.heightmap.read((30000.+curr[0])/Terrain.planetSize, 
-                                           (30000.+curr[1])/Terrain.planetSize)[3])
-          cost += grd * 5
-          # We need to avoid checking `>` on the positions as numpy complains
-          # on equality checks that `heapq` implements.  This small random
-          # offset should make each point unique.
-          cost += random.random() / 10
-          heapq.heappush(heap, (
-            1.30*estimate(n1)+ln+cost,
-            ln+cost,
-            n1,
-            curr,
-            cost,
-            a))
-      if endpoint is None:
-        ans = [end]
-      else:
-        while np.linalg.norm(endpoint - start) > 100:
-          ans.append(endpoint)
-          endpoint = bst[(int(endpoint[0]), int(endpoint[1]))][1]
-        ans = ans[::-1]
-        ans.append(end.copy())
-      pickle.dump(ans, open(filename, "wb"))
+        cost = np.linalg.norm(n1-curr)
+        grd = abs(Terrain.heightmap.read((30000.+n1[0])/Terrain.planetSize,
+                                         (30000.+n1[1])/Terrain.planetSize)[3] -
+                  Terrain.heightmap.read((30000.+curr[0])/Terrain.planetSize, 
+                                         (30000.+curr[1])/Terrain.planetSize)[3])
+        cost += grd * 5
+        # We need to avoid checking `>` on the positions as numpy complains
+        # on equality checks that `heapq` implements.  This small random
+        # offset should make each point unique.
+        cost += random.random() / 10
+        heapq.heappush(heap, (
+          1.30*estimate(n1)+ln+cost,
+          ln+cost,
+          n1,
+          curr,
+          cost,
+          a))
+    if endpoint is None:
+      ans = [end]
     else:
-      ans = pickle.load(open(filename, "rb"))
+      while np.linalg.norm(endpoint - start) > 100:
+        ans.append(endpoint)
+        endpoint = bst[(int(endpoint[0]), int(endpoint[1]))][1]
+      ans = ans[::-1]
+      ans.append(end.copy())
 
     return ans
 
@@ -109,7 +103,11 @@ def setRoadUniforms():
 class Road(object):
     def __init__(self, start, end):
         global allControlPoints
-        self.controls = generateControls(start, end)
+        self.controls = assets.getAsset(
+            'Road from {} to {}'.format(start,end),
+            generateControls,
+            (start, end),
+            args.args.remake_roads)
         allControlPoints += self.controls
         setRoadUniforms()
         self.center = sum(self.controls)/len(self.controls)

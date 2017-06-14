@@ -13,6 +13,7 @@ import sys
 from configuration import config
 from pagedTextures import *
 import tqdm
+import assets
 
 logging.info("Constructing Terrain")
 
@@ -51,7 +52,7 @@ textRes = float(planetSize) / textWidth
 logging.info(" + Heightmap texture size {:d}x{:d} for a resolution of {:.1f}m per pixel".format(textWidth,textWidth,textRes))
 textHeight = textWidth
 sign = lambda x: 1 if x>0 else -1
-if not os.path.exists('terrain.npy') or args.args.remake_terrain:
+def generateHeightmap():
   d = np.zeros((textWidth,textHeight,4), dtype=np.float32)
   logging.info(" + Calculating heightmap")
   im = Image.open("assets/Cederberg Mountains Height Map (Merged).png")
@@ -87,11 +88,10 @@ if not os.path.exists('terrain.npy') or args.args.remake_terrain:
       v2= np.array([float(i+1)/textWidth*planetSize  , d[i+1,j][3] , float(j  )/textWidth*planetSize])
       v3= np.array([float(i  )/textWidth*planetSize  , d[i,j+1][3] , float(j+1)/textWidth*planetSize])
       d[i,j][:3] = np.cross(v3-v1,v2-v1)
-  np.save('terrain.npy',d)
   del im
-else:
-  d=np.load('terrain.npy')
+  return d
 
+d = assets.getAsset('heightmap', generateHeightmap, (), args.args.remake_terrain)
 heightmap.loadData(d, keep_copy=True)
 
 logging.info(" + Loading textures")

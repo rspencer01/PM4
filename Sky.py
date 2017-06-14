@@ -9,6 +9,7 @@ import noiseG
 import args
 from configuration import config
 import tqdm
+import assets
 
 N = 256
 Re = 6.360e6
@@ -16,7 +17,7 @@ Ra = 6.420e6
 Hr = 8e3
 Hm = 1.2e3
 
-if not os.path.exists('opdepth.npy') or args.args.remake_sky:
+def constructOpticalDepths():
   logging.info("Constructing optical depths")
   opdepth = np.zeros((N*16,N,4),dtype=np.float32)
 
@@ -35,9 +36,9 @@ if not os.path.exists('opdepth.npy') or args.args.remake_sky:
       opdepthM = sum(np.exp(-heights/Hm))*dx
 
       opdepth[k][j] = [opdepthR,opdepthM,0,0]
-  np.save('opdepth.npy',opdepth)
-else:
-  opdepth = np.load('opdepth.npy')
+  return opdepth
+
+opdepth = assets.getAsset('opticalDepths', constructOpticalDepths, forceReload=args.args.remake_sky)
 
 opticalDepthmap = Texture.Texture(Texture.OPTICAL_DEPTHMAP)
 opticalDepthmap.load()
@@ -51,9 +52,9 @@ data['position'] = [(-1,-1,0.999999),(-1,1,0.999999),(1,-1,0.999999),(1,1,0.9999
 I = [0,1,2, 1,2,3]
 indices = np.array(I,dtype=np.int32)
 
-print "Constructing Night Sky"
 nightSkyTexture = Texture.Texture(Texture.NIGHTSKY)
-if not os.path.exists('nightSky.npy') or args.args.remake_stars:
+def constructNightSky():
+  logging.info("Constructing night sky")
   framebuffer = gl.glGenFramebuffers(1)
   gl.glBindFramebuffer(gl.GL_FRAMEBUFFER,framebuffer)
   texSize = 2048
@@ -90,9 +91,9 @@ if not os.path.exists('nightSky.npy') or args.args.remake_stars:
     gl.glViewport(texSize,0,texSize,texSize)
     shader.draw(gl.GL_TRIANGLES,nightId,1)
   gl.glBlendFunc(gl.GL_SRC_ALPHA, gl.GL_ONE_MINUS_SRC_ALPHA);
-  nightSkyTexture.saveToFile('nightSky.npy')
-else:
-  nightSkyTexture.loadFromFile('nightSky.npy')
+  return nightSkyTexture.getData()
+
+nightSkyTexture.loadData(assets.getAsset('nightSky', constructNightSky, (), args.args.remake_stars))
 
 logging.info("Loading Earth texture")
 earthTexture = Texture.Texture(Texture.EARTHMAP)
