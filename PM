@@ -209,6 +209,7 @@ def accio():
 
 def horse(i=0):
   camera.position = Buildings.clumpSpecs[i].position
+  camera.update()
   accio()
   Characters.move(0)
 
@@ -269,6 +270,8 @@ camera = Camera.Camera(
         move_hook=lambda x:np.array((x[0],
             max(Terrain.getAt(x[0],x[2])+0.6,x[1]),x[2]))
         )
+camera.position[0] = Buildings.roads[0].controls[10][0]
+camera.position[2] = Buildings.roads[0].controls[10][1]
 camera.radiusCentre = np.array([0,-Re,0])
 camera.minRadius = Re
 camera.render()

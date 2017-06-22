@@ -26,7 +26,7 @@ updateUniversalUniform('heightmap', Texture.HEIGHTMAP_NUM)
 updateUniversalUniform('worldSize', planetSize)
 
 # Construct patches
-logging.info(" + Constructing geometry")
+logging.info("Constructing geometry")
 patchData = np.zeros((patches-1)**2*6,dtype=[("position" , np.float32,3)])
 for i in range(patches-1):
   for j in range(patches-1):
@@ -94,7 +94,7 @@ def generateHeightmap():
 d = assets.getAsset('heightmap', generateHeightmap, (), args.args.remake_terrain)
 heightmap.loadData(d, keep_copy=True)
 
-logging.info(" + Loading textures")
+logging.info("Loading textures")
 
 texture = Texture.Texture(Texture.COLORMAP)
 colorMapSize = 1000
@@ -128,7 +128,6 @@ texData[0:colorMapSize/2,colorMapSize/2:] = stone
 texData[colorMapSize/2:,0:colorMapSize/2] = dirt
 texture.loadData(texData)
 del texData
-
 
 def display(camera):
   if np.sum(camera.position*camera.position) > 6e6**2:
