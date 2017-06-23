@@ -173,7 +173,7 @@ def keyboard(key,x,y):
   if key=='p':
     line = not line
   if key=='#':
-    reload(Map)
+    reload(Sky)
   if key=='o':
     enableAtmosphere = not enableAtmosphere
   if key=='t':

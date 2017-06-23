@@ -17,9 +17,9 @@ uniform sampler2D earthMap;
 uniform mat4 shadowProjection3;
 uniform mat4 shadow3View;
 uniform sampler2D shadowTexture3;
-vec3 sunIntensity = vec3(10);
-vec3 betar = vec3(33.1e-6,13.5e-6,5.8e-6).zyx;
-vec3 betam = vec3(81e-6);
+vec3 sunIntensity = vec3(30);
+vec3 betar = vec3(5.8e-6,13.5e-6,33.1e-6);
+vec3 betam = vec3(21e-6);
 
 uniform float ambientLight;
 uniform float sunLight;
@@ -201,19 +201,24 @@ void main()
         vec3 tau =   betar * (vec3(opticalDepthLightR) + opticalDepthR)
                    + betam * (vec3(opticalDepthLightM) + opticalDepthM) * 1.1;
 
-        vec3 e = exp(-tau);
+        vec3 attenenuation = exp(-tau);
 
-        raleigh += e * hr;
-        mie     += e * hm;
+        raleigh += attenenuation * hr;
+        mie     += attenenuation * hm;
       }
     }
   }
+  vec3 tau =   betar * (opticalDepthR)
+             + betam * (opticalDepthM) * 1.1;
+  // This is a complete fudge factor.  Can't work out why things aren't
+  // dark enough in the distance.
+  vec3 transmittance = exp(-tau)*clamp((1-objectDepth/40e3),0.,1.);
 
   raleigh *= phaseR * betar;
   mie     *= phaseM * betam;
 
   vec3 atmosphereColor = sunIntensity * (raleigh + mie);
 
-  fragColor = vec4(atmosphereColor + objectColor, 1);
+  fragColor = vec4(atmosphereColor + transmittance * objectColor, 1);
   fragNorm = vec4(0);
 }

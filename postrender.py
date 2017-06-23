@@ -49,11 +49,8 @@ def display(previousStage,windowWidth,windowHeight):
   global exposure
   if b==b:
     if b!=0:
-      if 1/b + 0.3 < exposure:
-        exposure = (1/b + 0.3)* 0.09 + exposure * 0.91
-      else:
-        exposure = (1/b + 0.3)* 0.005 + exposure * 0.995
-  exposure = min(8.0,max(0.05,exposure))
+      exposure = (1/b + 0.3)* 0.1 + exposure * 0.9
+  exposure = min(10.0,max(0.001,exposure))
 
   shader.load()
   shader['brightness'] = exposure
