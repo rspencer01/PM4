@@ -122,10 +122,18 @@ add = np.zeros((stone.shape[0],1),dtype=np.float32)
 stone = np.append(stone,add,axis=1)
 stone = np.array([stone[i*a.size[0]:(i+1)*a.size[0]] for i in xrange(a.size[1])])/256
 
+a = Image.open('textures/cobblestones.jpg')
+a.thumbnail((colorMapSize/2,colorMapSize/2),Image.ANTIALIAS)
+cobblestone = np.array(a.getdata()).astype(np.float32)
+add = np.zeros((cobblestone.shape[0],1),dtype=np.float32)
+cobblestone = np.append(cobblestone,add,axis=1)
+cobblestone = np.array([cobblestone[i*a.size[0]:(i+1)*a.size[0]] for i in xrange(a.size[1])])/256
+
 
 texData[0:colorMapSize/2,0:colorMapSize/2] = grass
 texData[0:colorMapSize/2,colorMapSize/2:] = stone
 texData[colorMapSize/2:,0:colorMapSize/2] = dirt
+texData[colorMapSize/2:,colorMapSize/2:] = cobblestone
 texture.loadData(texData)
 del texData
 

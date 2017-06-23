@@ -17,6 +17,7 @@ logging.info("{}m on a side of a page square for a resolution of {}m".format(pag
 updateUniversalUniform('pageTable', Texture.PAGE_TABLE_NUM)
 updateUniversalUniform('pagedOffsetTexture', Texture.PAGED_TEXTURE_1_NUM)
 updateUniversalUniform('pagedNormalTexture', Texture.PAGED_TEXTURE_2_NUM)
+updateUniversalUniform('pagedTypeTexture', Texture.PAGED_TEXTURE_3_NUM)
 updateUniversalUniform('pageSize', pageSize)
 updateUniversalUniform('numPages', numPages)
 
@@ -29,10 +30,13 @@ pageRenderStage = RenderStage.RenderStage()
 pageRenderStage.reshape(pageResoultion*numPages)
 pageNormalTexture = pageRenderStage.displayColorTexture
 pageOffsetTexture = pageRenderStage.displayAuxColorTexture
+pageTypeTexture = pageRenderStage.displaySecondaryColorTexture
 
 pageTableTexture.loadAs(Texture.PAGE_TABLE)
 pageOffsetTexture.loadAs(Texture.PAGED_TEXTURE_1)
 pageNormalTexture.loadAs(Texture.PAGED_TEXTURE_2)
+pageTypeTexture.loadAs(Texture.PAGED_TEXTURE_3)
+pageTypeTexture.internal_format = gl.GL_RGBA8UI
 
 pagingShader = getShader('pagingShader', forceReload=True)
 pagingShader['pageSize']    = pageSize

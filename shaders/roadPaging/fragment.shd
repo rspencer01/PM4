@@ -17,10 +17,13 @@ void main()
   offst = mix(
       vec4(0, texture(heightmap, midpos.xy/60000+0.5).a, 0, 1),
       vec4(backgroundoffset, 1),
-      max(0, r-width)/4.);
+      max(0, r-width)/12.);
   normal = mix(
       vec4(0, 1, 0, 1),
       vec4(backgroundnormal, 1),
-      max(0, r-width)/4.);
-  fragColor2= vec4(0, 0, 0, 1);
+      max(0, r-width)/12.);
+  if (r - width < 0)
+    fragColor2= vec4(1, 0, 0, 1);
+  else
+    fragColor2= vec4(0, 0, 0, 1);
 }

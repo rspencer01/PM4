@@ -125,7 +125,7 @@ class Road(object):
             middle = (start+end)/2
             angle = np.arctan2(start[0] - end[0], start[1] - end[1])
             model = np.eye(4, dtype=np.float32)
-            transforms.scale(model, 8, np.linalg.norm(end-start)/2, 1)
+            transforms.scale(model, 16, np.linalg.norm(end-start)/2, 1)
             transforms.zrotate(model, angle*180/3.1416)
             transforms.translate(model, x=middle[0], y=middle[1], z=0)
 

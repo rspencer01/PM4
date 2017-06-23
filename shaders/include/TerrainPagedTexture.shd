@@ -5,6 +5,7 @@ uniform sampler2D pageTable;
 uniform sampler2D noise;
 uniform sampler2D pagedOffsetTexture;
 uniform sampler2D pagedNormalTexture;
+uniform sampler2D pagedTypeTexture;
 
 #include shaders/include/TerrainOps.shd;
 
@@ -61,3 +62,14 @@ vec3 getPagedNormal(vec3 pos)
   }
   return norm.xyz;
 }
+
+vec3 getPagedType(vec3 pos)
+{
+  vec4 norm = readPagedTexture(pos, pagedTypeTexture);
+  if (norm.a < 0.5)
+  {
+    return vec3(0);
+  }
+  return norm.xyz;
+}
+

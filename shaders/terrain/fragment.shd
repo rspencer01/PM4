@@ -33,7 +33,7 @@ vec3 colorOffset()
   return vec3(1)+0.01*textureLod(noise,TesselationOut.position.xz/20000,0).rgb;
 }
 
-vec3 color(vec3 norm,vec3 pos,vec3 averageNorm)
+vec3 color(vec3 norm,vec3 pos,vec3 averageNorm, vec3 type)
 {
   float f = 0.8;
   norm = f*normalize(norm) + (1-f)*normalize(averageNorm);
@@ -41,26 +41,35 @@ vec3 color(vec3 norm,vec3 pos,vec3 averageNorm)
   float texAmount = max(0,1-length(vec3(TesselationOut.position.xyz)-CameraPosition)/1500);
   vec3 texCol = texture(colormap,(mod(vec2(TesselationOut.position.xz)/1,vec2(1)))/2).xyz * colorOffset();
   vec3 norCol = vec3(100,117,48)/255 * colorOffset();
-  // Rock
-  if (norm.y<0.80)
+
+  if (round(type.x) == 1)
   {
-    norCol = vec3(0.5);
-    texCol = textureLod(colormap,(mod(vec2(TesselationOut.position.xz)/10,vec2(1)))/2+vec2(0.5,0),0).xyz;
+      norCol = vec3(0.53,0.48,0.39);
+      texCol = texture(colormap,(mod(vec2(TesselationOut.position.xz)/20,vec2(1)))/2+vec2(0.5,0.5)).xyz;
   }
   else
   {
-    // Snow
-    if (pos.y>2300 + 300 * textureBicubic(noise,vec2(pos.xz/5000)).a)
+    // Rock
+    if (norm.y<0.80)
     {
-      norCol = vec3(.9);
-      texCol = norCol;//textureLod(colormap,(mod(vec2(TesselationOut.position.xz)/2,vec2(1)))/2+vec2(0.5,0),0).xyz;
+      norCol = vec3(0.5);
+      texCol = textureLod(colormap,(mod(vec2(TesselationOut.position.xz)/10,vec2(1)))/2+vec2(0.5,0),0).xyz;
     }
     else
-    // Dryer grass
-    if (norm.y<0.93 - 0.1 * textureBicubic(noise,vec2(pos.xz/5000)+vec2(0.1,0.2)).a)
     {
-      norCol = vec3(133,133,75)/255;
-      texCol = textureLod(colormap,(mod(vec2(TesselationOut.position.xz)/1,vec2(1)))/2+vec2(0,0.5),0).xyz;
+      // Snow
+      if (pos.y>2300 + 300 * textureBicubic(noise,vec2(pos.xz/5000)).a)
+      {
+        norCol = vec3(.9);
+        texCol = norCol;//textureLod(colormap,(mod(vec2(TesselationOut.position.xz)/2,vec2(1)))/2+vec2(0.5,0),0).xyz;
+      }
+      else
+      // Dryer grass
+      if (norm.y<0.93 - 0.1 * textureBicubic(noise,vec2(pos.xz/5000)+vec2(0.1,0.2)).a)
+      {
+        norCol = vec3(133,133,75)/255;
+        texCol = textureLod(colormap,(mod(vec2(TesselationOut.position.xz)/1,vec2(1)))/2+vec2(0,0.5),0).xyz;
+      }
     }
   }
   return  texCol* texAmount  + (1-texAmount)*norCol;
@@ -70,8 +79,9 @@ void main()
 {
   vec3 averageNorm = averageNormal(TesselationOut.origPosition.xyz);
   vec3 norm        = getPagedNormal(TesselationOut.origPosition.xyz);
+  vec3 type        = getPagedType(TesselationOut.origPosition.xyz);
   fragColor = vec4(
-    color(norm,TesselationOut.position.xyz,averageNorm),
+    color(norm,TesselationOut.position.xyz,averageNorm, type),
     1);
   fragNorm = vec4(norm,1);
   fragPos = vec4(TesselationOut.position);

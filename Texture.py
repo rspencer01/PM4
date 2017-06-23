@@ -43,6 +43,8 @@ PAGED_TEXTURE_1 = gl.GL_TEXTURE16
 PAGED_TEXTURE_1_NUM = 16
 PAGED_TEXTURE_2 = gl.GL_TEXTURE17
 PAGED_TEXTURE_2_NUM = 17
+PAGED_TEXTURE_3 = gl.GL_TEXTURE18
+PAGED_TEXTURE_3_NUM = 18
 
 textureUnits = gl.glGetIntegerv(gl.GL_MAX_TEXTURE_IMAGE_UNITS)
 logging.info("Found {} texture units".format(textureUnits))
@@ -51,7 +53,7 @@ if textureUnits < 32:
   sys.exit(1)
 
 class Texture:
-  def __init__(self, type, nonblocking=False):
+  def __init__(self, type, nonblocking=False, internal_format=gl.GL_RGBA32F):
     """Creates a new texture of the given type.  If nonblocking is specified
     true, the creation of the texture handle will be added to the GPU queue.  If
     this is done, all texture loads _must_ occur after the handle has been
@@ -59,6 +61,7 @@ class Texture:
     self.textureType =  type
     self.id = None
     self._data = None
+    self.internal_format = internal_format
 
     if nonblocking:
       taskQueue.addToMainThreadQueue(self.initialise)
@@ -83,7 +86,6 @@ class Texture:
       data,
       width=None,
       height=None,
-      internal_format=gl.GL_RGBA32F,
       type=gl.GL_FLOAT,
       keep_copy=False,
       make_mipmap=True):
@@ -95,7 +97,7 @@ class Texture:
     if height == None:
       height = data.shape[1]
     self.load()
-    gl.glTexImage2D(gl.GL_TEXTURE_2D, 0 ,internal_format, width, height, 0, gl.GL_RGBA, type, data)
+    gl.glTexImage2D(gl.GL_TEXTURE_2D, 0 ,self.internal_format, width, height, 0, gl.GL_RGBA, type, data)
     if keep_copy:
       self._data = data.copy()
     if make_mipmap:
