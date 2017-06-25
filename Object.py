@@ -76,7 +76,10 @@ class Object:
 
   def loadFromFile(self):
     logging.info("Loading object {} from {}".format(self.name, self.filename))
-    self.scene = pyassimp.load(self.filename)
+    self.scene = pyassimp.load(self.filename,
+        processing=pyassimp.postprocess.aiProcess_CalcTangentSpace|
+                   pyassimp.postprocess.aiProcess_Triangulate|
+                   pyassimp.postprocess.aiProcess_GenNormals)
 
     def addNode(node, trans):
       newtrans = trans.dot(node.transformation)
@@ -108,6 +111,9 @@ class Object:
     add = np.zeros((vertNorm.shape[0],1),dtype=np.float32)
     vertNorm = np.append(vertNorm, add, axis=1)
 
+    vertTangents = mesh.tangents
+    vertBitangents = mesh.bitangents
+
     tinvtrans = np.linalg.inv(trans).transpose()
     # Transform all the vertex positions.
     for i in xrange(len(vertPos)):
@@ -120,26 +126,12 @@ class Object:
     vertUV = mesh.texturecoords[0][:, [0,1]]
     vertUV[:, 1] = 1 - vertUV[:, 1]
 
-    for triangle in mesh.faces:
-      edge1 = vertPos[triangle[1]] - vertPos[triangle[0]]
-      edge2 = vertPos[triangle[2]] - vertPos[triangle[0]]
-      deltaUV1 = vertUV[triangle[1]] - vertUV[triangle[0]]
-      deltaUV2 = vertUV[triangle[2]] - vertUV[triangle[0]]
-      f = 1. / (deltaUV1[0] * deltaUV2[1] - deltaUV2[0] * deltaUV1[1])
-
-      data['tangent'][triangle[0]][0] = f * (deltaUV2[1] * edge1[0] - deltaUV1[1] * edge2[0])
-      data['tangent'][triangle[0]][1] = f * (deltaUV2[1] * edge1[1] - deltaUV1[1] * edge2[1])
-      data['tangent'][triangle[0]][2] = f * (deltaUV2[1] * edge1[2] - deltaUV1[1] * edge2[2])
-      data['tangent'][triangle[0]] /= data['tangent'][triangle[0]].dot(data['tangent'][triangle[0]])**0.5
-      data['bitangent'][triangle[0]][0] = f * (-deltaUV2[0] * edge1[0] + deltaUV1[0] * edge2[0])
-      data['bitangent'][triangle[0]][1] = f * (-deltaUV2[0] * edge1[1] + deltaUV1[0] * edge2[1])
-      data['bitangent'][triangle[0]][2] = f * (-deltaUV2[0] * edge1[2] + deltaUV1[0] * edge2[2])
-      data['bitangent'][triangle[0]] /= data['bitangent'][triangle[0]].dot(data['bitangent'][triangle[0]])**0.5
-
     # Set the data
     data["position"] = vertPos
     data["normal"] = vertNorm
     data["textcoord"] = vertUV
+    data["tangent"] = vertTangents
+    data["bitangent"] = vertBitangents
 
     # Get the indices
     indices = mesh.faces.reshape((-1,))
