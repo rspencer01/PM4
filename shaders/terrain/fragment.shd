@@ -1,5 +1,4 @@
 #version 400
-uniform vec3 sunDirection;
 uniform vec3 CameraPosition;
 uniform sampler2D shadowTexture1; uniform sampler2D shadowTexture2;
 uniform sampler2D shadowTexture3;

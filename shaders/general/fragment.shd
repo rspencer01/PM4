@@ -14,7 +14,6 @@ in VertexData
   vec2 uv;
 } VertexOut;
 
-uniform vec3 sunDirection;
 uniform vec3 CameraPosition;
 uniform sampler2D shadowTexture1;
 uniform sampler2D shadowTexture2;

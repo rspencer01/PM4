@@ -15,7 +15,6 @@ in GeometryData
   mat4 normMat;
 } GeometryOut;
 
-uniform vec3 sunDirection;
 uniform vec3 CameraPosition;
 uniform vec3 userCameraPosition;
 uniform sampler2D shadowTexture1;

@@ -4,7 +4,6 @@ out vec4 fragColor;
 uniform mat4 view;
 uniform vec3 CameraPosition;
 uniform vec3 CameraDirection;
-uniform vec3 sunDirection;
 uniform float aspectRatio;
 
 uniform sampler2D colormap;

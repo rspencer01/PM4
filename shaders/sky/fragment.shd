@@ -38,11 +38,9 @@ uniform int numInt;
 
 vec3 getCelestialColor(vec3 direction)
 {
-  float sunTheta = atan(normalize(sunDirection).z,normalize(sunDirection).y);
-  vec3 celestialDirection = vec3(
-                                direction.y*cos(sunTheta) + direction.z*sin(sunTheta),
-                                direction.x,
-                                direction.z*cos(sunTheta) - direction.y*sin(sunTheta));
+  vec3 bitangent = vec3(cos(0.3),-sin(0.3),0);
+  vec3 tangent = normalize(cross(sunDirection, bitangent));
+  vec3 celestialDirection = normalize(vec3(dot(direction, tangent), dot(direction, bitangent), dot(direction,sunDirection)));
   vec2 celestialMap;
   if (celestialDirection.y>0)
   {
@@ -112,6 +110,7 @@ void main()
     objectDepth = INF;
     objectColor = getCelestialColor(direction);
   }
+
 
   vec3 celestialCameraPosition = CameraPosition + vec3(0,Re,0);
   float height = length(celestialCameraPosition);
@@ -213,6 +212,8 @@ void main()
   // This is a complete fudge factor.  Can't work out why things aren't
   // dark enough in the distance.
   vec3 transmittance = exp(-tau)*clamp((1-objectDepth/40e3),0.,1.);
+  if (objectDepth>=INF-1)
+    transmittance = vec3(1);
 
   raleigh *= phaseR * betar;
   mie     *= phaseM * betam;

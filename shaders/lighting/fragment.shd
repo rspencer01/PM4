@@ -19,7 +19,7 @@ uniform sampler2D depthmap;
 uniform sampler2D normmap;
 uniform sampler2D posmap;
 
-uniform sampler2D shadowTexture1; 
+uniform sampler2D shadowTexture1;
 uniform sampler2D shadowTexture2;
 uniform sampler2D shadowTexture3;
 
@@ -29,22 +29,11 @@ uniform int options;
 
 float Re = 6.360e6;
 
-bool intersects(vec3 position, vec3 direction, float radius)
-{
-  if (dot(direction,position)*dot(direction,position) - dot(position,position)+radius*radius > 0)
-    return true;
-  return false;
-}
-float smallestIntersectionDistance(vec3 position, vec3 direction, float radius)
-{
-  return - dot(position,direction) -
-            sqrt(dot(direction,position)*dot(direction,position) 
-                 - dot(position,position)+radius*radius);
-}
+#include shaders/include/SphereOps.shd;
 
 float lighting(vec4 normal, vec4 position)
 {
-  float diffuse = max(0,dot(normal.xyz,normalize(sunDirection)));
+  float diffuse = max(0, dot(normal.xyz, normalize(sunDirection)));
   vec4 temp = shadowProjection1 * shadow1View * position;
   vec3 shadowPos = (temp.xyz/temp.w)/2+vec3(0.5);
   float tanacosl = tan(acos(diffuse));

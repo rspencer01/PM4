@@ -24,9 +24,11 @@ logging.info("3 shadow maps at {}x{} ~ {}Mb".format(shadowSize, shadowSize, 3*sh
 sunDeclination = 22/180.0*3.141592
 latitude = 3.1415/4
 sunTheta = 5*3.1415/16
-sunPhi = 0
+sunPhi = 0.3
+gameTime = 0
 
 shadowCamera = Camera.Camera(np.array([0.,300,0]), lockObject=None, lockDistance=40000)
+shadowCamera.globalUp, shadowCamera.globalRight = shadowCamera.globalRight, shadowCamera.globalUp
 shadowCamera.rotUpDown(sunTheta)
 shadowCamera.rotLeftRight(sunPhi)
 shadowCamera.update()
@@ -54,8 +56,7 @@ Shaders.setUniform('shadowTexture3',Texture.SHADOWS3_NUM)
 
 def render():
   global count,sunTheta
-  # Get this right some day
-  sunTheta = -count/2000.0+2.005
+  sunTheta = gameTime
 
   shadowCamera.theta = sunTheta
   shadowCamera.phi = sunPhi
