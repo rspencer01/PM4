@@ -191,7 +191,7 @@ def keyboard_handler(key, x, y):
   if key=='p':
     line = not line
   if key=='#':
-    reload(Sky)
+    reload(Terrain)
   if key=='o':
     enableAtmosphere = not enableAtmosphere
   if key=='t':
