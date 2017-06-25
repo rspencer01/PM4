@@ -32,15 +32,20 @@ enableAtmosphere = not args.args.disable_atmosphere
 screenshotDest = None
 hold_mouse = True
 fastMode = False
+trianglesQuery = None
 
 aboveGround = 1
 
 def display():
-  global frametime,lastframe,cputime,lastcpucycle, screenshotDest
+  global frametime,lastframe,cputime,lastcpucycle, screenshotDest, trianglesQuery
   frametime = frametime*.8 + 0.2*(time.time()-lastframe)
   lastframe = time.time()
 
   messaging.process_messages()
+
+  if not trianglesQuery:
+    trianglesQuery = gl.glGenQueries(1)
+  gl.glBeginQuery(gl.GL_PRIMITIVES_GENERATED, trianglesQuery)
 
   global cameraSpeed
 
@@ -98,8 +103,11 @@ def display():
   Map.display()
   lastRenderStage = renderStages[3]
 
+  gl.glEndQuery(gl.GL_PRIMITIVES_GENERATED)
+  triangleCount = gl.glGetQueryObjectiv(trianglesQuery, gl.GL_QUERY_RESULT)
+
   glut.glutSwapBuffers()
-  glut.glutSetWindowTitle("PM4 {:.2f} ({:.0f}ms) {:.6f}".format(1./frametime,frametime*1000, time.time()-lastframe))
+  glut.glutSetWindowTitle("PM4 {:.2f} ({:.0f}ms) {:.6f} {:,} triangles".format(1./frametime,frametime*1000, time.time()-lastframe, triangleCount))
   glut.glutPostRedisplay()
 
   if screenshotDest:
@@ -169,6 +177,7 @@ def keyboard_handler(key, x, y):
   if key=='\033':
     if args.args.replay is None:
       messaging.save_messages()
+    gl.glDeleteQueries(1, [trianglesQuery])
     logging.warn("Exiting...")
     sys.exit(0)
   if key=='l':
