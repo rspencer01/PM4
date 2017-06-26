@@ -20,8 +20,13 @@ out GeometryData
 uniform mat4 View;
 uniform mat4 projection;
 
+#include shaders/include/TerrainPagedTexture.shd;
+
 void main()
 {
+  if (round(getPagedType(VertexOut[0].position.xyz).x) != 0)
+    return;
+
   vec3 up = VertexOut[0].up * .5;
   vec3 north = VertexOut[0].north * .5;
   vec3 east = length(north) * normalize(cross(north,up));
