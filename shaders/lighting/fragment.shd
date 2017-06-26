@@ -1,11 +1,7 @@
 #version 400
 in vec4 pos;
 out vec4 fragColor;
-uniform mat4 view;
-uniform vec3 CameraPosition;
-uniform vec3 CameraDirection;
 uniform vec3 sunDirection;
-uniform float aspectRatio;
 
 uniform mat4 shadowProjection1;
 uniform mat4 shadowProjection2;
@@ -24,15 +20,44 @@ uniform sampler2D shadowTexture2;
 uniform sampler2D shadowTexture3;
 
 uniform float ambientLight;
-uniform float sunLight;
 uniform int options;
+
+uniform int numLights;
+uniform vec3 lightPositions[100];
+uniform vec3 lightColours[100];
 
 float Re = 6.360e6;
 
 #include shaders/include/SphereOps.shd;
 
-float lighting(vec4 normal, vec4 position)
+float getShadowAmount(mat4 shadowProjection, mat4 shadowView, vec4 position, sampler2D shadowTexture)
 {
+  float shadowAmount = 0;
+  vec4 temp = shadowProjection * shadowView * position;
+  vec3 shadowPos = (temp.xyz/temp.w)/2+vec3(0.5);
+  if ((shadowPos.x < 1.0) &&
+      (shadowPos.x > 0.0) &&
+      (shadowPos.y < 1.0) &&
+      (shadowPos.y > 0.0) &&
+      (shadowPos.z < 1.0) &&
+      (shadowPos.z > -1.0))
+  {
+    for (int i = 0; i<5; i+=1)
+    {
+      for (int j = -3; j<4; j+=1)
+      {
+        if (shadowPos.z-textureLod(shadowTexture,shadowPos.xy + pow(i/3.0,0.5)*vec2(cos(j*3.141592/3),sin(j*3.141592/3))*0.001,0).x > 0.004)
+          shadowAmount += 1.0/28;
+      }
+    }
+  }
+  return shadowAmount;
+}
+
+vec3 lighting(vec4 normal, vec4 position)
+{
+  vec3 ans;
+
   float diffuse = max(0, dot(normal.xyz, normalize(sunDirection)));
   vec4 temp = shadowProjection1 * shadow1View * position;
   vec3 shadowPos = (temp.xyz/temp.w)/2+vec3(0.5);
@@ -47,67 +72,24 @@ float lighting(vec4 normal, vec4 position)
   }
   else
   {
-    if ((shadowPos.x < 1.0) &&
-        (shadowPos.x > 0.0) &&
-        (shadowPos.y < 1.0) &&
-        (shadowPos.y > 0.0) &&
-        (shadowPos.z < 1.0) &&
-        (shadowPos.z > -1.0))
+    shadowAmount += getShadowAmount(shadowProjection1, shadow1View, position, shadowTexture1);
+    if (shadowAmount < 0.001)
     {
-      for (int i = 0; i<5; i+=1)
+      shadowAmount += getShadowAmount(shadowProjection2, shadow2View, position, shadowTexture2);
+      if (shadowAmount < 0.001)
       {
-        for (int j = -3; j<4; j+=1)
-        {
-          //if (shadowPos.z-textureLod(shadowTexture1,shadowPos.xy + pow(i/3.0,0.5)*vec2(cos(j*3.141592/3),sin(j*3.141592/3))*0.001,0).x < clamp(0.002*tanacosl,0.0,0.001))
-          if (shadowPos.z-textureLod(shadowTexture1,shadowPos.xy + pow(i/3.0,0.5)*vec2(cos(j*3.141592/3),sin(j*3.141592/3))*0.001,0).x > 0.001)
-            shadowAmount += 1.0/28;
-        }
-      }
-    }
-    else
-    {
-      temp = shadowProjection2 * shadow2View * position;
-      shadowPos = (temp.xyz/temp.w)/2+vec3(0.5);
-      if ((shadowPos.x < 1.0) &&
-          (shadowPos.x > 0.0) &&
-          (shadowPos.y < 1.0) &&
-          (shadowPos.y > 0.0) &&
-          (shadowPos.z < 1.0) &&
-          (shadowPos.z > -1.0))
-      {
-        for (int i = 0; i<5; i+=1)
-        {
-          for (int j = -3; j<4; j+=1)
-          {
-            if (shadowPos.z-textureLod(shadowTexture2,shadowPos.xy + pow(i/3.0,0.5)*vec2(cos(j*3.141592/3),sin(j*3.141592/3))*0.001,0).x > 0.004)
-              shadowAmount += 1.0/28;
-          }
-        }
-      }
-      else
-      {
-        temp = shadowProjection3 * shadow3View * position;
-        shadowPos = (temp.xyz/temp.w)/2+vec3(0.5);
-        if ((shadowPos.x < 1.0) &&
-            (shadowPos.x > 0.0) &&
-            (shadowPos.y < 1.0) &&
-            (shadowPos.y > 0.0) &&
-            (shadowPos.z < 1.0) &&
-            (shadowPos.z > -1.0))
-        {
-          for (int i = 0; i<5; i+=1)
-          {
-            for (int j = -3; j<4; j+=1)
-            {
-              if (shadowPos.z-textureLod(shadowTexture3,shadowPos.xy + pow(i/3.0,0.5)*vec2(cos(j*3.141592/3),sin(j*3.141592/3))*0.001,0).x > 0.004)
-                shadowAmount += 1.0/28;
-            }
-          }
-        }
+        shadowAmount += getShadowAmount(shadowProjection3, shadow3View, position, shadowTexture3);
       }
     }
   }
-  return clamp(ambientLight*sunLight,0.006,1.0) + sunLight * diffuse * (1-shadowAmount*0.8);
+  ans = vec3(clamp(ambientLight*sunLight,0.006,1.0) + sunLight * diffuse * (1-shadowAmount*0.8));
+
+  for (int i = 0; i< numLights; ++i)
+  {
+    vec3 intensity = lightColours[i] / pow(length(position.xyz - lightPositions[i]),2);
+    ans += intensity * clamp(dot(normal.xyz,normalize(lightPositions[i] - position.xyz)),0,1);
+  }
+  return ans;
 }
 
 void main()
@@ -121,4 +103,5 @@ void main()
     fragColor = vec4(inputNorm.rgb/2+vec3(0.5),1);
   if ((options & 0x02) == 2)
     fragColor = vec4(inputColor,1);
+
 }

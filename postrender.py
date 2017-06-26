@@ -62,9 +62,7 @@ def lighting(colorTexture,normTexture,posTexture,depthTexture):
   normTexture.load()
   posTexture.load()
   setUniform('ambientLight',0.1)
-  setUniform('sunLight',1.0)
   lightingShader.load()
   lightingShader['ambientLight'] = 0.1;
-  lightingShader['sunLight'] = 0.9
   lightingShader['options'] = showNormals
   lightingShader.draw(gl.GL_TRIANGLES,lightingRenderID,1)

@@ -12,4 +12,5 @@ r    | Toggle mouse hold
 f    | Toggle fast mode
 m    | Toggle large map
 n    | Cycle normal, diffuse mode
+0    | Drop a light
 esc  | Exit

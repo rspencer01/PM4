@@ -33,7 +33,8 @@ void main()
 {
   vec3 dir = VertexOut[0].position.xyz - userCameraPosition;
   if (dot(normalize(dir),userCameraDirection) < 0.5)
-    return;
+    if (length(VertexOut[0].position.xyz - userCameraPosition) > 100)
+      return;
   for (int i = 0; i<3; ++i)
   {
     GeometryOut.position = VertexOut[i].position;
