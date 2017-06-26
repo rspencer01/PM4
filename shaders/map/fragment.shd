@@ -3,6 +3,7 @@ in vec4 pos;
 out vec4 fragColor;
 
 uniform vec3 CameraPosition;
+uniform vec3 CameraDirection;
 uniform sampler2D heightmap;
 uniform sampler2D icons;
 uniform sampler2D noise;
@@ -61,10 +62,14 @@ void main()
   fragColor = vec4(0);
   float alpha = 1-0.05*fullscreen;
   vec2 worldPos = pos.xy*30000;
+  worldPos.y *= -1;
   if (length(worldPos - CameraPosition.xz) < 700)
   {
-    fragColor = vec4(1,0,0,alpha);
-    return;
+    if (dot(normalize(worldPos-CameraPosition.xz), CameraDirection.xz) > 0.6*fullscreen)
+    {
+      fragColor = vec4(0.8,0,0,alpha);
+      return;
+    }
   }
   for (int i = 0; i< villageCount; ++i)
   {
@@ -72,7 +77,6 @@ void main()
         (abs(worldPos.y - villagePosition[i].z) < 600+400*fullscreen))
     {
       vec2 uv = (vec2(worldPos.xy - villagePosition[i].xz)/1000)/2+.5;
-      uv.y = 1-uv.y;
       fragColor = mix(vec4(140,84,53,256)/256., texture2D(icons,uv).rgba, fullscreen);
     }
   }
