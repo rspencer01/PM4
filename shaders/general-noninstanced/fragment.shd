@@ -22,7 +22,7 @@ uniform int options;
 
 void main()
 {
-  vec3 normalDetail = normalize(textureLod(normalmap, VertexOut.uv, 0).xyz);
+  vec3 normalDetail = normalize(textureLod(normalmap, VertexOut.uv, 0).xyz-0.5);
   vec3 normal       = normalize(VertexOut.normal.xyz);
   vec3 tangent      = normalize(VertexOut.tangent.xyz);
   vec3 bitangent    = normalize(VertexOut.bitangent.xyz);

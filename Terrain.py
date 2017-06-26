@@ -43,6 +43,7 @@ patchIndices = np.array([],dtype=np.int32)
 shader = getShader('terrain',tess=True,geom=False,forceReload=True)
 shader['model'] = np.eye(4,dtype=np.float32)
 shader['colormap'] = Texture.COLORMAP_NUM
+shader['normalmap'] = Texture.NORMALMAP_NUM
 renderID = shader.setData(patchData, patchIndices)
 
 # Texture sizes
@@ -97,8 +98,11 @@ heightmap.loadData(d, keep_copy=True)
 logging.info("Loading textures")
 
 texture = Texture.Texture(Texture.COLORMAP)
+normalTexture = Texture.Texture(Texture.NORMALMAP)
 colorMapSize = 1000
 texData = np.zeros((colorMapSize,colorMapSize,4),dtype=np.float32)
+texNormData = np.zeros((colorMapSize,colorMapSize,4),dtype=np.float32) +0.5
+texNormData[:,:,2:] = 1
 
 a = Image.open('textures/grass.jpg')
 a.thumbnail((colorMapSize/2,colorMapSize/2),Image.ANTIALIAS)
@@ -129,12 +133,21 @@ add = np.zeros((cobblestone.shape[0],1),dtype=np.float32)
 cobblestone = np.append(cobblestone,add,axis=1)
 cobblestone = np.array([cobblestone[i*a.size[0]:(i+1)*a.size[0]] for i in xrange(a.size[1])])/256
 
+a = Image.open('textures/cobblestones-normal.jpg')
+a.thumbnail((colorMapSize/2,colorMapSize/2),Image.ANTIALIAS)
+cobblestone_normal = np.array(a.getdata()).astype(np.float32)
+add = np.zeros((cobblestone_normal.shape[0],1),dtype=np.float32)
+cobblestone_normal = np.append(cobblestone_normal,add,axis=1)
+cobblestone_normal = np.array([cobblestone_normal[i*a.size[0]:(i+1)*a.size[0]] for i in xrange(a.size[1])])/256
+
 
 texData[0:colorMapSize/2,0:colorMapSize/2] = grass
 texData[0:colorMapSize/2,colorMapSize/2:] = stone
 texData[colorMapSize/2:,0:colorMapSize/2] = dirt
 texData[colorMapSize/2:,colorMapSize/2:] = cobblestone
+texNormData[colorMapSize/2:,colorMapSize/2:] = cobblestone_normal
 texture.loadData(texData)
+normalTexture.loadData(texNormData)
 del texData
 
 def display(camera):
@@ -142,6 +155,7 @@ def display(camera):
     return
   shader.load()
   texture.load()
+  normalTexture.load()
   heightmap.load()
   shader.draw((patches-1)**2*6,renderID)
 

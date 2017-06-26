@@ -1,9 +1,11 @@
 #version 400
+uniform vec3 sunDirection;
 uniform vec3 CameraPosition;
 uniform sampler2D shadowTexture1; uniform sampler2D shadowTexture2;
 uniform sampler2D shadowTexture3;
 uniform sampler2D bumpmap;
 uniform sampler2D colormap;
+uniform sampler2D normalmap;
 
 layout(location=0) out vec4 fragColor;
 layout(location=1) out vec4 fragNorm;
@@ -30,6 +32,15 @@ vec3 averageNormal(vec3 pos)
 vec3 colorOffset()
 {
   return vec3(1)+0.01*textureLod(noise,TesselationOut.position.xz/20000,0).rgb;
+}
+
+vec3 getNormalmap(vec3 position, vec3 type)
+{
+  if (round(type.x) == 1)
+  {
+    return normalize(texture(normalmap,(mod(vec2(TesselationOut.position.xz)/20,vec2(1)))/2+vec2(0.5,0.5)).xyz-0.5);
+  }
+  return vec3(0,0,1);
 }
 
 vec3 color(vec3 norm,vec3 pos,vec3 averageNorm, vec3 type)
@@ -82,6 +93,14 @@ void main()
   fragColor = vec4(
     color(norm,TesselationOut.position.xyz,averageNorm, type),
     1);
-  fragNorm = vec4(norm,1);
-  fragPos = vec4(TesselationOut.position);
+  vec3 tangent   = normalize(cross(vec3(0,0,1), norm));
+  vec3 bitangent = normalize(cross(norm,tangent));
+  tangent        = normalize(cross(bitangent, norm));
+  mat3 mt        = mat3(tangent, bitangent, norm);
+  vec3 normalDetail = getNormalmap(TesselationOut.position.xyz, type);
+
+  vec3 actualNormal = mt * normalDetail;
+
+  fragNorm       = vec4(actualNormal, 1);
+  fragPos        = vec4(TesselationOut.position);
 }
