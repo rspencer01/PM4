@@ -12,7 +12,7 @@ from configuration import config
 import Road
 import tqdm
 
-BuildingSpec = namedtuple('BuildingSpec', ('position','angle', 'direction', 'bidirection'))
+BuildingSpec = namedtuple('BuildingSpec', ('position', 'angle', 'direction', 'bidirection', 'type'))
 ClumpSpec = namedtuple('ClumpSpec', ('position', 'buildings'))
 
 clumpCount = config.building_clump_count
@@ -42,7 +42,7 @@ for _ in xrange(clumpCount):
     angle = random.random()*2*3.14
     direction = [np.sin(angle),0.,np.cos(angle)]
     bidirection = [np.cos(angle),0.,-np.sin(angle)]
-    spec = BuildingSpec(pos, angle, direction, bidirection)
+    spec = BuildingSpec(pos, angle, direction, bidirection, 0 if random.randint(1,100)%4!=0 else 1)
     buildings.append(spec)
   spec = ClumpSpec(clumpPosition, buildings)
   clumpSpecs.append(spec)
@@ -51,12 +51,18 @@ Shaders.updateUniversalUniform('villagePosition', np.array([
   i.position for i in clumpSpecs
   ]))
 
-building = \
+building1 = \
   Object.Object(
     'assets/house1/PMedievalHouse.FBX',
     'House',
     scale=0.0012,
     offset=(3.4, 0, -6))
+building2 = \
+  Object.Object(
+    'assets/house2/Medieval_House.obj',
+    'House',
+    scale=0.03,
+    offset=(0, 0, 0))
 
 pagingShader = Shaders.getShader('buildingPaging', forceReload=True)
 data = np.zeros(4,dtype=[("position" , np.float32,3)])
@@ -97,6 +103,7 @@ def display(camera):
   stepSort('buildingsClumpDistance', clumpSpecs, key=lambda x: np.linalg.norm(x.position-camera.position))
   for clump in clumpSpecs[:3]:
     for spec in clump.buildings:
+      building = (building1, building2)[spec.type]
       building.position    = spec.position
       building.direction   = spec.direction
       building.bidirection = spec.bidirection
