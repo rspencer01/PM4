@@ -22,3 +22,10 @@ assets/house2/Texture/Medieval_House_Nor.png filter=lfs diff=lfs merge=lfs -text
 assets/house2/Texture/Medieval_House_Spec.png filter=lfs diff=lfs merge=lfs -text
 assets/house2/house.mtl filter=lfs diff=lfs merge=lfs -text
 assets/house2/Medieval_House.obj filter=lfs diff=lfs merge=lfs -text
+textures/cobblestones-normal.jpg filter=lfs diff=lfs merge=lfs -text
+textures/forest.jpg filter=lfs diff=lfs merge=lfs -text
+textures/forest-normal.jpg filter=lfs diff=lfs merge=lfs -text
+textures/clay.jpg filter=lfs diff=lfs merge=lfs -text
+textures/clay-normal.jpg filter=lfs diff=lfs merge=lfs -text
+textures/stone.jpg filter=lfs diff=lfs merge=lfs -text
+textures/cobblestones.jpg filter=lfs diff=lfs merge=lfs -text
