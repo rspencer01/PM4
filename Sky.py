@@ -57,7 +57,7 @@ def constructNightSky():
   logging.info("Constructing night sky")
   framebuffer = gl.glGenFramebuffers(1)
   gl.glBindFramebuffer(gl.GL_FRAMEBUFFER,framebuffer)
-  texSize = 2048
+  texSize = 1536
   nightSkyTexture.loadData(None, width=2*texSize, height=texSize)
 
   depthbuffer = gl.glGenRenderbuffers(1)

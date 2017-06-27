@@ -5,6 +5,8 @@ import logging
 import sys
 import threading
 import taskQueue
+import assets
+import args
 from math import fmod
 
 HEIGHTMAP = gl.GL_TEXTURE0
@@ -134,10 +136,7 @@ class Texture:
 
 
   def loadFromImage(self, filename, daemon=True):
-    # TODO this is upside down
-    def preloadFile():
-      logging.info("Preloading {} into texture {}".format(filename, self.id))
-
+    def readFromFile(filename):
       teximag = Image.open(filename)
       data = np.array(teximag.getdata()).astype(np.float32)
 
@@ -148,25 +147,21 @@ class Texture:
 
       data = data.reshape(teximag.size[0], teximag.size[1], 4)
 
-      def uploadToGPU(data):
-        logging.info("Uploading texture {}".format(self.id))
-        self.loadData(data/256)
+      return data
 
-      # We have now loaded the image data.  We need to upload it to the GPU.
-      # Either we do this on the main thread, or if we are not using a daemon
-      # style, we are the main thread and we must do it now.
-      if daemon:
-        taskQueue.addToMainThreadQueue(uploadToGPU, (data,))
-      else:
-        uploadToGPU(data)
+    data = assets.getAsset(filename, readFromFile, (filename,), args.args.reload_textures)
 
-    # If we are doing this daemon style, we start a new thread.
+    def uploadToGPU(data):
+      logging.info("Uploading texture {}".format(self.id))
+      self.loadData(data/256)
+
+    # We have now loaded the image data.  We need to upload it to the GPU.
+    # Either we do this on the main thread, or if we are not using a daemon
+    # style, we are the main thread and we must do it now.
     if daemon:
-      thread = threading.Thread(target=preloadFile)
-      thread.setDaemon(True)
-      thread.start()
+      taskQueue.addToMainThreadQueue(uploadToGPU, (data,))
     else:
-      preloadFile()
+      uploadToGPU(data)
 
 
   def read(self, x, y, interpolate=True):

@@ -27,16 +27,20 @@ updateUniversalUniform('worldSize', planetSize)
 
 # Construct patches
 logging.info("Constructing geometry")
-patchData = np.zeros((patches-1)**2*6,dtype=[("position" , np.float32,3)])
-for i in range(patches-1):
-  for j in range(patches-1):
-    patchData['position'][(i*(patches-1)+j)*6] = (i,0,j)
-    patchData['position'][(i*(patches-1)+j)*6+1] = (i,0,j+1)
-    patchData['position'][(i*(patches-1)+j)*6+2] = (i+1,0,j)
-    patchData['position'][(i*(patches-1)+j)*6+3] = (i+1,0,j)
-    patchData['position'][(i*(patches-1)+j)*6+4] = (i,0,j+1)
-    patchData['position'][(i*(patches-1)+j)*6+5] = (i+1,0,j+1)
-patchData['position']=(patchData['position']-np.array([patches/2,0,patches/2]))*patchSize
+def getPatchData():
+  patchData = np.zeros((patches-1)**2*6,dtype=[("position" , np.float32,3)])
+  for i in range(patches-1):
+    for j in range(patches-1):
+      patchData['position'][(i*(patches-1)+j)*6] = (i,0,j)
+      patchData['position'][(i*(patches-1)+j)*6+1] = (i,0,j+1)
+      patchData['position'][(i*(patches-1)+j)*6+2] = (i+1,0,j)
+      patchData['position'][(i*(patches-1)+j)*6+3] = (i+1,0,j)
+      patchData['position'][(i*(patches-1)+j)*6+4] = (i,0,j+1)
+      patchData['position'][(i*(patches-1)+j)*6+5] = (i+1,0,j+1)
+  patchData['position']=(patchData['position']-np.array([patches/2,0,patches/2]))*patchSize
+  return patchData
+
+patchData = assets.getAsset('terrain_patch_data', getPatchData)
 patchIndices = np.array([],dtype=np.int32)
 
 # Set up renderer
@@ -99,53 +103,66 @@ logging.info("Loading textures")
 
 texture = Texture.Texture(Texture.COLORMAP)
 normalTexture = Texture.Texture(Texture.NORMALMAP)
-colorMapSize = 1000
-texData = np.zeros((colorMapSize,colorMapSize,4),dtype=np.float32)
-texNormData = np.zeros((colorMapSize,colorMapSize,4),dtype=np.float32) +0.5
-texNormData[:,:,2:] = 1
 
-a = Image.open('textures/grass.jpg')
-a.thumbnail((colorMapSize/2,colorMapSize/2),Image.ANTIALIAS)
-grass = np.array(a.getdata()).astype(np.float32)
+def getTexData():
+  colorMapSize = 1000
+  texData = np.zeros((colorMapSize,colorMapSize,4),dtype=np.float32)
 
-add = np.zeros((grass.shape[0],1),dtype=np.float32)
-grass = np.append(grass,add,axis=1)
-grass = np.array([grass[i*a.size[0]:(i+1)*a.size[0]] for i in xrange(a.size[1])])/256
+  a = Image.open('textures/grass.jpg')
+  a.thumbnail((colorMapSize/2,colorMapSize/2),Image.ANTIALIAS)
+  grass = np.array(a.getdata()).astype(np.float32)
 
-a = Image.open('textures/dirt.jpg')
-a.thumbnail((colorMapSize/2,colorMapSize/2),Image.ANTIALIAS)
-dirt = np.array(a.getdata()).astype(np.float32)
-add = np.zeros((dirt.shape[0],1),dtype=np.float32)
-dirt = np.append(dirt,add,axis=1)
-dirt = np.array([dirt[i*a.size[0]:(i+1)*a.size[0]] for i in xrange(a.size[1])])/256
+  add = np.zeros((grass.shape[0],1),dtype=np.float32)
+  grass = np.append(grass,add,axis=1)
+  grass = np.array([grass[i*a.size[0]:(i+1)*a.size[0]] for i in xrange(a.size[1])])/256
 
-a = Image.open('textures/stone.jpg')
-a.thumbnail((colorMapSize/2,colorMapSize/2),Image.ANTIALIAS)
-stone = np.array(a.getdata()).astype(np.float32)
-add = np.zeros((stone.shape[0],1),dtype=np.float32)
-stone = np.append(stone,add,axis=1)
-stone = np.array([stone[i*a.size[0]:(i+1)*a.size[0]] for i in xrange(a.size[1])])/256
+  a = Image.open('textures/dirt.jpg')
+  a.thumbnail((colorMapSize/2,colorMapSize/2),Image.ANTIALIAS)
+  dirt = np.array(a.getdata()).astype(np.float32)
+  add = np.zeros((dirt.shape[0],1),dtype=np.float32)
+  dirt = np.append(dirt,add,axis=1)
+  dirt = np.array([dirt[i*a.size[0]:(i+1)*a.size[0]] for i in xrange(a.size[1])])/256
 
-a = Image.open('textures/cobblestones.jpg')
-a.thumbnail((colorMapSize/2,colorMapSize/2),Image.ANTIALIAS)
-cobblestone = np.array(a.getdata()).astype(np.float32)
-add = np.zeros((cobblestone.shape[0],1),dtype=np.float32)
-cobblestone = np.append(cobblestone,add,axis=1)
-cobblestone = np.array([cobblestone[i*a.size[0]:(i+1)*a.size[0]] for i in xrange(a.size[1])])/256
+  a = Image.open('textures/stone.jpg')
+  a.thumbnail((colorMapSize/2,colorMapSize/2),Image.ANTIALIAS)
+  stone = np.array(a.getdata()).astype(np.float32)
+  add = np.zeros((stone.shape[0],1),dtype=np.float32)
+  stone = np.append(stone,add,axis=1)
+  stone = np.array([stone[i*a.size[0]:(i+1)*a.size[0]] for i in xrange(a.size[1])])/256
 
-a = Image.open('textures/cobblestones-normal.jpg')
-a.thumbnail((colorMapSize/2,colorMapSize/2),Image.ANTIALIAS)
-cobblestone_normal = np.array(a.getdata()).astype(np.float32)
-add = np.zeros((cobblestone_normal.shape[0],1),dtype=np.float32)
-cobblestone_normal = np.append(cobblestone_normal,add,axis=1)
-cobblestone_normal = np.array([cobblestone_normal[i*a.size[0]:(i+1)*a.size[0]] for i in xrange(a.size[1])])/256
+  a = Image.open('textures/cobblestones.jpg')
+  a.thumbnail((colorMapSize/2,colorMapSize/2),Image.ANTIALIAS)
+  cobblestone = np.array(a.getdata()).astype(np.float32)
+  add = np.zeros((cobblestone.shape[0],1),dtype=np.float32)
+  cobblestone = np.append(cobblestone,add,axis=1)
+  cobblestone = np.array([cobblestone[i*a.size[0]:(i+1)*a.size[0]] for i in xrange(a.size[1])])/256
 
+  texData[0:colorMapSize/2,0:colorMapSize/2] = grass
+  texData[0:colorMapSize/2,colorMapSize/2:] = stone
+  texData[colorMapSize/2:,0:colorMapSize/2] = dirt
+  texData[colorMapSize/2:,colorMapSize/2:] = cobblestone
 
-texData[0:colorMapSize/2,0:colorMapSize/2] = grass
-texData[0:colorMapSize/2,colorMapSize/2:] = stone
-texData[colorMapSize/2:,0:colorMapSize/2] = dirt
-texData[colorMapSize/2:,colorMapSize/2:] = cobblestone
-texNormData[colorMapSize/2:,colorMapSize/2:] = cobblestone_normal
+  return texData
+
+def getTexNormData():
+  colorMapSize = 1000
+  texNormData = np.zeros((colorMapSize,colorMapSize,4),dtype=np.float32) +0.5
+  texNormData[:,:,2:] = 1
+
+  a = Image.open('textures/cobblestones-normal.jpg')
+  a.thumbnail((colorMapSize/2,colorMapSize/2),Image.ANTIALIAS)
+  cobblestone_normal = np.array(a.getdata()).astype(np.float32)
+  add = np.zeros((cobblestone_normal.shape[0],1),dtype=np.float32)
+  cobblestone_normal = np.append(cobblestone_normal,add,axis=1)
+  cobblestone_normal = np.array([cobblestone_normal[i*a.size[0]:(i+1)*a.size[0]] for i in xrange(a.size[1])])/256
+
+  texNormData[colorMapSize/2:,colorMapSize/2:] = cobblestone_normal
+
+  return texNormData
+
+texData = assets.getAsset('terrain_diffuse', getTexData)
+texNormData = assets.getAsset('terrain_normal', getTexNormData)
+
 texture.loadData(texData)
 normalTexture.loadData(texNormData)
 del texData
