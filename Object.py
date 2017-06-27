@@ -35,6 +35,7 @@ def getTextureFile(material, textureType):
   return ''
 shader             = Shaders.getShader('general-noninstanced', forceReload=True)
 shader['colormap'] = Texture.COLORMAP_NUM
+shader['normalmap'] = Texture.NORMALMAP_NUM
 
 class Object:
   def __init__(
@@ -76,9 +77,13 @@ class Object:
 
   def loadFromFile(self):
     logging.info("Loading object {} from {}".format(self.name, self.filename))
+    # Some of these are for static only and must be removed when doing bones.
     self.scene = pyassimp.load(self.filename,
         processing=pyassimp.postprocess.aiProcess_CalcTangentSpace|
                    pyassimp.postprocess.aiProcess_Triangulate|
+                   pyassimp.postprocess.aiProcess_JoinIdenticalVertices|
+                   pyassimp.postprocess.aiProcess_OptimizeGraph|
+                   pyassimp.postprocess.aiProcess_OptimizeMeshes|
                    pyassimp.postprocess.aiProcess_GenNormals)
 
     def addNode(node, trans):
@@ -94,7 +99,7 @@ class Object:
 
 
   def addMesh(self, mesh, trans):
-    logging.info("Loading mesh {}".format(mesh.__repr__()))
+    logging.debug("Loading mesh {}".format(mesh.__repr__()))
     options = MeshOptions(False)
     data = np.zeros(len(mesh.vertices),
                       dtype=[("position" , np.float32,3),
@@ -167,12 +172,15 @@ class Object:
     t[0,0:3] = self.bidirection
     transforms.translate(t, self.position[0],self.position[1],self.position[2])
     shader['model'] = t
-    shader['colormap'] = Texture.COLORMAP_NUM
-    shader['normalmap'] = Texture.NORMALMAP_NUM
+
+    options = None
 
     for meshdatum,renderID in zip(self.meshes,self.renderIDs):
       # Set options
-      shader['options'] = getOptionNumber(meshdatum.options)
+      if options != getOptionNumber(meshdatum.options):
+        options = getOptionNumber(meshdatum.options)
+        shader['options'] = options
+
       # Load textures
       meshdatum.colormap.load()
       if meshdatum.options.has_bumpmap:
