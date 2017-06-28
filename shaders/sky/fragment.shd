@@ -17,7 +17,7 @@ uniform sampler2D earthMap;
 uniform mat4 shadowProjection3;
 uniform mat4 shadow3View;
 uniform sampler2D shadowTexture3;
-vec3 sunIntensity = vec3(30);
+vec3 sunIntensity = vec3(5,5,4);
 vec3 betar = vec3(5.8e-6,13.5e-6,33.1e-6);
 vec3 betam = vec3(21e-6);
 
@@ -153,8 +153,8 @@ void main()
   }
 
   float mu = dot(normalize(sunDirection),normalize(direction));
-  float phaseR = 3.0/(16*3.141592)*(1+mu*mu);
-  float phaseM = 3.0/(8*3.141592)*((1-g*g)*(1+mu*mu))/((2+g*g)*pow(1+g*g-2*g*mu, 1.5));
+  float phaseR = 3.0/(8)*(1+mu*mu);
+  float phaseM = 3.0/(2)*((1-g*g)*(1+mu*mu))/((2+g*g)*pow(1+g*g-2*g*mu, 1.5));
 
   vec3 raleigh = vec3(0);
   vec3 mie = vec3(0);
@@ -211,9 +211,9 @@ void main()
              + betam * (opticalDepthM) * 1.1;
   // This is a complete fudge factor.  Can't work out why things aren't
   // dark enough in the distance.
-  vec3 transmittance = exp(-tau)*clamp((1-objectDepth/40e3),0.,1.);
+  vec3 transmittance = exp(-tau)*clamp((1-0.4*objectDepth/20e3),0.,1.);
   if (objectDepth>=INF-1)
-    transmittance = vec3(1);
+    transmittance = vec3(0.3);
 
   raleigh *= phaseR * betar;
   mie     *= phaseM * betam;
