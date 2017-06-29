@@ -117,8 +117,8 @@ class Shader(object):
 
   def deleteData(self,dataId):
     obj = self.objInfo[dataId]
-    gl.glDeleteBuffers([obj.vbo,obj.ibo])
-    gl.glDeleteVertexArrays(obj.vertexArray)
+    gl.glDeleteBuffers(3, [obj.vbo,obj.ibo])
+    gl.glDeleteVertexArrays(1, [obj.vertexArray])
 
   def __setitem__(self,i,v):
     """Sets the uniform lazily.  That is, we store the uniform CPU side, and 
@@ -204,11 +204,17 @@ class InstancedShader(GenericShader):
       gl.glBindBuffer(gl.GL_ARRAY_BUFFER, self.instbo)
       if instances.dtype[i].shape == (4, 4):
         for j in range(4):
-          offset = ctypes.c_void_p(j*stride/4)
+          offset = ctypes.c_void_p(offsetc)
           gl.glEnableVertexAttribArray(loc+j)
           gl.glVertexAttribPointer(loc+j, 4, gl.GL_FLOAT, False, stride, offset)
           gl.glVertexAttribDivisor(loc+j, 1)
-          offsetc += 4*2
+          offsetc += 16
+      elif instances.dtype[i].shape == (4,):
+        offset = ctypes.c_void_p(offsetc)
+        gl.glEnableVertexAttribArray(loc)
+        gl.glVertexAttribPointer(loc, 4, gl.GL_FLOAT, False, stride, offset)
+        gl.glVertexAttribDivisor(loc, 1)
+        offsetc += 16
       else:
         raise Exception("Type wrong for instanced variable")
     gl.glBindBuffer(gl.GL_ARRAY_BUFFER,0)

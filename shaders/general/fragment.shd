@@ -25,7 +25,7 @@ void main()
   vec4 textureColor = textureLod(colormap,vec2(VertexOut.uv.x,1-VertexOut.uv.y),0);
   if (textureColor.a < 0.0001) discard;
   vec3 color = VertexOut.color.rgb * textureColor.rgb;
-  fragColor = vec4(color ,textureColor.a);
+  fragColor = vec4(color, textureColor.a);
   fragNorm = vec4(VertexOut.normal.rgb,1);
   fragPos = VertexOut.position;
 }

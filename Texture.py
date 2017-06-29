@@ -196,3 +196,12 @@ class Texture:
   def __del__(self):
     logging.info("Freeing texture {}".format(self.id))
     gl.glDeleteTextures(self.id)
+
+
+whiteTexture = None
+def getWhiteTexture():
+  global whiteTexture
+  if whiteTexture is None:
+    whiteTexture = Texture(COLORMAP)
+    whiteTexture.loadData(np.ones((1,1,4),dtype=np.float32))
+  return whiteTexture
