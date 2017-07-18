@@ -14,7 +14,7 @@ def doNextTask():
   if len(mainThreadQueue) == 0:
     return
 
-  if time.time() - lastMainThread > 1. / mainThreadQueue[0].priority:
+  if time.time() - lastMainThread > 0.2 / mainThreadQueue[0].priority:
     item = mainThreadQueue.popleft()
     item.func(*item.args)
     lastMainThread = time.time()

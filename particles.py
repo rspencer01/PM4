@@ -2,6 +2,7 @@ import Shaders
 import numpy as np
 import OpenGL.GL as gl
 import Texture
+import lighting
 
 shader = Shaders.getShader('general', instance=True, forceReload=True)
 shader['colormap'] = Texture.COLORMAP_NUM
@@ -39,10 +40,13 @@ class ParticleSystem(object):
                                         ("color", np.float32, (4,))])
     self.instbo = gl.glGenBuffers(1)
     self.renderID = shader.setData(data, indices, self.instances[:0], self.instbo)
+    self.lightIDs = []
     self.particleCount = 10
     self.t0 = None
     self.alive = True
     self.lifetime = 1
+    self.isLight = False
+    self.lightIntensity = 1
 
 
   def isAlive(self, t):
@@ -61,6 +65,19 @@ class ParticleSystem(object):
     gl.glBindBuffer(gl.GL_ARRAY_BUFFER, self.instbo)
     gl.glBufferData(gl.GL_ARRAY_BUFFER, self.instances.nbytes, self.instances, gl.GL_STREAM_DRAW)
 
+    if self.isLight:
+      self.clearLights()
+      for i in xrange(self.particleCount):
+        particlePosition = np.dot(self.instances[i]['model'].T, np.array([0,0,0,1]))[:3]
+        self.lightIDs.append(lighting.addLight(particlePosition, [self.lightIntensity,self.lightIntensity,self.lightIntensity]))
+
+
+  def clearLights(self):
+    """Removes all the lights from the lighting control."""
+    for lightID in self.lightIDs:
+      lighting.removeLight(lightID)
+    self.lightIDs = []
+
 
   def display(self):
     """Displays all the particles."""
@@ -70,6 +87,8 @@ class ParticleSystem(object):
 
   def __del__(self):
     shader.deleteData(self.renderID)
+    if self.isLight:
+      self.clearLights()
 
 systems = set()
 

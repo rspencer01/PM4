@@ -1,6 +1,7 @@
 import numpy as np
 import particles
 import transforms
+import noiseG
 
 class IdeaSpellParticles(particles.ParticleSystem):
   def __init__(self, position):
@@ -34,22 +35,26 @@ class FountainSpellParticles(particles.ParticleSystem):
   def __init__(self, position):
     super(FountainSpellParticles, self).__init__(position)
     self.lifetime = 0.05
+    self.isLight = True
+    self.lightIntensity = 0.1
 
 
   def getCPUPositions(self, t):
     """Called to get the number and positions of the particles at time `t`.
     Must return a numpy array of models."""
-    N = 20
+    N = 40
     instances = np.zeros(N, dtype=[("model", np.float32, (4,4)),
                                    ("color", np.float32, (4,))])
     for i in xrange(self.particleCount):
+      tt = t - abs(noiseG.get(i/100., 0)[3]) * self.lifetime * 2
+      if tt<0: continue
       instances['model'][i] = np.eye(4, dtype=np.float32)
-      instances['color'][i] = np.array([1.,0.5,0.5,1])
-      transforms.scale(instances['model'][i], 0.05)
+      instances['color'][i] = np.array([1.,0.7,0.5,1])
+      transforms.scale(instances['model'][i], 0.01)
       transforms.translate(instances['model'][i],
-          x=0,
-          y=-t * (t-self.lifetime) * 3000,
-          z=t*100)
+          x=noiseG.get(i/9., t)[3],
+          y=-tt * (tt-self.lifetime) * 3000+noiseG.get(i/12., t+0.2)[3],
+          z=t*100+noiseG.get(i/9., tt+0.1)[3])
       transforms.yrotate(instances['model'][i], 360/N*i)
       transforms.translate(instances['model'][i], *self.position)
 
