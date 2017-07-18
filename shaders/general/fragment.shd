@@ -1,9 +1,9 @@
 #version 330
-layout(location=0) out vec4 fragColor;
-layout(location=1) out vec4 fragNorm;
-layout(location=2) out vec4 fragPos;
+layout(location=0) out vec4 fragmentColor;
+layout(location=1) out vec4 fragmentNorm;
+layout(location=2) out vec4 fragmentPos;
 
-in VertexData 
+in VertexData
 {
   vec4 position;
   vec4 normal;
@@ -12,20 +12,30 @@ in VertexData
   vec3 shadowPos2;
   vec3 shadowPos3;
   vec2 uv;
+  vec3 tangent;
+  vec3 bitangent;
 } VertexOut;
 
-uniform vec3 CameraPosition;
-uniform sampler2D shadowTexture1;
-uniform sampler2D shadowTexture2;
-uniform sampler2D shadowTexture3;
-uniform sampler2D  colormap;
+uniform sampler2D colormap;
+uniform sampler2D normalmap;
+uniform int options;
 
 void main()
 {
-  vec4 textureColor = textureLod(colormap,vec2(VertexOut.uv.x,1-VertexOut.uv.y),0);
-  if (textureColor.a < 0.0001) discard;
-  vec3 color = VertexOut.color.rgb * textureColor.rgb;
-  fragColor = vec4(color, textureColor.a);
-  fragNorm = vec4(VertexOut.normal.rgb,1);
-  fragPos = VertexOut.position;
+  vec3 normalDetail = normalize(textureLod(normalmap, VertexOut.uv, 0).xyz-0.5);
+  vec3 normal       = normalize(VertexOut.normal.xyz);
+  vec3 tangent      = normalize(VertexOut.tangent.xyz);
+  vec3 bitangent    = normalize(VertexOut.bitangent.xyz);
+  mat3 mt           = mat3(tangent, bitangent, normal);
+
+  vec3 actualNormal;
+
+  if (options % 2 == 1)
+    actualNormal = mt * normalDetail;
+  else
+    actualNormal = normal;
+
+  fragmentColor  = texture(colormap, VertexOut.uv);
+  fragmentNorm   = vec4(actualNormal, 1);
+  fragmentPos    = VertexOut.position;
 }

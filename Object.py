@@ -37,19 +37,18 @@ shader             = Shaders.getShader('general-noninstanced', forceReload=True)
 shader['colormap'] = Texture.COLORMAP_NUM
 shader['normalmap'] = Texture.NORMALMAP_NUM
 
-class Object:
+class Object(object):
   def __init__(
       self,
       filename,
       name=None,
       scale=1,
       position=np.zeros(3),
-      offset=np.zeros(3)):
+      offset=np.zeros(3),
+      daemon=True):
 
     if name == None:
       name = os.path.basename(filename)
-
-    logging.info("Creating object {}".format(name))
 
     self.filename = filename
     self.directory = os.path.dirname(filename)
@@ -63,10 +62,14 @@ class Object:
     self.offset = np.array(offset, dtype=np.float32)
     self.direction = np.array((0,0,1), dtype=float)
     self.bidirection = np.array((1,0,0), dtype=float)
+    self.daemon = daemon
 
-    thread = threading.Thread(target=self.loadFromFile)
-    thread.setDaemon(True)
-    thread.start()
+    if self.daemon:
+      thread = threading.Thread(target=self.loadFromFile)
+      thread.setDaemon(True)
+      thread.start()
+    else:
+      self.loadFromFile()
 
 
   def __del__(self):
@@ -142,12 +145,12 @@ class Object:
     indices = mesh.faces.reshape((-1,))
 
     # Load the texture
-    texture = Texture.Texture(Texture.COLORMAP, nonblocking=True)
+    texture = Texture.Texture(Texture.COLORMAP, nonblocking=self.daemon)
     if getTextureFile(mesh.material, pyassimp.material.aiTextureType_DIFFUSE):
       texture.loadFromImage(self.directory+'/'+getTexturePath(getTextureFile(mesh.material, pyassimp.material.aiTextureType_DIFFUSE)))
 
     if getTextureFile(mesh.material, pyassimp.material.aiTextureType_NORMALS):
-      normalTexture = Texture.Texture(Texture.NORMALMAP, nonblocking=True)
+      normalTexture = Texture.Texture(Texture.NORMALMAP, nonblocking=self.daemon)
       options = options._replace(has_bumpmap=True)
       normalTexture.loadFromImage(self.directory+'/'+getTexturePath(getTextureFile(mesh.material, pyassimp.material.aiTextureType_NORMALS)))
     else:
@@ -158,11 +161,12 @@ class Object:
     self.textures.append(texture)
     self.meshes.append(MeshDatum(data, indices, texture, normalTexture, options))
 
-    def uploadMesh():
-      self.renderIDs.append(shader.setData(data, indices))
-      logging.info("Loaded mesh {}".format(mesh.__repr__()))
+    taskQueue.addToMainThreadQueue(self.uploadMesh, (data, indices, mesh))
 
-    taskQueue.addToMainThreadQueue(uploadMesh)
+  
+  def uploadMesh(self, data, indices, mesh):
+    self.renderIDs.append(shader.setData(data, indices))
+    logging.info("Loaded mesh {}".format(mesh.__repr__()))
 
 
   def display(self):

@@ -1,9 +1,11 @@
-#version 330
+#version 410
 in vec3 position;
 in vec3 normal;
 in vec4 color;
 in vec2 textcoord;
 in mat4 model;
+in vec3 tangent;
+in vec3 bitangent;
 
 out VertexData
 {
@@ -14,11 +16,11 @@ out VertexData
   vec3 shadowPos2;
   vec3 shadowPos3;
   vec2 uv;
+  vec3 tangent;
+  vec3 bitangent;
 } VertexOut;
 
 uniform mat4 View;
-uniform vec3 CameraPosition;
-uniform vec3 CameraDirection;
 uniform mat4 projection;
 uniform mat4 shadowProjection1;
 uniform mat4 shadowProjection2;
@@ -26,12 +28,13 @@ uniform mat4 shadowProjection3;
 uniform mat4 shadow1View;
 uniform mat4 shadow2View;
 uniform mat4 shadow3View;
-uniform sampler2D heightmap;
 
 void main()
 {
   VertexOut.position = model * vec4(position,1.0);
-  VertexOut.normal = transpose(inverse(model)) * vec4(normal,1);
+  VertexOut.normal = transpose(inverse(model)) * vec4(normal, 1);
+  VertexOut.tangent = (transpose(inverse(model)) * vec4(tangent, 1)).xyz;
+  VertexOut.bitangent = (transpose(inverse(model)) * vec4(bitangent, 1)).xyz;
   VertexOut.color = color;
   VertexOut.uv = textcoord;
 

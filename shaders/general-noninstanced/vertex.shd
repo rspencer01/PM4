@@ -29,9 +29,6 @@ uniform mat4 shadow2View;
 uniform mat4 shadow3View;
 uniform mat4 model;
 
-#include shaders/include/NormalOps.shd;
-#include shaders/include/TerrainPagedTexture.shd;
-
 void main()
 {
   VertexOut.position = model * vec4(position,1.0);

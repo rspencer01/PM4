@@ -2,8 +2,9 @@ import Terrain
 import logging
 import Shaders
 import numpy as np
-import Object
+import InstancedObject
 import random
+import transforms
 from utils import stepSort
 import OpenGL.GL as gl
 from transforms import *
@@ -13,7 +14,7 @@ import Road
 import tqdm
 
 BuildingSpec = namedtuple('BuildingSpec', ('position', 'angle', 'direction', 'bidirection', 'type'))
-ClumpSpec = namedtuple('ClumpSpec', ('position', 'buildings'))
+ClumpSpec = namedtuple('ClumpSpec', ('position', 'buildings', 'buildings1buffer', 'buildings2buffer'))
 
 clumpCount = config.building_clump_count
 if clumpCount > 100:
@@ -25,14 +26,18 @@ logging.info("Creating {} clumps of buildings".format(clumpCount))
 
 Shaders.updateUniversalUniform('villageCount', clumpCount)
 
-clumpSpecs = []
-for _ in xrange(clumpCount):
+def getFlatArea():
   gr = [100,100]
   while gr[0]**2 + gr[1]**2 >1:
     clumpPosition = np.array([random.randint(-30000,30000), 0,
                      random.randint(-30000,30000)])
     clumpPosition[1] = Terrain.getAt(clumpPosition[0], clumpPosition[2])
     gr = Terrain.getGradAt(clumpPosition[0], clumpPosition[2])
+  return clumpPosition
+
+clumpSpecs = []
+for _ in xrange(clumpCount):
+  clumpPosition = getFlatArea()
   buildings = []
   for _ in xrange(random.randint(minClumpSize, maxClumpSize)):
     pos = [random.randint(-200, 200)+clumpPosition[0],
@@ -44,7 +49,7 @@ for _ in xrange(clumpCount):
     bidirection = [np.cos(angle),0.,-np.sin(angle)]
     spec = BuildingSpec(pos, angle, direction, bidirection, 0 if random.randint(1,100)%4!=0 else 1)
     buildings.append(spec)
-  spec = ClumpSpec(clumpPosition, buildings)
+  spec = ClumpSpec(clumpPosition, buildings, (-1, -1), (-1, -1))
   clumpSpecs.append(spec)
 
 Shaders.updateUniversalUniform('villagePosition', np.array([
@@ -52,17 +57,45 @@ Shaders.updateUniversalUniform('villagePosition', np.array([
   ]))
 
 building1 = \
-  Object.Object(
+  InstancedObject.InstancedObject(
     'assets/house1/PMedievalHouse.FBX',
-    'House',
+    'House1',
     scale=0.0012,
     offset=(3.4, 0, -6))
 building2 = \
-  Object.Object(
+  InstancedObject.InstancedObject(
     'assets/house2/Medieval_House.obj',
-    'House',
+    'House2',
     scale=0.03,
-    offset=(0, 0, 0))
+    offset=(0, 0, 0),
+    )
+
+
+for i in xrange(len(clumpSpecs)):
+  t = len(building1)
+  b1 = [j for j in clumpSpecs[i].buildings if j.type == 0]
+  clumpSpecs[i] = clumpSpecs[i]._replace(buildings1buffer=(t, len(b1)))
+  instances = np.zeros(len(b1), dtype=[("model", np.float32, (4,4))])
+  for j in xrange(len(b1)):
+    instances["model"][j] = np.eye(4, dtype=np.float32)
+    instances["model"][j][2,0:3] = b1[j].direction
+    instances["model"][j][0,0:3] = b1[j].bidirection
+    transforms.translate(instances["model"][j], b1[j].position[0],b1[j].position[1],b1[j].position[2])
+  building1.addInstances(instances)
+
+  t = len(building2)
+  b1 = [j for j in clumpSpecs[i].buildings if j.type == 1]
+  clumpSpecs[i] = clumpSpecs[i]._replace(buildings2buffer=(t, len(b1)))
+  instances = np.zeros(len(b1), dtype=[("model", np.float32, (4,4))])
+  for j in xrange(len(b1)):
+    instances["model"][j] = np.eye(4, dtype=np.float32)
+    instances["model"][j][2,0:3] = b1[j].direction
+    instances["model"][j][0,0:3] = b1[j].bidirection
+    transforms.translate(instances["model"][j], b1[j].position[0],b1[j].position[1],b1[j].position[2])
+  building2.addInstances(instances)
+
+building1.freeze()
+building2.freeze()
 
 pagingShader = Shaders.getShader('buildingPaging', forceReload=True)
 data = np.zeros(4,dtype=[("position" , np.float32,3)])
@@ -101,10 +134,6 @@ Terrain.registerCallback(flattenGround)
 
 def display(camera):
   stepSort('buildingsClumpDistance', clumpSpecs, key=lambda x: np.linalg.norm(x.position-camera.position))
-  for clump in clumpSpecs[:3]:
-    for spec in clump.buildings:
-      building = (building1, building2)[spec.type]
-      building.position    = spec.position
-      building.direction   = spec.direction
-      building.bidirection = spec.bidirection
-      building.display()
+  for clump in clumpSpecs[:1]:
+    building1.display(*clump.buildings1buffer)
+    building2.display(*clump.buildings2buffer)
