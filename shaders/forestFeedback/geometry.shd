@@ -5,10 +5,7 @@ layout(points, max_vertices=1) out;
 in vec2[] geoValue;
 out mat4 outValue;
 
-uniform sampler2D noise;
-uniform int worldSize;
-
-#include shaders/include/TerrainOps.shd;
+#include shaders/include/TerrainPagedTexture.shd;
 
 float rand(vec2 co){
     return fract(sin(dot(co.xy ,vec2(12.9898,78.233))) * 43758.5453);
@@ -25,8 +22,11 @@ void main()
       outValue[3][3] = 1;
       outValue[3][0] = geoValue[0].x + texture(noise, 100*geoValue[0]/worldSize).r*10;
       outValue[3][2] = geoValue[0].y + texture(noise, 100*geoValue[0]/worldSize).b*10;
-      EmitVertex();
-      EndPrimitive();
+      if (getPagedType(vec3(outValue[3][0], 0, outValue[3][2])).x < 0.1)
+      {
+        EmitVertex();
+        EndPrimitive();
+      }
     }
   }
 }
