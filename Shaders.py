@@ -302,15 +302,34 @@ def updateUniversalUniform(key, value):
     shader[key] = value
   universalUniforms[key] = value
 
-def readShaderFile(filename):
-  source = open(filename).read()
-  p = re.compile(r"#include\W(.+);")
-  m = p.search(source)
-  while m:
-    included = readShaderFile(m.group(1))
-    source = source.replace("#include {};".format(m.group(1)), included)
+class ShaderFile(object):
+  def __init__(self, filename):
+    source = open(filename).read()
+    p = re.compile(r"#include\W(.+);")
     m = p.search(source)
-  return source
+    while m:
+      included = ShaderFile(m.group(1))
+      source = source.replace("#include {};".format(m.group(1)), included.getSource())
+      m = p.search(source)
+    self.uniforms = []
+    self.headers = []
+    self.code = []
+    headers = True
+    for i in source.split('\n'):
+      if 'uniform' in i:
+        self.uniforms.append(' '.join(i.split()))
+        headers = False
+      elif headers:
+        self.headers.append(i)
+      else:
+        self.code.append(i)
+
+    self.uniforms = list(set(self.uniforms))
+
+
+  def getSource(self):
+    return  '\n'.join(
+        self.headers + self.uniforms + self.code)
 
 def getShader(name, tess=False, instance=False, geom=False, forceReload=True):
   global shaders
@@ -320,25 +339,25 @@ def getShader(name, tess=False, instance=False, geom=False, forceReload=True):
       if not instance:
         shaders[name] = GenericShader(
                                name,
-                               readShaderFile('shaders/'+name+'/fragment.shd'),
-                               readShaderFile('shaders/'+name+'/vertex.shd'),
-                               geom and readShaderFile('shaders/'+name+'/geometry.shd')
+                               ShaderFile('shaders/'+name+'/fragment.shd').getSource(),
+                               ShaderFile('shaders/'+name+'/vertex.shd').getSource(),
+                               geom and ShaderFile('shaders/'+name+'/geometry.shd').getSource()
                                )
       else:
         shaders[name] = InstancedShader(
                                name,
-                               readShaderFile('shaders/'+name+'/fragment.shd'),
-                               readShaderFile('shaders/'+name+'/vertex.shd'),
-                               geom and readShaderFile('shaders/'+name+'/geometry.shd')
+                               ShaderFile('shaders/'+name+'/fragment.shd').getSource(),
+                               ShaderFile('shaders/'+name+'/vertex.shd').getSource(),
+                               geom and ShaderFile('shaders/'+name+'/geometry.shd').getSource()
                                )
     else:
       shaders[name] = TesselationShader(
                                name,
-                               readShaderFile('shaders/'+name+'/fragment.shd'),
-                               readShaderFile('shaders/'+name+'/vertex.shd'),
-                               geom and readShaderFile('shaders/'+name+'/geometry.shd'),
-                               readShaderFile('shaders/'+name+'/tesscontrol.shd'),
-                               readShaderFile('shaders/'+name+'/tesseval.shd')
+                               ShaderFile('shaders/'+name+'/fragment.shd').getSource(),
+                               ShaderFile('shaders/'+name+'/vertex.shd').getSource(),
+                               geom and ShaderFile('shaders/'+name+'/geometry.shd').getSource(),
+                               ShaderFile('shaders/'+name+'/tesscontrol.shd').getSource(),
+                               ShaderFile('shaders/'+name+'/tesseval.shd').getSource()
                                )
     setUniversalUniforms(shaders[name])
   return shaders[name]
@@ -346,3 +365,12 @@ def getShader(name, tess=False, instance=False, geom=False, forceReload=True):
 def setUniform(name,value):
   for i in shaders:
     shaders[i][name] = value
+
+if __name__ == "__main__":
+  import argparse
+  parser = argparse.ArgumentParser(description='Magrathea shader source inspector.')
+  parser.add_argument('file',
+      help='source file')
+  args = parser.parse_args()
+
+  print ShaderFile(args.file).getSource()
