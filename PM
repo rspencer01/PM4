@@ -135,6 +135,7 @@ def timer_handler(fps):
   Map.update(1.0/fps)
   particles.update(Shadows.gameTime)
   Forest.update(camera.position)
+  Characters.update()
   Shadows.gameTime += 3e-4
   if 'w' in keys:
     camera.move(cameraSpeed * 1.0/fps)

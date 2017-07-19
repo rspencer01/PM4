@@ -173,7 +173,6 @@ class GenericShader(Shader):
 class InstancedShader(GenericShader):
   def __init__(self,name,frag,vert,geom):
     super(InstancedShader,self).__init__(name,frag,vert,geom)
-    self.instbo = None
 
   def setData(self, data, indices, instanced, bufferID=None):
     renderId = super(InstancedShader, self).setData(data, indices)
@@ -186,12 +185,12 @@ class InstancedShader(GenericShader):
     from the buffer specified."""
     gl.glBindVertexArray(self.objInfo[renderId].vertexArray)
     if bufferID == None:
-      self.instbo = gl.glGenBuffers(1)
-      gl.glBindBuffer(gl.GL_ARRAY_BUFFER, self.instbo)
+      instbo = gl.glGenBuffers(1)
+      gl.glBindBuffer(gl.GL_ARRAY_BUFFER, instbo)
       gl.glBufferData(gl.GL_ARRAY_BUFFER, instances.nbytes, instances, gl.GL_STREAM_DRAW)
     else:
-      self.instbo = bufferID
-    self.objInfo[renderId] = self.objInfo[renderId]._replace(instbo=self.instbo)
+      instbo = bufferID
+    self.objInfo[renderId] = self.objInfo[renderId]._replace(instbo=instbo)
 
     stride = instances.strides[0]
     offsetc = 0
@@ -201,7 +200,7 @@ class InstancedShader(GenericShader):
       if loc==-1:
         print "Error setting "+i+" in shader "+self.name
         continue
-      gl.glBindBuffer(gl.GL_ARRAY_BUFFER, self.instbo)
+      gl.glBindBuffer(gl.GL_ARRAY_BUFFER, instbo)
       if instances.dtype[i].shape == (4, 4):
         for j in range(4):
           offset = ctypes.c_void_p(offsetc)

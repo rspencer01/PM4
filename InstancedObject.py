@@ -21,7 +21,9 @@ class InstancedObject(Object.Object):
     """Intercepted so that we can do the whole instancing thing."""
     pass
 
-  def display(self, offset=0, num=0):
+  def display(self, offset=0, num=None):
+    if num is None:
+      num = len(self)
     shader.load()
     if (self, offset, num) not in rendered:
       logging.info("{} rendering from {} to {}".format(self, offset, offset+num))
@@ -51,4 +53,8 @@ class InstancedObject(Object.Object):
     logging.info("Freezing {}".format(self))
     for mesh in self.meshes:
       self.renderIDs.append(shader.setData(mesh.data, mesh.indices, self.instances))
-    logging.info(self.renderIDs)
+
+  def refreeze(self):
+    for renderid in self.renderIDs:
+      gl.glBindBuffer(gl.GL_ARRAY_BUFFER, shader.objInfo[renderid].instbo)
+      gl.glBufferData(gl.GL_ARRAY_BUFFER, self.instances.nbytes, self.instances, gl.GL_STREAM_DRAW)
