@@ -36,6 +36,7 @@ indices = np.array(range(count),dtype=np.int32)
 shader = getShader('grass3',geom=True,forceReload=True)
 shader['patchSize'] = patchSize
 shader['colormap'] = Texture.COLORMAP_NUM
+shader['noisemap'] = Texture.NOISE_NUM
 
 renderID = shader.setData(data,indices)
 

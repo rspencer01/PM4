@@ -48,6 +48,7 @@ shader = getShader('terrain',tess=True,geom=False,forceReload=True)
 shader['model'] = np.eye(4,dtype=np.float32)
 shader['colormap'] = Texture.COLORMAP_NUM
 shader['normalmap'] = Texture.NORMALMAP_NUM
+shader['noisemap'] = Texture.NOISE_NUM
 renderID = shader.setData(patchData, patchIndices)
 
 # Texture sizes
@@ -108,7 +109,7 @@ def getTexData():
   colorMapSize = 1000
   texData = np.zeros((colorMapSize,colorMapSize,4),dtype=np.float32)
 
-  a = Image.open('textures/forest.jpg')
+  a = Image.open('textures/grass.jpg')
   a.thumbnail((colorMapSize/2,colorMapSize/2),Image.ANTIALIAS)
   forest = np.array(a.getdata()).astype(np.float32)
   add = np.zeros((forest.shape[0],1),dtype=np.float32)
@@ -169,7 +170,7 @@ def getTexNormData():
   cobblestone_normal = np.append(cobblestone_normal,add,axis=1)
   cobblestone_normal = np.array([cobblestone_normal[i*a.size[0]:(i+1)*a.size[0]] for i in xrange(a.size[1])])/256
 
-  texNormData[0:colorMapSize/2,0:colorMapSize/2] = forest_normal
+#  texNormData[0:colorMapSize/2,0:colorMapSize/2] = forest_normal
   texNormData[colorMapSize/2:,:colorMapSize/2] = clay_normal
   texNormData[colorMapSize/2:,colorMapSize/2:] = cobblestone_normal
 
@@ -206,15 +207,15 @@ def getFineAmount(x, y):
   s[:3] /= s[:3].dot(s[:3])**0.5
   theta = acos(s[1])
   if theta < 0.4:
-      return 30
-  return 30 + (theta - 0.4)*100 + 10*(theta-0.4)*getCurvature(x,y);
+      return 1
+  return 1 + (theta - 0.4)*70 + 10*(theta-0.4)*getCurvature(x,y);
 
 def getAt(x,y):
   x += planetSize / 2
   y += planetSize / 2
   s = heightmap.read(float(x)/planetSize, float(y)/planetSize)[3] + 1000
 
-  offset = noiseG.noiseTexture.read(x/1000., y/1000.)[3] * getFineAmount(x, y)
+  offset = noiseG.noiseTexture.read(x/6000., y/6000.)[3] * getFineAmount(x, y)
 
   return s + offset
 

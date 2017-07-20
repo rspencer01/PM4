@@ -15,6 +15,7 @@ shader['colormap'] = Texture.COLORMAP_NUM
 shader['blurredColorMap'] = Texture.COLORMAP3_NUM
 shader['depthmap'] = Texture.DEPTHMAP_NUM
 shader['highCol'] = Texture.COLORMAP2_NUM
+shader['noisemap'] = Texture.NOISE_NUM
 renderID = shader.setData(data,indices)
 
 lightingShader = getShader('lighting',forceReload=True)

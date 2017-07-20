@@ -1,0 +1,39 @@
+uniform sampler2D noisemap;
+
+float getGroundDryness(vec2 pos)
+{
+  return clamp((textureLod(noisemap,pos/50,0).a
+        +textureLod(noisemap,pos,0).a*0.2
+        +textureLod(noisemap,pos/320,0).a)/1.2,-1,1);
+}
+
+vec3 colorOffset(vec2 pos)
+{
+  float v = getGroundDryness(pos);
+  if (v>0)
+  {
+    v = pow(v, 0.5);
+    return vec3(1-0.2*v, 1-0.2*v, 1-0.4*v);
+  }
+  v = pow(-v, 1.1);
+  return vec3(1+0.35*v, 1+0.1*v, 1-0.25*v);
+}
+
+float grass_height_displacement(vec2 pos)
+{
+  float f = (1+clamp(texture(noisemap,pos/6).a, -1.0, 0.7))/1.7
+                   + texture(noisemap,pos/50).a*5;
+                   + texture(noisemap,pos/100).a*10;
+  return f*0.05;
+}
+
+vec3 get_normal_from_height(vec2 pos)
+{
+  float scale = clamp(getGroundDryness(pos)+0.8,0,1);
+  vec3 v1 = vec3(pos.x, grass_height_displacement(pos)*scale, pos.y);
+  vec3 v2 = vec3(pos.x+0.01, grass_height_displacement(pos+vec2(0.01,0))*scale, pos.y);
+  vec3 v3 = vec3(pos.x, grass_height_displacement(pos+vec2(0,0.01))*scale, pos.y+0.01);
+  vec3 v = normalize(cross(v3-v1, v2-v1));
+  return v;
+}
+

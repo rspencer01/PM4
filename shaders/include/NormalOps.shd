@@ -18,4 +18,3 @@ vec4 scaleNormal(vec4 a, float s)
   a.xyz = normalize(a.xyz);
   return a;
 }
-

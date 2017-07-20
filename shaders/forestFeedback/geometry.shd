@@ -13,15 +13,15 @@ float rand(vec2 co){
 
 void main()
 {
-  if (texture(noise, 5 * geoValue[0] / worldSize).a > 0.05)
+  if (texture(noise, 5 * geoValue[0] / worldSize / 6).a > 0.05)
   {
     if (getNormal(geoValue[0] + worldSize/2).y > 0.96)
     {
       float scale = 0.4 + 0.6 * rand(geoValue[0]/worldSize);
       outValue = mat4(scale);
       outValue[3][3] = 1;
-      outValue[3][0] = geoValue[0].x + texture(noise, 100*geoValue[0]/worldSize).r*10;
-      outValue[3][2] = geoValue[0].y + texture(noise, 100*geoValue[0]/worldSize).b*10;
+      outValue[3][0] = geoValue[0].x + texture(noise, 100*geoValue[0]/worldSize/6).r*10;
+      outValue[3][2] = geoValue[0].y + texture(noise, 100*geoValue[0]/worldSize/6).b*10;
       if (getPagedType(vec3(outValue[3][0], 0, outValue[3][2])).x < 0.1)
       {
         EmitVertex();

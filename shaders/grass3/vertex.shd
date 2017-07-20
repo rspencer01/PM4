@@ -29,7 +29,7 @@ void main()
   VertexOut.position.y += 1e3;
 
   VertexOut.type=vec2(.5,.5);
-  if (texture2D(noise,cos(VertexOut.position.xz)*0.300+vec2(.5)).a > .3)
+  if (texture2D(noise,cos(VertexOut.position.xz)*0.300+vec2(.5)).a > .6)
     VertexOut.type=vec2(.5,0.);
 
   vec3 offst = getOffset(VertexOut.position.xyz);
