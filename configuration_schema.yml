@@ -47,7 +47,7 @@ forest_tree_count:
     The maximum number of trees in the world.  Fewer trees will be more sparsely
     distributed.
   type: integer
-  default: 4000000
+  default: 1000000
 npc_count:
   help:
     The number of non-player-characters in the world
