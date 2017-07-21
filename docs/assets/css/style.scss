@@ -1,0 +1,15 @@
+---
+---
+
+@import "{{ site.theme }}";
+
+html {
+  background-color: #6c7989;
+}
+
+body {
+  background-image: url("../../static/header.png");
+  background-color: #6c7989;
+  background-repeat: no-repeat;
+  padding-bottom: 0;
+}

@@ -12,3 +12,6 @@ nsight_profiler.cfg
 *.trace
 
 *.log
+
+docs/_site/
+docs/Gemfile.lock
