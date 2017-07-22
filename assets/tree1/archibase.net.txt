@@ -1,1 +1,3 @@
-There are always new 3d models at www.archibase.net!
+version https://git-lfs.github.com/spec/v1
+oid sha256:578b52c81650fbf9f50340f098e0dce258f9466e5493c91ec1b3e8d0279769d4
+size 52
