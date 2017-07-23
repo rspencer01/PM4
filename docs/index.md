@@ -27,3 +27,9 @@ The first time you run Project Magrathea, it will take a while (about 10 minutes
 ## Helping out
 
 I'd love to have some help with this project.  Its been a labor of love for over four years (in various forms) for me.  [See how you can help.](help.html)
+
+## Notes and articles
+
+These aren't quite blog posts, as they aren't regular, but are interesting things I've come across in the course of the project
+
+ * ### [Git LFS Woes](lfs-woes.html)
