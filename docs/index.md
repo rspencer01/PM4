@@ -33,3 +33,4 @@ I'd love to have some help with this project.  Its been a labor of love for over
 These aren't quite blog posts, as they aren't regular, but are interesting things I've come across in the course of the project
 
  * ### [Git LFS Woes](lfs-woes.html)
+ * ### [Bumpy Grass](grass-bump.html)

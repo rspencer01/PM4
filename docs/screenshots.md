@@ -14,3 +14,6 @@ Click for enlargements
 <a href="static/screenshot4.jpg">
   <img style="width:100%;" src="static/screenshot4.jpg">
 </a>
+<a href="static/screenshot5.jpg">
+  <img style="width:100%;" src="static/screenshot5.jpg">
+</a>
