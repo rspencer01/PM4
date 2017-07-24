@@ -16,7 +16,13 @@ Have a look at some of the [screenshots](screenshots.html).
 
 ## Running the software
 
-You will require `git lfs` to get all the assets.  Apart from that, installation should be as simple as
+You will require
+ * `git lfs`
+ * `pyopengl`
+ * `tqdm`
+ * `pyassimp` (a recent version, probably compiled from source)
+
+Apart from that, installation should be as simple as
 ~~~ bash
 $ git clone https://github.com/rspencer01/PM4.git
 $ cd PM4
