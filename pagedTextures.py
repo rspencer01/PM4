@@ -82,13 +82,17 @@ def updatePageTable(camera):
   currentPage = (pagesAcross - int(camera.position[2] / (pageSize) + pagesAcross/2),
                                int(camera.position[0] / (pageSize) + pagesAcross/2))
   toredo = False
+  alreadyDone = set()
   for i in xrange(max(0,currentPage[0]-numPages/2),min(pagesAcross,currentPage[0]+numPages/2+1)):
     for j in xrange(max(0,currentPage[1]-numPages/2),min(pagesAcross,currentPage[1]+numPages/2+1)):
       if (i,j) not in pageMapping:
         logging.debug("Page {} not present.".format((i,j)))
         toredo = True
-        break
+      else:
+        alreadyDone.add((i,j))
   if not toredo: return
+  for i in alreadyDone:
+    pageMapping[i]
 
   data = np.zeros((pagesAcross, pagesAcross, 4),dtype=np.float32) - 1
   for i in xrange(max(0,currentPage[0]-numPages/2),min(pagesAcross,currentPage[0]+numPages/2+1)):
