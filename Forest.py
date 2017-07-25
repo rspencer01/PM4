@@ -48,7 +48,8 @@ lastPosition = None
 def update(position):
   global lastPosition
   ps = position[np.array((0,2))]
-  ps = ((ps/120).astype(int)*120).astype(np.float32)
+  k = (N*3) - ((N*3)%12)
+  ps = ((ps/k).astype(int)*k).astype(np.float32)
   if (np.array_equal(ps, lastPosition)): return
   lastPosition = ps.copy()
 

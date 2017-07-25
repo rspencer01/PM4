@@ -21,6 +21,7 @@ void main()
       outValue = mat4(scale);
       outValue[3][3] = 1;
       outValue[3][0] = geoValue[0].x + texture(noise, 100*geoValue[0]/worldSize/6).r*10;
+      outValue[3][1] = getOffset(vec3(geoValue[0].x,0, geoValue[0].y)).y + 1000;
       outValue[3][2] = geoValue[0].y + texture(noise, 100*geoValue[0]/worldSize/6).b*10;
       if (getPagedType(vec3(outValue[3][0], 0, outValue[3][2])).x < 0.1)
       {

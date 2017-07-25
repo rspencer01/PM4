@@ -6,32 +6,21 @@ layout(location=2) out vec4 fragPos;
 in GeometryData
 {
   vec4 position;
-  vec4 normal;
-  vec4 color;
-  vec3 shadowPos1;
-  vec3 shadowPos2;
-  vec3 shadowPos3;
   vec2 uv;
   mat4 normMat;
 } GeometryOut;
 
-uniform vec3 CameraPosition;
-uniform vec3 userCameraPosition;
-uniform sampler2D shadowTexture1;
-uniform sampler2D shadowTexture2;
-uniform sampler2D shadowTexture3;
 uniform sampler2D  colormap;
 uniform sampler2D  bumpmap;
 
 void main()
 {
-  float dist = length(GeometryOut.position.xyz - userCameraPosition);
-  vec4 textureColor = texture(colormap,vec2(GeometryOut.uv.x,GeometryOut.uv.y));
+  vec4 textureColor = texture(colormap,GeometryOut.uv);
   if (textureColor.a < 0.4) discard;
-  fragColor = vec4(textureColor.rgb,1);
 
   vec3 normal = normalize(texture(bumpmap, GeometryOut.uv).xyz - vec3(0.5));
-  fragNorm = GeometryOut.normMat * vec4(normal, 1);
 
+  fragColor = vec4(textureColor.rgb,1);
+  fragNorm = GeometryOut.normMat * vec4(normal, 1);
   fragPos = GeometryOut.position;
 }

@@ -213,7 +213,7 @@ class MultiObject(object):
     data["normal"] = 1
     data["textcoord"] = [[0, 0], [0, 1], [1, 1], [1, 0]]
     data["color"] = 1
-    indices = np.array([0, 1, 2, 2, 0, 3], dtype=np.int32)
+    indices = np.array([[0, 1, 2], [2, 0, 3]], dtype=np.int32)
     self.billboardMesh = (data,indices)
 
 

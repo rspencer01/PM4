@@ -111,7 +111,7 @@ class Shader(object):
 
     if indices != []:
       gl.glBindBuffer(gl.GL_ELEMENT_ARRAY_BUFFER, ibo)
-      gl.glBufferData(gl.GL_ELEMENT_ARRAY_BUFFER, indices.nbytes, indices, gl.GL_STREAM_DRAW);
+      gl.glBufferData(gl.GL_ELEMENT_ARRAY_BUFFER, indices.nbytes, indices, gl.GL_STATIC_DRAW);
 
     return len(self.objInfo)-1
 
@@ -187,7 +187,7 @@ class InstancedShader(GenericShader):
     if bufferID == None:
       instbo = gl.glGenBuffers(1)
       gl.glBindBuffer(gl.GL_ARRAY_BUFFER, instbo)
-      gl.glBufferData(gl.GL_ARRAY_BUFFER, instances.nbytes, instances, gl.GL_STREAM_DRAW)
+      gl.glBufferData(gl.GL_ARRAY_BUFFER, instances.nbytes, instances, gl.GL_STATIC_DRAW)
     else:
       instbo = bufferID
     self.objInfo[renderId] = self.objInfo[renderId]._replace(instbo=instbo)
@@ -264,7 +264,7 @@ class TransformFeedbackShader(Shader):
 
     gl.glBindVertexArray(self.objInfo[objectIndex].vertexArray)
     gl.glBindBuffer(gl.GL_TRANSFORM_FEEDBACK_BUFFER, tbo)
-    gl.glBufferData(gl.GL_TRANSFORM_FEEDBACK_BUFFER, max_size, None, gl.GL_STATIC_READ)
+    gl.glBufferData(gl.GL_TRANSFORM_FEEDBACK_BUFFER, max_size, None, gl.GL_STATIC_DRAW)
     gl.glBindBufferBase(gl.GL_TRANSFORM_FEEDBACK_BUFFER, 0, tbo)
 
     return tbo
