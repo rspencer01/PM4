@@ -13,4 +13,5 @@ f    | Toggle fast mode
 m    | Toggle large map
 n    | Cycle normal, diffuse mode
 0    | Drop a light
+y    | Toggle flycam
 esc  | Exit

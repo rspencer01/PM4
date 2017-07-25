@@ -39,6 +39,7 @@ screenshotDest = None
 hold_mouse = True
 fastMode = False
 trianglesQuery = None
+flycamactive = False
 
 aboveGround = 1
 
@@ -141,6 +142,8 @@ def timer_handler(fps):
   particles.update(Shadows.gameTime)
   Forest.update(camera.position)
   Characters.update()
+  if flycamactive:
+    flyCam.update(camera)
   Shadows.gameTime += 3e-4
   if 'w' in keys:
     camera.move(cameraSpeed * 1.0/fps)
@@ -184,7 +187,7 @@ def reshape(width,height):
 
 keys = set()
 def keyboard_handler(key, x, y):
-  global line,enableAtmosphere, screenshotDest, hold_mouse, fastMode
+  global line,enableAtmosphere, screenshotDest, hold_mouse, fastMode,flycamactive
   if key=='\033':
     if args.args.replay is None:
       messaging.save_messages()
@@ -219,6 +222,8 @@ def keyboard_handler(key, x, y):
     messaging.add_message(messaging.Message('spell',('idea',)))
   if key=='Z':
     messaging.add_message(messaging.Message('spell',('fountain',)))
+  if key=='y':
+    flycamactive = not flycamactive
   if key=='r':
     if hold_mouse:
       glut.glutSetCursor(glut.GLUT_CURSOR_INHERIT)
@@ -339,13 +344,13 @@ import Characters
 import Buildings
 import Map
 
+import flyCam
+
 camera = Camera.Camera(
-        np.array([ 654., 1356.92767998,-120]),
+        np.array([ 0., 1356.92767998,-1000]),
         move_hook=lambda x:np.array((x[0],
             max(Terrain.getAt(x[0],x[2])+0.6,x[1]),x[2]))
         )
-camera.position[0] = Buildings.roads[0].controls[10][0]
-camera.position[2] = Buildings.roads[0].controls[10][1]
 camera.radiusCentre = np.array([0,-Re,0])
 camera.minRadius = Re
 camera.render()
