@@ -15,14 +15,14 @@ float getFineAmount(vec2 ps)
 {
   float theta = acos(normalize(texture(heightmap,ps/60000).xyz).y);
   if (theta<0.4)
-    return 1;
-  return (1+(theta-0.4)*70 + 10*(theta-0.4)*getCurvature(heightmap, ps));
+    return 20;
+  return (20+(theta-0.4)*100 + 40*(theta-0.4)*getCurvature(heightmap, ps));
 }
 
 vec4 getFineValue(vec2 ps)
 {
   vec4 ans1 = texture(noise, ps/6000);
-  ans1.xz /= 1000;
+  ans1.xz /= 6000;
   ans1.xzw *= getFineAmount(ps);
   ans1.xyz = normalize(ans1.xyz);
   return ans1;

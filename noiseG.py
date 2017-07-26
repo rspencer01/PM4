@@ -55,6 +55,7 @@ noiseTexture.loadData(d, keep_copy=True)
 noiseTexture.load()
 
 Shaders.updateUniversalUniform('noise', Texture.NOISE_NUM)
+Shaders.updateUniversalUniform('noisemap', Texture.NOISE_NUM)
 
 def get(x, y):
   return d[int(d.shape[0]*x)%d.shape[0]][int(d.shape[1]*y)%d.shape[1]]

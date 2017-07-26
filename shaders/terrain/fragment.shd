@@ -61,7 +61,6 @@ vec3 getNormalmap(vec3 position, vec3 type, vec3 norm, vec3 averageNorm)
     }
   }
   return get_normal_from_height(position.xz).rbg;
-  return normalize(texture(normalmap,(mod(vec2(TesselationOut.position.xz)/4,vec2(1)))/2+vec2(0,0)).xyz-0.5);
 }
 
 vec3 color(vec3 norm,vec3 pos,vec3 averageNorm, vec3 type)

@@ -40,7 +40,7 @@ def getPatchData():
   patchData['position']=(patchData['position']-np.array([patches/2,0,patches/2]))*patchSize
   return patchData
 
-patchData = assets.getAsset('terrain_patch_data', getPatchData)
+patchData = assets.getAsset('terrain_patch_data', getPatchData, (), args.args.remake_terrain)
 patchIndices = np.array([],dtype=np.int32)
 
 # Set up renderer
@@ -207,8 +207,8 @@ def getFineAmount(x, y):
   s[:3] /= s[:3].dot(s[:3])**0.5
   theta = acos(s[1])
   if theta < 0.4:
-      return 1
-  return 1 + (theta - 0.4)*70 + 10*(theta-0.4)*getCurvature(x,y);
+      return 20
+  return 20 + (theta - 0.4)*100 + 10*(theta-0.4)*getCurvature(x,y);
 
 def getAt(x,y):
   x += planetSize / 2
