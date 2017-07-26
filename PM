@@ -40,12 +40,17 @@ hold_mouse = True
 fastMode = False
 trianglesQuery = None
 flycamactive = False
+frametimes = [0 for _ in xrange(200)]
+frametimecount = 0
 
 aboveGround = 1
 
 def display():
-  global frametime,lastframe,cputime,lastcpucycle, screenshotDest, trianglesQuery
-  frametime = frametime*.8 + 0.2*(time.time()-lastframe)
+  global frametime,lastframe,cputime,lastcpucycle, screenshotDest, trianglesQuery, frametimes, frametimecount
+  thisframetime = time.time()-lastframe
+  frametimes[frametimecount % len(frametimes)] = thisframetime
+  frametimecount += 1
+  frametime = frametime*.8 + 0.2*thisframetime
   lastframe = time.time()
 
   messaging.process_messages()
@@ -192,6 +197,7 @@ def keyboard_handler(key, x, y):
     if args.args.replay is None:
       messaging.save_messages()
     gl.glDeleteQueries(1, [trianglesQuery])
+    logging.info("Average frame time {:.4f} (+-{:.4f})".format(sum(frametimes)/len(frametimes), np.std(frametimes)))
     logging.warn("Exiting...")
     sys.exit(0)
   if key=='l':
