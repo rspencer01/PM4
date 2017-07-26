@@ -105,16 +105,16 @@ def display():
 
   gl.glDisable(gl.GL_CULL_FACE)
   gl.glPolygonMode(gl.GL_FRONT_AND_BACK,gl.GL_FILL);
-  renderStages[1].load(windowWidth, windowHeight)
+  renderStages[1].load(windowWidth, windowHeight, clear=False)
   postrender.lighting(renderStages[0].displayColorTexture,renderStages[0].displaySecondaryColorTexture,renderStages[0].displayAuxColorTexture,renderStages[0].displayDepthTexture)
   lastRenderStage = renderStages[1]
 
   if enableAtmosphere:
-    renderStages[2].load(windowWidth, windowHeight)
+    renderStages[2].load(windowWidth, windowHeight, clear=False)
     Sky.display(lastRenderStage)
     lastRenderStage = renderStages[2]
 
-  renderStages[3].load(windowWidth, windowHeight)
+  renderStages[3].load(windowWidth, windowHeight, clear=False)
   postrender.display(lastRenderStage,windowWidth,windowHeight)
   Map.display()
   lastRenderStage = renderStages[3]

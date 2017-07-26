@@ -54,6 +54,8 @@ if textureUnits < 32:
   logging.fatal("Insufficient texture units.  Require 32, have {}".format(textureUnits))
   sys.exit(1)
 
+activeTexture = None
+
 class Texture:
   def __init__(self, type, nonblocking=False, internal_format=gl.GL_RGBA32F):
     """Creates a new texture of the given type.  If nonblocking is specified
@@ -116,7 +118,10 @@ class Texture:
 
 
   def loadAs(self, type):
-    gl.glActiveTexture(type)
+    global activeTexture
+    if type != activeTexture:
+      gl.glActiveTexture(type)
+      activeTexture = type
     gl.glBindTexture(gl.GL_TEXTURE_2D, self.id)
 
 

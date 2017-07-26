@@ -21,17 +21,25 @@ int detailLevel(vec3 position)
 {
   vec3 dir = position - userCameraPosition;
   float dist = length(dir.xz);
-  if (dist < 300)
+  if (dist < 400)
     return 100;
   if (dist > 40000)
     return 0;
+  if (dist > 4000)
+  {
+    float ht = texture(heightmap,position.xz/60000+vec2(0.5)).a;
+    return 1 +
+    int(ht/1500);
+  }
   if (dist > 1000)
     if (dot(normalize(dir.xyz),normalize(CameraDirection.xyz)) < 0.0)
       return 0;
-  vec3 nrm = normalize(texture(heightmap,position.xz/60000+vec2(0.5)).zyx);
-  return 1 +
-    int(30 * (1-nrm.y)*clamp(1-(dist-300)/7000,0,1)) +
-    int(clamp(1-(dist-300)/6000,0,1)*5);
+  if (dist < 1000)
+    return 1 +
+      int(exp(-(dist-300)/700)*8);
+  if (dist < 4000)
+    return 2;
+  return 1;
 }
 
 void main()

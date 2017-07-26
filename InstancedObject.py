@@ -25,11 +25,6 @@ class InstancedObject(Object.Object):
     if num is None:
       num = len(self)
     shader.load()
-    if (self, offset, num) not in rendered:
-      logging.info("{} rendering from {} to {}".format(self, offset, offset+num))
-      logging.info(type(shader))
-      rendered.add((self, offset, num))
-
     options = None
 
     for meshdatum, renderid in zip(self.meshes, self.renderIDs):
