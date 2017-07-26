@@ -3,7 +3,6 @@ uniform sampler2D noisemap;
 float getGroundDryness(vec2 pos)
 {
   return clamp((textureLod(noisemap,pos/50,0).a
-        +textureLod(noisemap,pos,0).a*0.2
         +textureLod(noisemap,pos/320,0).a)/1.2,-1,1);
 }
 
@@ -23,7 +22,6 @@ float grass_height_displacement(vec2 pos)
 {
   float f = (1+clamp(texture(noisemap,pos/6).a, -1.0, 0.7))/1.7
                    + texture(noisemap,pos/50).a*5;
-                   + texture(noisemap,pos/100).a*10;
   return f*0.05;
 }
 
