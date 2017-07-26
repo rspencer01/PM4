@@ -77,6 +77,7 @@ def display():
 
   Terrain.updatePageTable(camera)
 
+  gl.glEnable(gl.GL_CULL_FACE)
   camera.render('user')
   Shadows.render()
 
@@ -102,6 +103,7 @@ def display():
 
   particles.render_all()
 
+  gl.glDisable(gl.GL_CULL_FACE)
   gl.glPolygonMode(gl.GL_FRONT_AND_BACK,gl.GL_FILL);
   renderStages[1].load(windowWidth, windowHeight)
   postrender.lighting(renderStages[0].displayColorTexture,renderStages[0].displaySecondaryColorTexture,renderStages[0].displayAuxColorTexture,renderStages[0].displayDepthTexture)
@@ -319,6 +321,7 @@ gl.glEnable(gl.GL_DEPTH_TEST)
 gl.glPolygonMode(gl.GL_FRONT_AND_BACK,gl.GL_FILL);
 gl.glEnable(gl.GL_BLEND)
 gl.glBlendFunc(gl.GL_SRC_ALPHA, gl.GL_ONE_MINUS_SRC_ALPHA);
+gl.glCullFace(gl.GL_BACK)
 glut.glutReshapeFunc(reshape)
 glut.glutDisplayFunc(display)
 if args.args.replay is None:

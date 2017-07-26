@@ -92,28 +92,28 @@ void main()
 
   EndPrimitive();
 
-  pos = VertexOut[0].position.xyz + east*.5+north*.5+up*.4;
+  pos = VertexOut[0].position.xyz - east*.5-north*.5+up*.4;
   gl_Position = projection*View*vec4(pos,1);
   GeometryOut.position = vec4(pos,1);
   GeometryOut.uv = VertexOut[0].type+vec2(1,1)/2;
   GeometryOut.normal = vec4(VertexOut[0].up, 1);
   EmitVertex();
 
-  pos = VertexOut[0].position.xyz - east*.5+north*.5+up*.4;
+  pos = VertexOut[0].position.xyz + east*.5-north*.5+up*.4;
   gl_Position = projection*View*vec4(pos,1);
   GeometryOut.position = vec4(pos,1);
   GeometryOut.uv = VertexOut[0].type+vec2(0,1)/2;
   GeometryOut.normal = vec4(VertexOut[0].up, 1);
   EmitVertex();
 
-  pos = VertexOut[0].position.xyz + east*.5-north*.5 +up*.4;
+  pos = VertexOut[0].position.xyz - east*.5+north*.5 +up*.4;
   gl_Position = projection*View*vec4(pos,1);
   GeometryOut.position = vec4(pos,1);
   GeometryOut.uv = VertexOut[0].type+vec2(1,0.01)/2;
   GeometryOut.normal = vec4(VertexOut[0].up, 1);
   EmitVertex();
 
-  pos = VertexOut[0].position.xyz - east*.5-north*.5 +up*.4;
+  pos = VertexOut[0].position.xyz + east*.5+north*.5 +up*.4;
   gl_Position = projection*View*vec4(pos,1);
   GeometryOut.position = vec4(pos,1);
   GeometryOut.uv = VertexOut[0].type+vec2(0,0.01)/2;
