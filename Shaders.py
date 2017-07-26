@@ -160,6 +160,7 @@ class Shader(object):
     self._setitems()
     gl.glBindVertexArray(self.objInfo[objectIndex].vertexArray)
     gl.glDrawElements(type,self.objInfo[objectIndex].numIndices,gl.GL_UNSIGNED_INT,None)
+    gl.glFlush()
 
 class GenericShader(Shader):
   def __init__(self, name, frag, vert, geom):
@@ -230,6 +231,7 @@ class InstancedShader(GenericShader):
                                num,
                                offset
                                )
+    gl.glFlush()
 
 class TesselationShader(Shader):
   def __init__(self, name, frag, vert, geom, tessC, tessE):
@@ -248,6 +250,7 @@ class TesselationShader(Shader):
     gl.glBindVertexArray(self.objInfo[objectIndex].vertexArray)
     gl.glPatchParameteri(gl.GL_PATCH_VERTICES, 3)
     gl.glDrawArrays(gl.GL_PATCHES, 0, number)
+    gl.glFlush()
 
 class TransformFeedbackShader(Shader):
   def addOutput(self, name):
