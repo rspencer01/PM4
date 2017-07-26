@@ -46,6 +46,7 @@ frametimecount = 0
 aboveGround = 1
 
 def display():
+  glut.glutSwapBuffers()
   global frametime,lastframe,cputime,lastcpucycle, screenshotDest, trianglesQuery, frametimes, frametimecount
   thisframetime = time.time()-lastframe
   frametimes[frametimecount % len(frametimes)] = thisframetime
@@ -122,7 +123,6 @@ def display():
   gl.glEndQuery(gl.GL_PRIMITIVES_GENERATED)
   triangleCount = gl.glGetQueryObjectiv(trianglesQuery, gl.GL_QUERY_RESULT)
 
-  glut.glutSwapBuffers()
   glut.glutSetWindowTitle("PM4 {:.2f} ({:.0f}ms) {:.6f} {:,} triangles".format(1./frametime,frametime*1000, time.time()-lastframe, triangleCount))
   glut.glutPostRedisplay()
 

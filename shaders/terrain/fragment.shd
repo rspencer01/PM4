@@ -57,7 +57,9 @@ vec3 getNormalmap(vec3 position, vec3 type, vec3 norm, vec3 averageNorm)
       }
     }
   }
-  return get_normal_from_height(position.xz).rbg;
+  if (length(position - CameraPosition) < 1000)
+    return get_normal_from_height(position.xz).rbg;
+  return vec3(0,0,1);
 }
 
 vec3 color(vec3 norm,vec3 pos,vec3 averageNorm, vec3 type)
