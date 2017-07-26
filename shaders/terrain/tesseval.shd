@@ -4,12 +4,6 @@ layout(triangles, equal_spacing, ccw) in;
 
 uniform mat4 View;
 uniform mat4 projection;
-uniform mat4 shadowProjection1;
-uniform mat4 shadowProjection2;
-uniform mat4 shadowProjection3;
-uniform mat4 shadow1View;
-uniform mat4 shadow2View;
-uniform mat4 shadow3View;
 
 in vec3 evaluationpoint_wor[];
 
@@ -19,9 +13,6 @@ out TesselationData
 {
   vec4 position;
   vec4 origPosition;
-  vec3 shadowPos1;
-  vec3 shadowPos2;
-  vec3 shadowPos3;
 } TesselationOut;
 
 #include shaders/include/TerrainPagedTexture.shd;
@@ -39,13 +30,6 @@ void main()
 
   vec3 offst = getOffset(TesselationOut.origPosition.xyz);
   TesselationOut.position.xyz += offst;
-
-  vec4 temp = shadowProjection1 * shadow1View * TesselationOut.position;
-  TesselationOut.shadowPos1 = (temp.xyz / temp.w)/2+vec3(0.5);
-  temp = shadowProjection2 * shadow2View * TesselationOut.position;
-  TesselationOut.shadowPos2 = (temp.xyz / temp.w)/2+vec3(0.5);
-  temp = shadowProjection3 * shadow3View * TesselationOut.position;
-  TesselationOut.shadowPos3 = (temp.xyz / temp.w)/2+vec3(0.5);
 
   gl_Position = projection * View * TesselationOut.position;
 }

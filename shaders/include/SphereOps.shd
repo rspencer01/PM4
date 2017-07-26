@@ -18,3 +18,11 @@ float smallestIntersectionDistance(vec3 position, vec3 direction, float radius)
             sqrt(dot(direction,position)*dot(direction,position) 
                  - dot(position,position)+radius*radius);
 }
+
+vec2 bothIntersectionDistances(vec3 position, vec3 direction, float radius)
+{
+  float a = - dot(position,direction);
+  float b = sqrt(dot(direction,position)*dot(direction,position)
+                 - dot(position,position)+radius*radius);
+  return vec2(a-b, a+b);
+}

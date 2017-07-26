@@ -1,30 +1,15 @@
-#version 400
-in vec4 pos;
+#version 410
+in vec2 pos;
 out vec4 fragColor;
-uniform mat4 view;
-uniform vec3 CameraPosition;
-uniform vec3 CameraDirection;
-uniform float aspectRatio;
 
 uniform sampler2D colormap;
 uniform sampler2D depthmap;
-uniform sampler2D normmap;
-uniform sampler2D highCol;
-uniform sampler2D noisemap;
-
 uniform float brightness;
-
-#include shaders/include/NormalOps.shd;
 
 void main()
 {
-  vec3 inputColor = textureLod(colormap,pos.xy/2+vec2(0.5),0).rgb; 
-  float depth = textureLod(depthmap,pos.xy/2+vec2(0.5),0).r; 
-  inputColor = textureLod(colormap,pos.xy/2+vec2(0.5),pow(depth,30)*0.4).rgb; 
-  vec4 inputNorm = textureLod(normmap,pos.xy/2+vec2(0.5),0); 
+  float depth = texture(depthmap,pos).r;
+  vec3 inputColor = textureLod(colormap,pos,pow(depth,30)*0.4).rgb;
   inputColor *= brightness;
-  fragColor = vec4(pow(inputColor.r,1/1.2),
-                   pow(inputColor.g,1/1.2),
-                   pow(inputColor.b,1/1.2)
-  ,1);
+  fragColor = vec4(pow(inputColor, vec3(1/1.2)), 1);
 }

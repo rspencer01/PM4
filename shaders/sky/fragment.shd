@@ -1,5 +1,5 @@
 #version 410
-in vec4 pos;
+in vec2 pos;
 
 layout(location=0) out vec4 fragColor;
 layout(location=1) out vec4 fragNorm;
@@ -116,12 +116,13 @@ void main()
   float height = length(celestialCameraPosition);
 
   vec3 Pc = celestialCameraPosition;
-  float r = largestIntersectionDistance(Pc,direction,Ra);
-  float r2 = smallestIntersectionDistance(Pc,direction,Ra);
+  vec2 tmp = bothIntersectionDistances(Pc,direction,Ra);
+  float r = tmp.y;
+  float r2 = tmp.x;
   if (r2>0)
   {
-    r -= smallestIntersectionDistance(Pc,direction,Ra);
     Pc = Pc + direction * r2;
+    r -= r2;
   }
   vec3 rayExit = Pc + direction * r;
 
@@ -129,10 +130,11 @@ void main()
   // Hits the Earth.  This is temporary.  This should be done elsewhere.
   if (intersects(celestialCameraPosition,direction,Re) && objectDepth >= projectionFar-1)
   {
-    if (smallestIntersectionDistance(celestialCameraPosition,direction,Re) > 0)
+    tmp.x = smallestIntersectionDistance(celestialCameraPosition,direction,Re) ;
+    if (tmp.x > 0)
     {
-      rayExit = celestialCameraPosition + direction * smallestIntersectionDistance(celestialCameraPosition,direction,Re);
-      vec3 surfacePos = celestialCameraPosition + direction*smallestIntersectionDistance(celestialCameraPosition,direction,Re);
+      rayExit = celestialCameraPosition + direction * tmp.x;
+      vec3 surfacePos = celestialCameraPosition + direction*tmp.x;
       vec3 normal = normalize(surfacePos);
       float spec = max(0.001,dot(normalize(celestialCameraPosition-surfacePos),normalize(2*normal - sunDirection / dot(sunDirection,normal))));
       if (dot(normal,sunDirection)<0) spec = 0;

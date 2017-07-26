@@ -10,24 +10,16 @@ I = [0,1,2, 1,2,3]
 indices = np.array(I,dtype=np.int32)
 
 shader = getShader('postrender',forceReload=True)
-shader['model'] = np.eye(4,dtype=np.float32)
 shader['colormap'] = Texture.COLORMAP_NUM
-shader['blurredColorMap'] = Texture.COLORMAP3_NUM
 shader['depthmap'] = Texture.DEPTHMAP_NUM
-shader['highCol'] = Texture.COLORMAP2_NUM
-shader['noisemap'] = Texture.NOISE_NUM
 renderID = shader.setData(data,indices)
 
 lightingShader = getShader('lighting',forceReload=True)
-lightingShader['model'] = np.eye(4,dtype=np.float32)
 lightingShader['colormap'] = Texture.COLORMAP_NUM
 lightingShader['normmap'] = Texture.COLORMAP2_NUM
 lightingShader['posmap'] = Texture.COLORMAP3_NUM
 lightingShader['depthmap'] = Texture.DEPTHMAP_NUM
 lightingRenderID = lightingShader.setData(data,indices)
-
-setUniform('ambientLight',0.1)
-setUniform('sunLight',1.0)
 
 exposure = 1.0
 

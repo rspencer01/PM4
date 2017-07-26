@@ -8,9 +8,6 @@ in VertexData
   vec4 position;
   vec4 normal;
   vec4 color;
-  vec3 shadowPos1;
-  vec3 shadowPos2;
-  vec3 shadowPos3;
   vec2 uv;
   vec3 tangent;
   vec3 bitangent;

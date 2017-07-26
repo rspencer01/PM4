@@ -7,15 +7,10 @@ layout (vertices = 3) out;
 uniform vec3 userCameraPosition;
 uniform vec3 userCameraDirection;
 uniform vec3 CameraDirection;
-uniform sampler2D noise;
+uniform sampler2D heightmap;
 
 in vec3 pos[];
-
 out vec3 evaluationpoint_wor[];
-out vec4 shadowPosFS[];
-
-#include shaders/include/TerrainOps.shd;
-#include shaders/include/TextureBicubic.shd;
 
 int detailLevel(vec3 position)
 {

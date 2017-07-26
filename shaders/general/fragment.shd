@@ -1,4 +1,4 @@
-#version 330
+#version 410
 layout(location=0) out vec4 fragmentColor;
 layout(location=1) out vec4 fragmentNorm;
 layout(location=2) out vec4 fragmentPos;
@@ -8,9 +8,6 @@ in VertexData
   vec4 position;
   vec4 normal;
   vec4 color;
-  vec3 shadowPos1;
-  vec3 shadowPos2;
-  vec3 shadowPos3;
   vec2 uv;
   vec3 tangent;
   vec3 bitangent;

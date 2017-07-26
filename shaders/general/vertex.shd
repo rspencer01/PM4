@@ -12,9 +12,6 @@ out VertexData
   vec4 position;
   vec4 normal;
   vec4 color;
-  vec3 shadowPos1;
-  vec3 shadowPos2;
-  vec3 shadowPos3;
   vec2 uv;
   vec3 tangent;
   vec3 bitangent;
@@ -22,12 +19,6 @@ out VertexData
 
 uniform mat4 View;
 uniform mat4 projection;
-uniform mat4 shadowProjection1;
-uniform mat4 shadowProjection2;
-uniform mat4 shadowProjection3;
-uniform mat4 shadow1View;
-uniform mat4 shadow2View;
-uniform mat4 shadow3View;
 
 void main()
 {
@@ -37,13 +28,6 @@ void main()
   VertexOut.bitangent = (transpose(inverse(model)) * vec4(bitangent, 1)).xyz;
   VertexOut.color = color;
   VertexOut.uv = textcoord;
-
-  vec4 temp = shadowProjection1 * shadow1View * VertexOut.position;
-  VertexOut.shadowPos1 = (temp.xyz / temp.w)/2+vec3(0.5);
-  temp = shadowProjection2 * shadow2View * VertexOut.position;
-  VertexOut.shadowPos2 = (temp.xyz / temp.w)/2+vec3(0.5);
-  temp = shadowProjection3 * shadow3View * VertexOut.position;
-  VertexOut.shadowPos3 = (temp.xyz / temp.w)/2+vec3(0.5);
 
   gl_Position = projection * View * VertexOut.position;
 }
