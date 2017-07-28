@@ -62,31 +62,31 @@ def display():
 
   global cameraSpeed
 
-  p = camera.position + np.array([0,Re,0])
+  p = scene.camera.position + np.array([0,Re,0])
   if fastMode:
-    cameraSpeed = max((p.dot(p)**0.5-Re-1000)*3+90,0)
+    scene.cameraSpeed = max((p.dot(p)**0.5-Re-1000)*3+90,0)
   else:
-    cameraSpeed = max((p.dot(p)**0.5-Re-1000)*.1+90,0)
+    scene.cameraSpeed = max((p.dot(p)**0.5-Re-1000)*.1+90,0)
   f = np.clip((p.dot(p)**0.5 - Re*1.03) /(Re*0.3),0,1)
   globUp = np.array([np.array([1.0,0.0,0.0]),
                      p/p.dot(p)**0.5])
-  camera.globalUp = (globUp[0]*f + globUp[1]*(1-f))
-  camera.globalUp /= camera.globalUp.dot(camera.globalUp)**0.5
-  t = np.cross(camera.globalUp,camera.globalRight)
-  camera.globalRight = np.cross(t,camera.globalUp)
-  camera.globalRight /= camera.globalRight.dot(camera.globalRight)**0.5
+  scene.camera.globalUp = (globUp[0]*f + globUp[1]*(1-f))
+  scene.camera.globalUp /= scene.camera.globalUp.dot(scene.camera.globalUp)**0.5
+  t = np.cross(scene.camera.globalUp,scene.camera.globalRight)
+  scene.camera.globalRight = np.cross(t,scene.camera.globalUp)
+  scene.camera.globalRight /= scene.camera.globalRight.dot(scene.camera.globalRight)**0.5
 
-  Terrain.updatePageTable(camera)
+  Terrain.updatePageTable(scene.camera)
 
   gl.glEnable(gl.GL_CULL_FACE)
-  camera.render('user')
+  scene.camera.render('user')
   Shadows.render()
 
   if line:
     gl.glPolygonMode(gl.GL_FRONT_AND_BACK,gl.GL_LINE)
   renderStages[0].load(windowWidth, windowHeight)
 
-  camera.render()
+  scene.camera.render()
   projection = perspective( 60.0, windowWidth/float(windowHeight), 0.3, 1e7 )
   updateUniversalUniform('projectionNear', 0.3)
   updateUniversalUniform('projectionFar', 1e7)
@@ -94,13 +94,7 @@ def display():
   setUniform('aspectRatio', windowWidth/float(windowHeight))
   setUniform('windowWidth', float(windowWidth))
 
-  camera.render()
-  camera.render('user')
-  Terrain.display(camera)
-  Characters.display(camera)
-  Buildings.display(camera)
-  grass.display(camera)
-  Forest.display(camera.position)
+  scene.render()
 
   particles.render_all()
 
@@ -147,31 +141,30 @@ def timer_handler(fps):
 #  Marker.timeUpdate(1.0/fps)
   Map.update(1.0/fps)
   particles.update(Shadows.gameTime)
-  Forest.update(camera.position)
-  Characters.update()
+  scene.timer(fps)
   if flycamactive:
-    flyCam.update(camera)
+    flyCam.update(scene.camera)
   Shadows.gameTime += 3e-4
   if 'w' in keys:
-    camera.move(cameraSpeed * 1.0/fps)
-    if camera.lockObject:
-      Characters.setCharacterDirection(camera.direction)
-      Characters.move(0.5)
+    scene.camera.move(scene.cameraSpeed * 1.0/fps)
+    if scene.camera.lockObject:
+      scene.Characters.setCharacterDirection(scene.camera.direction)
+      scene.Characters.move(0.5)
   if 's' in keys:
-    camera.move(cameraSpeed * -1.0/fps)
-    if camera.lockObject:
-      Characters.setCharacterDirection(camera.direction)
-      Characters.move(-0.5)
+    scene.camera.move(scene.cameraSpeed * -1.0/fps)
+    if scene.camera.lockObject:
+      scene.Characters.setCharacterDirection(scene.camera.direction)
+      scene.Characters.move(-0.5)
   if 'e' in keys:
-    camera.rotUpDown(1.5/fps)
+    scene.camera.rotUpDown(1.5/fps)
   if 'q' in keys:
-    camera.rotUpDown(-1.5/fps)
+    scene.camera.rotUpDown(-1.5/fps)
   if 'a' in keys:
-    camera.rotLeftRight(-1.5/fps)
+    scene.camera.rotLeftRight(-1.5/fps)
   if 'd' in keys:
-    camera.rotLeftRight(1.5/fps)
+    scene.camera.rotLeftRight(1.5/fps)
   if 'h' in keys:
-    camera.position = camera.position * 0.98
+    scene.camera.position = scene.camera.position * 0.98
 
   taskQueue.doNextTask()
 
@@ -181,8 +174,8 @@ def mouse_motion_handler(x, y):
   if x != windowWidth/2 or \
      y != windowHeight/2:
     if hold_mouse:
-      camera.rotUpDown(0.01*(y-windowHeight/2.))
-      camera.rotLeftRight(0.01*(x-windowWidth/2.))
+      scene.camera.rotUpDown(0.01*(y-windowHeight/2.))
+      scene.camera.rotLeftRight(0.01*(x-windowWidth/2.))
       glut.glutWarpPointer(windowWidth/2,windowHeight/2)
 
 def reshape(width,height):
@@ -203,10 +196,10 @@ def keyboard_handler(key, x, y):
     logging.warn("Exiting...")
     sys.exit(0)
   if key=='l':
-    if camera.lockObject:
-      camera.lockObject = None
+    if scene.camera.lockObject:
+      scene.camera.lockObject = None
     else:
-      camera.lockObject = Characters.character
+      scene.camera.lockObject = scene.Characters.character
   if key=='~':
     if args.args.replay is None:
       userCommand()
@@ -248,7 +241,7 @@ def keyboard_up_handler(key,x,y):
 
 def mouse_handler(button, state, x, y):
   if button in (3,4):
-    camera.lockDistance += button - 3.5
+    scene.camera.lockDistance += button - 3.5
   if not hold_mouse:
     glut.glutWarpPointer(windowWidth/2,windowHeight/2)
 
@@ -275,23 +268,23 @@ def game_start_handler(time):
   glut.glutTimerFunc(1000/60, glut_timer_handler, 60)
 
 def accio_handler():
-  Characters.character.position = camera.position.copy()
+  scene.Characters.character.position = scene.camera.position.copy()
 
 def horse_handler(i):
-  camera.position = Buildings.clumpSpecs[i].position
-  camera.update()
+  scene.camera.position = scene.Buildings.clumpSpecs[i].position
+  scene.camera.update()
   accio()
-  Characters.move(0)
+  scene.Characters.move(0)
 
 def add_light_handler():
-  lighting.addLight(Characters.character.position, 
+  lighting.addLight(scene.Characters.character.position, 
       [random.random()*0.5+0.5, random.random()*0.5+0.5, random.random()*0.5+0.5])
 
 def spell_handler(type):
   if type == 'idea':
-    particles.add_system(spells.IdeaSpellParticles(Characters.character.position[:]))
+    particles.add_system(spells.IdeaSpellParticles(scene.Characters.character.position[:]))
   elif type == 'fountain':
-    particles.add_system(spells.FountainSpellParticles(Characters.character.position[:]))
+    particles.add_system(spells.FountainSpellParticles(scene.Characters.character.position[:]))
   else:
     logging.warn('Unknown spell "{}"'.format(type))
 
@@ -334,13 +327,11 @@ glut.glutSetCursor(glut.GLUT_CURSOR_NONE)
 import RenderStage
 
 from Shaders import *
-import Camera
 import Texture
 #import Marker
 import Terrain
 import noiseG
 #import Road
-import Forest
 
 import postrender
 import lighting
@@ -348,26 +339,14 @@ import particles
 import spells
 import Sky
 import Shadows
-import grass
-import Characters
-import Buildings
 import Map
 
 import flyCam
+import Scene
 
-camera = Camera.Camera(
-        np.array([ 0., 1356.92767998,-1000]),
-        move_hook=lambda x:np.array((x[0],
-            max(Terrain.getAt(x[0],x[2])+0.6,x[1]),x[2]))
-        )
-camera.radiusCentre = np.array([0,-Re,0])
-camera.minRadius = Re
-camera.render()
-Shadows.shadowCamera.lockObject = camera
-#for i in xrange(-10,10):
-#  for j in xrange(-10,10):
-#    Marker.addMarker(400*np.array([i,0,j]))
-#Marker.freeze()
+scene = Scene.MainScene()
+
+Shadows.shadowCamera.lockObject = scene.camera
 
 renderStages = [RenderStage.RenderStage(),
                 RenderStage.RenderStage(),
