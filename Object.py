@@ -33,7 +33,7 @@ def getTextureFile(material, textureType):
   if ('file', textureType) in material.properties:
     return material.properties[('file', textureType)]
   return ''
-shader             = Shaders.getShader('general-noninstanced', forceReload=True)
+shader             = Shaders.getShader('general-noninstanced')
 shader['colormap'] = Texture.COLORMAP_NUM
 shader['normalmap'] = Texture.NORMALMAP_NUM
 

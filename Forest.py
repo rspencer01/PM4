@@ -12,8 +12,8 @@ tree = MultiObject.MultiObject('assets/tree5/Conifers tree 1 N1006162.3DS', scal
 logging.info("Generating trees")
 
 shaderObj = Shaders.TransformFeedbackShader('testTransform')
-shaderObj.addProgram(gl.GL_VERTEX_SHADER, Shaders.ShaderFile('shaders/forestFeedback/vertex.shd').getSource())
-shaderObj.addProgram(gl.GL_GEOMETRY_SHADER, Shaders.ShaderFile('shaders/forestFeedback/geometry.shd').getSource())
+shaderObj.addProgram(gl.GL_VERTEX_SHADER, Shaders.ShaderFile('shaders/forestFeedback/vertex.shd', gl.GL_VERTEX_SHADER))
+shaderObj.addProgram(gl.GL_GEOMETRY_SHADER, Shaders.ShaderFile('shaders/forestFeedback/geometry.shd',gl.GL_GEOMETRY_SHADER))
 shaderObj.addOutput('outValue')
 Shaders.setUniversalUniforms(shaderObj)
 

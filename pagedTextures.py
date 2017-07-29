@@ -3,6 +3,7 @@ import Pager
 import OpenGL.GL as gl
 import logging
 from Shaders import *
+import numpy as np
 import Texture
 import RenderStage
 
@@ -38,7 +39,7 @@ pageNormalTexture.loadAs(Texture.PAGED_TEXTURE_2)
 pageTypeTexture.loadAs(Texture.PAGED_TEXTURE_3)
 pageTypeTexture.internal_format = gl.GL_RGBA8UI
 
-pagingShader = getShader('pagingShader', forceReload=True)
+pagingShader = getShader('pagingShader')
 pagingShader['pageSize']    = pageSize
 pagingShader['numPages']    = numPages
 pagingShader['pagesAcross'] = pagesAcross

@@ -7,7 +7,7 @@ import Texture
 
 rendered = set()
 
-shader              = Shaders.getShader('general', instance=True, forceReload=True)
+shader              = Shaders.getShader('general', instance=True)
 shader['colormap']  = Texture.COLORMAP_NUM
 shader['normalmap'] = Texture.NORMALMAP_NUM
 shader['bumpmap']   = Texture.BUMPMAP_NUM

@@ -12,7 +12,7 @@ import OpenGL.GL as gl
 import logging
 import Terrain
 
-pagingShader = Shaders.getShader('roadPaging', forceReload=True)
+pagingShader = Shaders.getShader('roadPaging')
 data = np.zeros(4, dtype=[("position", np.float32, 3)])
 data['position'] = [(-1, -1, 0.999999), (-1, 1, 0.999999), (1, -1, 0.999999), (1, 1, 0.999999)]
 I = [0, 1, 2, 1, 2, 3]

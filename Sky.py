@@ -100,7 +100,7 @@ earthTexture = Texture.Texture(Texture.EARTHMAP)
 earthTexture.loadFromImage('assets/earthmap.ppm')
 earthTexture.load()
 
-shader = getShader('sky',forceReload  = True)
+shader = getShader('sky')
 shader['colormap']        = Texture.COLORMAP_NUM
 shader['depthmap']        = Texture.DEPTHMAP_NUM
 shader['nightSkymap']     = Texture.NIGHTSKY_NUM

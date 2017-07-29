@@ -9,7 +9,7 @@ vertexData['position'] = [(-1,-1,0.999999),(-1,1,0.999999),(1,-1,0.999999),(1,1,
 I = [0,1,2, 1,2,3]
 indices = np.array(I,dtype=np.int32)
 
-highColorShader = Shaders.getShader('highColor',forceReload=True)
+highColorShader = Shaders.getShader('highColor')
 highColorRenderID = highColorShader.setData(vertexData,indices)
 highColorFBO = gl.glGenFramebuffers(1)
 highColorDepth = Texture.Texture(Texture.DEPTHMAP)
@@ -51,7 +51,7 @@ def extractHighColor(inputTexture,threshhold,outputTexture):
   inputTexture.textureType = ityp
 
 
-gaussianShader = Shaders.getShader('gaussian',forceReload=True)
+gaussianShader = Shaders.getShader('gaussian')
 gaussianRenderID = gaussianShader.setData(vertexData,indices)
 gaussianFBO = gl.glGenFramebuffers(1)
 gaussianDepth = Texture.Texture(Texture.DEPTHMAP)

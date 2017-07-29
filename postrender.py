@@ -9,12 +9,12 @@ data['position'] = [(-1,-1,0.999999),(-1,1,0.999999),(1,-1,0.999999),(1,1,0.9999
 I = [0,1,2, 1,2,3]
 indices = np.array(I,dtype=np.int32)
 
-shader = getShader('postrender',forceReload=True)
+shader = getShader('postrender')
 shader['colormap'] = Texture.COLORMAP_NUM
 shader['depthmap'] = Texture.DEPTHMAP_NUM
 renderID = shader.setData(data,indices)
 
-lightingShader = getShader('lighting',forceReload=True)
+lightingShader = getShader('lighting')
 lightingShader['colormap'] = Texture.COLORMAP_NUM
 lightingShader['normmap'] = Texture.COLORMAP2_NUM
 lightingShader['posmap'] = Texture.COLORMAP3_NUM

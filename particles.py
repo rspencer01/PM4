@@ -4,7 +4,7 @@ import OpenGL.GL as gl
 import Texture
 import lighting
 
-shader = Shaders.getShader('general', instance=True, forceReload=True)
+shader = Shaders.getShader('general', instance=True)
 shader['colormap'] = Texture.COLORMAP_NUM
 
 data = np.zeros(24, dtype=[("position" , np.float32,3),

@@ -44,7 +44,7 @@ patchData = assets.getAsset('terrain_patch_data', getPatchData, (), args.args.re
 patchIndices = np.array([],dtype=np.int32)
 
 # Set up renderer
-shader = getShader('terrain',tess=True,geom=False,forceReload=True)
+shader = getShader('terrain',tess=True,geom=False)
 shader['colormap'] = Texture.COLORMAP_NUM
 shader['normalmap'] = Texture.NORMALMAP_NUM
 shader['noisemap'] = Texture.NOISE_NUM
