@@ -3,8 +3,7 @@ import numpy as np
 import OpenGL.GL as gl
 import RenderStage
 import Shaders
-from transforms import *
-import postrender
+import transforms
 Re = 6.360e6
 
 class Scene(object):
@@ -40,7 +39,6 @@ class MainScene(Scene):
     self.Shadows = Shadows
     self.Shadows.shadowCamera.lockObject = self.camera
 
-
     import grass
     self.grass = grass
 
@@ -73,14 +71,14 @@ class MainScene(Scene):
   def render(self, windowWidth, windowHeight):
     gl.glEnable(gl.GL_CULL_FACE)
     self.camera.render('user')
-    self.Shadows.render()
+    self.Shadows.render(self)
 
     if self.line:
       gl.glPolygonMode(gl.GL_FRONT_AND_BACK,gl.GL_LINE)
     self.renderStages[0].load(windowWidth, windowHeight)
 
     self.camera.render()
-    projection = perspective( 60.0, windowWidth/float(windowHeight), 0.3, 1e7 )
+    projection = transforms.perspective( 60.0, windowWidth/float(windowHeight), 0.3, 1e7 )
     Shaders.updateUniversalUniform('projectionNear', 0.3)
     Shaders.updateUniversalUniform('projectionFar', 1e7)
     Shaders.setUniform('projection', projection)
@@ -101,7 +99,7 @@ class MainScene(Scene):
     gl.glDisable(gl.GL_CULL_FACE)
     gl.glPolygonMode(gl.GL_FRONT_AND_BACK,gl.GL_FILL);
     self.renderStages[1].load(windowWidth, windowHeight, clear=False)
-    postrender.lighting(self.renderStages[0].displayColorTexture,self.renderStages[0].displaySecondaryColorTexture,self.renderStages[0].displayAuxColorTexture,self.renderStages[0].displayDepthTexture)
+    self.postrender.lighting(self.renderStages[0].displayColorTexture,self.renderStages[0].displaySecondaryColorTexture,self.renderStages[0].displayAuxColorTexture,self.renderStages[0].displayDepthTexture)
     lastRenderStage = self.renderStages[1]
 
     if self.enableAtmosphere:
@@ -110,7 +108,7 @@ class MainScene(Scene):
       lastRenderStage = self.renderStages[2]
 
     self.renderStages[3].load(windowWidth, windowHeight, clear=False)
-    postrender.display(lastRenderStage,windowWidth,windowHeight)
+    self.postrender.display(lastRenderStage,windowWidth,windowHeight)
     self.Map.display()
     lastRenderStage = self.renderStages[3]
 

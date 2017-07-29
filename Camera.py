@@ -1,5 +1,5 @@
 import numpy as np
-from transforms import *
+import transforms
 from Shaders import *
 
 class Camera:
@@ -62,13 +62,13 @@ class Camera:
 
     self.view = np.eye(4,dtype=np.float32)
     view2 = np.eye(4,dtype=np.float32)
-    translate(self.view,-self.position[0],-self.position[1],-self.position[2])
+    transforms.translate(self.view,-self.position[0],-self.position[1],-self.position[2])
     view2[0:3,0] = np.cross(self.globalUp,self.globalRight)
     view2[0:3,1] = self.globalUp[:]
     view2[0:3,2] = self.globalRight[:]
     self.view = self.view.dot(view2)
-    rotate(self.view,self.phi*180/3.1415,0,1,0)
-    rotate(self.view,self.theta*180/3.1415,1,0,0)
+    transforms.rotate(self.view,self.phi*180/3.1415,0,1,0)
+    transforms.rotate(self.view,self.theta*180/3.1415,1,0,0)
 
     self.direction = np.array([0,0,-1])
     self.direction = self.view[:3,:3].dot(self.direction)

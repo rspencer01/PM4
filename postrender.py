@@ -1,8 +1,6 @@
 import numpy as np
 import Texture
-import graphicsOps
 from Shaders import *
-import Map
 
 data = np.zeros(4,dtype=[("position" , np.float32,3)])
 data['position'] = [(-1,-1,0.999999),(-1,1,0.999999),(1,-1,0.999999),(1,1,0.999999)]

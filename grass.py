@@ -1,8 +1,6 @@
 import logging
-from PIL import Image
 import numpy as np
 import Texture
-import Terrain
 from Shaders import *
 
 logging.info("Loading grass")

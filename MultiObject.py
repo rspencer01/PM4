@@ -5,7 +5,7 @@ import Texture
 import Image
 import os
 import Shaders
-from transforms import *
+import transforms
 import OpenGL.GL as gl
 
 shader          = Shaders.getShader('general',instance=True)
@@ -149,8 +149,8 @@ class MultiObject(object):
                    (self.boundingBox[0][0]**2 + self.boundingBox[0][2]**2)**0.5])
     for i in xrange(numberOfSwatches):
       instance[i] = np.eye(4, dtype=np.float32)
-      yrotate(instance['model'][i], i*360.0/numberOfSwatches)
-      translate(instance['model'][i], i * width, 0, 0)
+      transforms.yrotate(instance['model'][i], i*360.0/numberOfSwatches)
+      transforms.translate(instance['model'][i], i * width, 0, 0)
     renderIDs = []
 
     for data, indices, texture in self.meshes:
@@ -181,7 +181,7 @@ class MultiObject(object):
     camera.render('user')
 
     gl.glClear(gl.GL_DEPTH_BUFFER_BIT| gl.GL_COLOR_BUFFER_BIT)
-    projection = ortho(-width/2, width/2 + (numberOfSwatches-1)*width, self.boundingBox[0][1], self.boundingBox[1][1], 0.1, 100)
+    projection = transforms.ortho(-width/2, width/2 + (numberOfSwatches-1)*width, self.boundingBox[0][1], self.boundingBox[1][1], 0.1, 100)
     Shaders.setUniform('projection', projection)
 
     for mesh,renderID in zip(self.meshes,renderIDs):

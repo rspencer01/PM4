@@ -7,7 +7,6 @@ import random
 import transforms
 from utils import stepSort
 import OpenGL.GL as gl
-from transforms import *
 from collections import namedtuple
 from configuration import config
 import Road
@@ -119,11 +118,11 @@ def flattenGround(x, y, width, height):
   for clump in clumpSpecs[:5]:
     for spec in clump.buildings:
       model = np.eye(4, dtype=np.float32)
-      zrotate(model, spec.angle*180/3.14)
-      scale(model, 6, 10, 1)
-      translate(model, spec.position[0], spec.position[2]);
-      translate(model, 30000 - y - height/2, x +width/2- 30000 );
-      scale(model, 1.6/width, -1.6/height, 1)
+      transforms.zrotate(model, spec.angle*180/3.14)
+      transforms.scale(model, 6, 10, 1)
+      transforms.translate(model, spec.position[0], spec.position[2]);
+      transforms.translate(model, 30000 - y - height/2, x +width/2- 30000 );
+      transforms.scale(model, 1.6/width, -1.6/height, 1)
 
       pagingShader.load()
       pagingShader['model'] = model

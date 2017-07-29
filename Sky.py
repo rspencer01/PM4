@@ -3,9 +3,7 @@ from Shaders import *
 import OpenGL.GL.framebufferobjects as glfbo
 import Texture
 import OpenGL.GL as gl
-import os,sys
 import logging
-import noiseG
 import args
 from configuration import config
 import tqdm

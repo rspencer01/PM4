@@ -4,8 +4,6 @@
 Very simple transformation library that is needed for some examples.
 """
 
-import math
-import numpy
 import numpy as np
 
 
@@ -49,10 +47,10 @@ def scale(M, x, y=None, z=None):
 
 
 def xrotate(M,theta):
-    t = math.pi*theta/180
-    cosT = math.cos( t )
-    sinT = math.sin( t )
-    R = numpy.array(
+    t = np.pi*theta/180
+    cosT = np.cos( t )
+    sinT = np.sin( t )
+    R = np.array(
         [[ 1.0,  0.0,  0.0, 0.0 ],
          [ 0.0, cosT,-sinT, 0.0 ],
          [ 0.0, sinT, cosT, 0.0 ],
@@ -60,10 +58,10 @@ def xrotate(M,theta):
     M[...] = np.dot(M,R)
 
 def yrotate(M,theta):
-    t = math.pi*theta/180
-    cosT = math.cos( t )
-    sinT = math.sin( t )
-    R = numpy.array(
+    t = np.pi*theta/180
+    cosT = np.cos( t )
+    sinT = np.sin( t )
+    R = np.array(
         [[ cosT,  0.0, sinT, 0.0 ],
          [ 0.0,   1.0,  0.0, 0.0 ],
          [-sinT,  0.0, cosT, 0.0 ],
@@ -71,10 +69,10 @@ def yrotate(M,theta):
     M[...] = np.dot(M,R)
 
 def zrotate(M,theta):
-    t = math.pi*theta/180
-    cosT = math.cos( t )
-    sinT = math.sin( t )
-    R = numpy.array(
+    t = np.pi*theta/180
+    cosT = np.cos( t )
+    sinT = np.sin( t )
+    R = np.array(
         [[ cosT,-sinT, 0.0, 0.0 ],
          [ sinT, cosT, 0.0, 0.0 ],
          [ 0.0,  0.0,  1.0, 0.0 ],
@@ -97,14 +95,14 @@ def rotate(M, angle, x, y, z, point=None):
     x, y, z
         Specify the x, y, and z coordinates of a vector, respectively.
     """
-    angle = math.pi*angle/180
-    c,s = math.cos(angle), math.sin(angle)
-    n = math.sqrt(x*x+y*y+z*z)
+    angle = np.pi*angle/180
+    c,s = np.cos(angle), np.sin(angle)
+    n = np.sqrt(x*x+y*y+z*z)
     x /= n
     y /= n
     z /= n
     cx,cy,cz = (1-c)*x, (1-c)*y, (1-c)*z
-    R = numpy.array([[ cx*x + c  , cy*x - z*s, cz*x + y*s, 0],
+    R = np.array([[ cx*x + c  , cy*x - z*s, cz*x + y*s, 0],
                      [ cx*y + z*s, cy*y + c  , cz*y - x*s, 0],
                      [ cx*z - y*s, cy*z + x*s, cz*z + c,   0],
                      [          0,          0,        0,   1]]).T

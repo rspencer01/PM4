@@ -1,19 +1,10 @@
 import Camera
 import numpy as np
-import OpenGL.GL as gl
 from RenderStage import RenderStage
 import logging
-#import Road
-import Terrain
-#import Grass
 import Texture
-import Buildings
-#import Marker
-import Forest
 import Shaders
-import grass
 import transforms
-import Characters
 
 logging.info("Initialising Shadows")
 
@@ -54,7 +45,7 @@ Shaders.setUniform('shadowTexture1',Texture.SHADOWS1_NUM)
 Shaders.setUniform('shadowTexture2',Texture.SHADOWS2_NUM)
 Shaders.setUniform('shadowTexture3',Texture.SHADOWS3_NUM)
 
-def render():
+def render(scene):
   global count,sunTheta
   sunTheta = gameTime
 
@@ -77,11 +68,11 @@ def render():
     Shaders.setUniform('projection',projections[i])
     shadowCamera.render('shadow'+str(i+1))
 
-    Terrain.display(shadowCamera.lockObject)
-    Characters.display(shadowCamera.lockObject)
-    Buildings.display(shadowCamera.lockObject)
-    grass.display(shadowCamera.lockObject)
-    Forest.display(shadowCamera.lockObject.position,i)
+    scene.Terrain.display(shadowCamera.lockObject)
+    scene.Characters.display(shadowCamera.lockObject)
+    scene.Buildings.display(shadowCamera.lockObject)
+    scene.grass.display(shadowCamera.lockObject)
+    scene.Forest.display(shadowCamera.lockObject.position,i)
 
   Shaders.setUniform('shadowLevel',-1)
 

@@ -1,11 +1,8 @@
 import numpy as np
 import logging
-import OpenGL.GL as gl
 import Texture
 import Shaders
 import noise
-import os
-import sys
 import args
 import tqdm
 import assets

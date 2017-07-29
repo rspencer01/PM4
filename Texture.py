@@ -3,11 +3,9 @@ import numpy as np
 import Image
 import logging
 import sys
-import threading
 import taskQueue
 import assets
 import args
-from math import fmod
 
 HEIGHTMAP = gl.GL_TEXTURE0
 HEIGHTMAP_NUM = 0
@@ -172,10 +170,10 @@ class Texture:
   def read(self, x, y, interpolate=True):
     assert self._data is not None
 
-    x = fmod(x, 1)
+    x = np.fmod(x, 1)
     if x < 0: x += 1
     if x >= 1: x -= 1
-    y = fmod(y, 1)
+    y = np.fmod(y, 1)
     if y < 0: y += 1
     if y >= 1: y -= 1
 

@@ -4,13 +4,11 @@ import numpy as np
 import pyassimp
 import pyassimp.material
 import Texture
-import Image
 import Shaders
 import transforms
 import logging
 import taskQueue
 import threading
-import Terrain
 from collections import namedtuple
 
 MeshOptions = namedtuple("MeshOptions", ('has_bumpmap'))
