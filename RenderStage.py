@@ -4,15 +4,20 @@ import Texture
 
 
 class RenderStage(object):
-  def __init__(self, final_stage=False, depth_only=False):
+  def __init__(self, render_func=None, final_stage=False, depth_only=False, clear_depth=True):
+    """Constructs a render stage.  If the state is 'final', then rendering to it
+    will render to the default buffer of id 0."""
     self.final_stage = final_stage
     self.width = None
     self.height = None
     self.depth_only = depth_only
+    self.render = render_func
+    self.clear_depth = clear_depth
+    self.enabled = True
     if not final_stage:
       self.create_fbos()
 
-  def load(self, width, height, offsetx=0, offsety=0, clear=True):
+  def load(self, width, height, offsetx=0, offsety=0, clear=None):
     """Loads the render stage's buffers, clears them and sets the viewport.
 
     The depth buffer will always be cleared, but the color buffer is cleared
@@ -24,6 +29,8 @@ class RenderStage(object):
     else:
       gl.glBindFramebuffer(gl.GL_FRAMEBUFFER, 0)
 
+    if clear is None:
+      clear = self.clear_depth
     if clear:
       gl.glClear(gl.GL_DEPTH_BUFFER_BIT | gl.GL_COLOR_BUFFER_BIT)
     else:
@@ -53,6 +60,8 @@ class RenderStage(object):
         gl.GL_DEPTH_COMPONENT,
         gl.GL_FLOAT,
         None)
+    self.width = width
+    self.height = height
 
   def create_fbos(self):
     self.displayFBO = gl.glGenFramebuffers(1)

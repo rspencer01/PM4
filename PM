@@ -126,7 +126,7 @@ def reshape(width,height):
   windowHeight = height
   windowWidth = width
   for scene in scenes:
-    for stage in scene.renderStages:
+    for stage in scene.renderPipeline.stages:
       stage.reshape(width, height)
 
 keys = set()

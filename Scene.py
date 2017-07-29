@@ -4,15 +4,16 @@ import OpenGL.GL as gl
 import RenderStage
 import Shaders
 import transforms
+from RenderPipeline import RenderPipeline
 Re = 6.360e6
 
 class Scene(object):
   def __init__(self):
     self.camera = Camera.Camera()
-    self.renderStages = [RenderStage.RenderStage(final_stage=False)]
+    self.renderPipeline = RenderPipeline()
 
   def render(self, windowWidth, windowHeight):
-    pass
+    self.renderPipeline.run(windowWidth, windowHeight)
 
   def timer(self, fps):
     pass
@@ -61,29 +62,25 @@ class MainScene(Scene):
     self.enableAtmosphere = True
     self.line = False
 
-    self.renderStages = [RenderStage.RenderStage(),
-                         RenderStage.RenderStage(),
-                         RenderStage.RenderStage(),
-                         RenderStage.RenderStage(final_stage=True)
+    self.renderStages = [RenderStage.RenderStage(render_func=self.main_display)      ,
+                         RenderStage.RenderStage(render_func=self.lighting_display   , clear_depth=False) ,
+                         RenderStage.RenderStage(render_func=self.sky_display        , clear_depth=False) ,
+                         RenderStage.RenderStage(render_func=self.postrender_display , clear_depth=False  , final_stage=True)
                          ]
 
+    self.renderPipeline = RenderPipeline(self.renderStages)
 
-  def render(self, windowWidth, windowHeight):
-    gl.glEnable(gl.GL_CULL_FACE)
-    self.camera.render('user')
-    self.Shadows.render(self)
-
+  def main_display(self, width, height, **kwargs):
     if self.line:
       gl.glPolygonMode(gl.GL_FRONT_AND_BACK,gl.GL_LINE)
-    self.renderStages[0].load(windowWidth, windowHeight)
-
+    gl.glEnable(gl.GL_CULL_FACE)
     self.camera.render()
-    projection = transforms.perspective( 60.0, windowWidth/float(windowHeight), 0.3, 1e7 )
+    projection = transforms.perspective( 60.0, width/float(height), 0.3, 1e7 )
     Shaders.updateUniversalUniform('projectionNear', 0.3)
     Shaders.updateUniversalUniform('projectionFar', 1e7)
     Shaders.setUniform('projection', projection)
-    Shaders.setUniform('aspectRatio', windowWidth/float(windowHeight))
-    Shaders.setUniform('windowWidth', float(windowWidth))
+    Shaders.setUniform('aspectRatio', width/float(height))
+    Shaders.setUniform('windowWidth', float(width))
 
     self.camera.render()
     self.camera.render('user')
@@ -95,22 +92,30 @@ class MainScene(Scene):
     self.Buildings.display(self.camera)
 
     self.particles.render_all()
-
     gl.glDisable(gl.GL_CULL_FACE)
     gl.glPolygonMode(gl.GL_FRONT_AND_BACK,gl.GL_FILL);
-    self.renderStages[1].load(windowWidth, windowHeight, clear=False)
-    self.postrender.lighting(self.renderStages[0].displayColorTexture,self.renderStages[0].displaySecondaryColorTexture,self.renderStages[0].displayAuxColorTexture,self.renderStages[0].displayDepthTexture)
-    lastRenderStage = self.renderStages[1]
 
-    if self.enableAtmosphere:
-      self.renderStages[2].load(windowWidth, windowHeight, clear=False)
-      self.Sky.display(lastRenderStage)
-      lastRenderStage = self.renderStages[2]
 
-    self.renderStages[3].load(windowWidth, windowHeight, clear=False)
-    self.postrender.display(lastRenderStage,windowWidth,windowHeight)
+  def lighting_display(self, previous_stage, **kwargs):
+    self.postrender.lighting(previous_stage)
+
+
+  def sky_display(self, previous_stage, **kwargs):
+    self.Sky.display(previous_stage)
+
+
+  def postrender_display(self, width, height, previous_stage, **kwargs):
+    self.postrender.display(previous_stage, width, height)
     self.Map.display()
-    lastRenderStage = self.renderStages[3]
+
+
+  def render(self, windowWidth, windowHeight):
+    self.renderStages[2].enabled = self.enableAtmosphere
+
+    self.camera.render('user')
+    self.Shadows.render(self)
+
+    super(MainScene, self).render(windowWidth, windowHeight)
 
   def timer(self, fps):
     self.Map.update(1.0/fps)

@@ -47,11 +47,11 @@ def display(previousStage,windowWidth,windowHeight):
   shader['brightness'] = exposure
   shader.draw(gl.GL_TRIANGLES,renderID,1)
 
-def lighting(colorTexture,normTexture,posTexture,depthTexture):
-  depthTexture.load()
-  colorTexture.load()
-  normTexture.load()
-  posTexture.load()
+def lighting(previousStage):
+  previousStage.displayDepthTexture.load()
+  previousStage.displayColorTexture.load()
+  previousStage.displaySecondaryColorTexture.load()
+  previousStage.displayAuxColorTexture.load()
   setUniform('ambientLight',0.1)
   lightingShader.load()
   lightingShader['ambientLight'] = 0.1;
