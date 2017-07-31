@@ -33,7 +33,6 @@ cameraSpeed = 20
 frametime = 0.
 lastframe = time.time()
 enableAtmosphere = not args.args.disable_atmosphere
-screenshotDest = None 
 hold_mouse = True
 fastMode = False
 trianglesQuery = None
@@ -45,7 +44,7 @@ aboveGround = 1
 
 def display():
   glut.glutSwapBuffers()
-  global frametime,lastframe,cputime,lastcpucycle, screenshotDest, trianglesQuery, frametimes, frametimecount
+  global frametime,lastframe, trianglesQuery, frametimes, frametimecount
   thisframetime = time.time()-lastframe
   frametimes[frametimecount % len(frametimes)] = thisframetime
   frametimecount += 1
@@ -66,19 +65,13 @@ def display():
   glut.glutSetWindowTitle("PM4 {:.2f} ({:.0f}ms) {:.6f} {:,} triangles".format(1./frametime,frametime*1000, time.time()-lastframe, triangleCount))
   glut.glutPostRedisplay()
 
-  if screenshotDest:
-      takeScreenshot(lastRenderStage)
+def takeScreenshot():
+  viewport = gl.glGetIntegerv(gl.GL_VIEWPORT)
+  pixels = gl.glReadPixels(viewport[0], viewport[1], viewport[2], viewport[3], gl.GL_RGB, gl.GL_UNSIGNED_BYTE)
 
-def takeScreenshot(renderStage):
-  global screenshotDest
-  pixels = gl.glReadPixels(0, 0, renderStage.width, renderStage.height, gl.GL_RGB, gl.GL_UNSIGNED_BYTE)
-
-  image = Image.fromstring("RGB", (renderStage.width, renderStage.height), pixels)
+  image = Image.fromstring("RGB", (viewport[2]-viewport[0], viewport[3]-viewport[0]), pixels)
   image = image.transpose( Image.FLIP_TOP_BOTTOM)
-  image.save(screenshotDest if type(screenshotDest) == str else "screenshot.png")
-  # Do a nice flash effect
-  scene.postrender.exposure = 5
-  screenshotDest = None
+  image.save("screenshot.png")
 
 def glut_timer_handler(fps):
   messaging.add_message(messaging.Message('timer', (fps,)))
@@ -131,7 +124,7 @@ def reshape(width,height):
 
 keys = set()
 def keyboard_handler(key, x, y):
-  global screenshotDest, hold_mouse, fastMode,flycamactive, scene
+  global hold_mouse, fastMode,flycamactive, scene
   if key=='\033':
     if args.args.replay is None:
       messaging.save_messages()
@@ -154,7 +147,7 @@ def keyboard_handler(key, x, y):
   if key=='o':
     scene.enableAtmosphere = not scene.enableAtmosphere
   if key=='t':
-    screenshotDest = True
+    messaging.add_message(messaging.Message('screenshot',()))
   if key=='u':
     if scene == splash_scene:
       scene = main_scene
@@ -304,6 +297,7 @@ messaging.add_handler('horse', horse_handler)
 messaging.add_handler('accio', accio_handler)
 messaging.add_handler('add_light', add_light_handler)
 messaging.add_handler('spell', spell_handler)
+messaging.add_handler('screenshot', takeScreenshot)
 
 logging.info("Initialisation finished")
 messaging.add_message(messaging.Message('game_start', (time.time(),)))

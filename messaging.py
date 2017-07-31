@@ -8,6 +8,7 @@ time_zero = 0
 handled_messages = []
 messages = deque()
 handlers = {}
+replaying = False
 
 class Message(object):
   def __init__(self, message_type, data=()):
@@ -20,6 +21,8 @@ class Message(object):
 
 def add_message(message):
   """Adds a new message to the queue."""
+  if replaying:
+    return
   messages.append(message)
 
 def add_handler(message_type, handler):
@@ -66,13 +69,14 @@ def load_messages(filename='replay.log'):
 def load_replay(filename='replay.log'):
   """Must be called when the only item on the message queue is `begin_game`.
   Loads the message queue from the given file."""
-  global messages, handled_messages
+  global messages, handled_messages, replaying
   assert len(messages) == 1
   assert len(handled_messages) == 0
   process_messages()
   handled_messages = []
   messages = load_messages(filename)
   messages.popleft()
+  replaying = True
 
 if __name__ == "__main__":
   import argparse
