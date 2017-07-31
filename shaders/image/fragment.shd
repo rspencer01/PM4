@@ -1,0 +1,10 @@
+#version 400
+in vec2 pos;
+out vec4 fragColor;
+
+uniform sampler2D colormap;
+
+void main()
+{
+  fragColor = texture(colormap, vec2(pos.x, 1-pos.y));
+}

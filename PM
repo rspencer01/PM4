@@ -285,9 +285,10 @@ import spells
 
 import flyCam
 import Scene
+import SplashScene
 
 main_scene = Scene.MainScene()
-splash_scene = Scene.SplashScene()
+splash_scene = SplashScene.SplashScene()
 
 scene = splash_scene
 scenes = [main_scene, splash_scene]

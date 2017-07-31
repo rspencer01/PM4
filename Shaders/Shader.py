@@ -111,6 +111,8 @@ class Shader(object):
         self.warned.add(i)
     elif type(v) == np.ndarray and v.shape == (4, 4):
       gl.glUniformMatrix4fv(loc, 1, gl.GL_FALSE, v)
+    elif type(v) == np.ndarray and v.shape == (3, 3):
+      gl.glUniformMatrix3fv(loc, 1, gl.GL_FALSE, v)
     elif type(v) == np.ndarray and len(v.shape)==2 and v.shape[1]==3:
       gl.glUniform3fv(loc, v.shape[0], v)
     elif type(v) == np.ndarray and len(v.shape)==2 and v.shape[1]==4:

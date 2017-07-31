@@ -1,7 +1,7 @@
 import Camera
 import numpy as np
 import OpenGL.GL as gl
-import RenderStage
+from RenderStage import RenderStage
 import Shaders
 import transforms
 from RenderPipeline import RenderPipeline
@@ -62,10 +62,10 @@ class MainScene(Scene):
     self.enableAtmosphere = True
     self.line = False
 
-    self.renderStages = [RenderStage.RenderStage(render_func=self.main_display)      ,
-                         RenderStage.RenderStage(render_func=self.lighting_display   , clear_depth=False) ,
-                         RenderStage.RenderStage(render_func=self.sky_display        , clear_depth=False) ,
-                         RenderStage.RenderStage(render_func=self.postrender_display , clear_depth=False  , final_stage=True)
+    self.renderStages = [RenderStage(render_func=self.main_display)      ,
+                         RenderStage(render_func=self.lighting_display   , clear_depth=False) ,
+                         RenderStage(render_func=self.sky_display        , clear_depth=False) ,
+                         RenderStage(render_func=self.postrender_display , clear_depth=False  , final_stage=True)
                          ]
 
     self.renderPipeline = RenderPipeline(self.renderStages)
@@ -141,7 +141,3 @@ class MainScene(Scene):
     self.particles.update(self.Shadows.gameTime)
 
     self.Shadows.gameTime += 3e-4
-
-
-class SplashScene(Scene):
-  pass

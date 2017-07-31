@@ -1,0 +1,32 @@
+from Scene import Scene
+from RenderStage import RenderStage
+import OpenGL.GL as gl
+
+class SplashScene(Scene):
+  def __init__(self):
+    super(SplashScene, self).__init__()
+
+    self.renderPipeline.stages.append(
+        RenderStage(render_func=self.display, final_stage=True))
+
+    import RectangleObjects
+    import noiseG
+    self.pictureObject = RectangleObjects.ImageObject('assets/title.png')
+    self.background = RectangleObjects.RectangleObject('splashscreen')
+
+    self.time = 0.
+
+  def display(self, width, height, **kwargs):
+    self.pictureObject.width = 952./width
+    self.pictureObject.height = 123./height
+
+    self.background.shader['time'] = self.time
+    self.background.shader['aspectRatio'] = float(width)/height
+
+    gl.glDisable(gl.GL_DEPTH_TEST)
+    self.background.display()
+    self.pictureObject.display()
+    gl.glEnable(gl.GL_DEPTH_TEST)
+
+  def timer(self, fps):
+    self.time += 1./fps

@@ -1,0 +1,22 @@
+#version 400
+in vec2 pos;
+out vec4 fragColor;
+
+uniform sampler2D noisemap;
+uniform float time;
+uniform float aspectRatio;
+
+void main()
+{
+  vec3 color_1 = vec3( 87, 132, 204)/256.;
+  vec3 color_2 = vec3(142, 175, 226)/256.;
+  vec2 offst = vec2(
+      sin(time/100),
+      cos(time/100)
+      )*0.5;
+  float f = texture(noisemap,vec2(pos.x*aspectRatio,pos.y)/9+offst).a;
+  fragColor = vec4(mix(
+                       color_1,
+                       color_2,
+                       f), 1);
+}
