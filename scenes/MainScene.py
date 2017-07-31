@@ -129,3 +129,20 @@ class MainScene(Scene):
     self.particles.update(self.Shadows.gameTime)
 
     self.Shadows.gameTime += 3e-4
+
+  def key(self, key):
+    if key=='o':
+      self.enableAtmosphere = not self.enableAtmosphere
+    if key=='f':
+      self.fastMode = not self.fastMode
+    if key=='n':
+      self.postrender.showNormals = (self.postrender.showNormals + 1) % 3
+    if key=='m':
+      self.Map.targetFullScreenAmount = 1-self.Map.targetFullScreenAmount
+    if key=='p':
+      self.line = not self.line
+    if key=='l':
+      if self.camera.lockObject:
+        self.camera.lockObject = None
+      else:
+        self.camera.lockObject = self.Characters.character

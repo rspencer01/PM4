@@ -11,3 +11,6 @@ class Scene(object):
 
   def timer(self, fps):
     pass
+
+  def key(self, key):
+    pass

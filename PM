@@ -132,20 +132,11 @@ def keyboard_handler(key, x, y):
     logging.info("Average frame time {:.4f} (+-{:.4f})".format(sum(frametimes)/len(frametimes), np.std(frametimes)))
     logging.warn("Exiting...")
     sys.exit(0)
-  if key=='l':
-    if scene.camera.lockObject:
-      scene.camera.lockObject = None
-    else:
-      scene.camera.lockObject = scene.Characters.character
   if key=='~':
     if args.args.replay is None:
       userCommand()
-  if key=='p':
-    scene.line = not scene.line
   if key=='#':
     reload(Terrain)
-  if key=='o':
-    scene.enableAtmosphere = not scene.enableAtmosphere
   if key=='t':
     messaging.add_message(messaging.Message('screenshot',()))
   if key=='u':
@@ -153,14 +144,8 @@ def keyboard_handler(key, x, y):
       scene = main_scene
     else:
       scene = splash_scene
-  if key=='f':
-    scene.fastMode = not scene.fastMode
   if key=='0':
     messaging.add_message(messaging.Message('add_light',()))
-  if key=='m':
-    scene.Map.targetFullScreenAmount = 1-scene.Map.targetFullScreenAmount
-  if key=='n':
-    scene.postrender.showNormals = (scene.postrender.showNormals + 1) % 3
   if key=='z':
     messaging.add_message(messaging.Message('spell',('idea',)))
   if key=='Z':
@@ -175,6 +160,7 @@ def keyboard_handler(key, x, y):
     hold_mouse = not hold_mouse
   if key=='?':
     print open('help').read()
+  scene.key(key)
   keys.add(key)
 
 def keyboard_up_handler(key,x,y):
@@ -191,7 +177,8 @@ def glut_keyboard_handler(key, x, y):
   messaging.add_message(messaging.Message('keyboard',(key, x, y)))
 
 def glut_keyboard_up_handler(key, x, y):
-  messaging.add_message(messaging.Message('keyboard_up',(key, x, y))) 
+  messaging.add_message(messaging.Message('keyboard_up',(key, x, y)))
+
 def glut_mouse_handler(button, state, x, y):
   messaging.add_message(messaging.Message('mouse',(button, state, x, y)))
 
@@ -218,7 +205,7 @@ def horse_handler(i):
   scene.Characters.move(0)
 
 def add_light_handler():
-  lighting.addLight(scene.Characters.character.position, 
+  lighting.addLight(scene.Characters.character.position,
       [random.random()*0.5+0.5, random.random()*0.5+0.5, random.random()*0.5+0.5])
 
 def spell_handler(type):
@@ -267,17 +254,12 @@ glut.glutSetCursor(glut.GLUT_CURSOR_NONE)
 
 
 from Shaders import *
-import Texture
-#import Marker
 import Terrain
-import noiseG
-#import Road
 
 import lighting
 import spells
 
 import flyCam
-import Scene
 from scenes import SplashScene
 from scenes import MainScene
 
