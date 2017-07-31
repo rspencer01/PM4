@@ -1,6 +1,9 @@
 from Scene import Scene
 from RenderStage import RenderStage
 import OpenGL.GL as gl
+import messaging
+import RectangleObjects
+import noiseG
 
 class SplashScene(Scene):
   def __init__(self):
@@ -9,12 +12,12 @@ class SplashScene(Scene):
     self.renderPipeline.stages.append(
         RenderStage(render_func=self.display, final_stage=True))
 
-    import RectangleObjects
-    import noiseG
     self.pictureObject = RectangleObjects.ImageObject('assets/title.png')
     self.background = RectangleObjects.RectangleObject('splashscreen')
 
     self.time = 0.
+
+    messaging.add_handler('timer', self.timer)
 
   def display(self, width, height, **kwargs):
     self.pictureObject.width = 952./width

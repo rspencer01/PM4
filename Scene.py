@@ -8,9 +8,3 @@ class Scene(object):
 
   def render(self, windowWidth, windowHeight):
     self.renderPipeline.run(windowWidth, windowHeight)
-
-  def timer(self, fps):
-    pass
-
-  def key(self, key):
-    pass

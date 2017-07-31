@@ -67,6 +67,9 @@ class MainScene(Scene):
     messaging.add_handler('add_light', self.add_light_handler)
     messaging.add_handler('spell', self.spell_handler)
 
+    messaging.add_handler('keyboard', self.key)
+    messaging.add_handler('timer', self.timer)
+
   def main_display(self, width, height, **kwargs):
     if self.line:
       gl.glPolygonMode(gl.GL_FRONT_AND_BACK,gl.GL_LINE)
