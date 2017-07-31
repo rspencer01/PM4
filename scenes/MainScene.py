@@ -5,6 +5,9 @@ import transforms
 import numpy as np
 from RenderPipeline import RenderPipeline
 from RenderStage import RenderStage
+import messaging
+import spells
+import lighting
 Re = 6.360e6
 
 class MainScene(Scene):
@@ -49,6 +52,7 @@ class MainScene(Scene):
     self.fastMode = False
     self.enableAtmosphere = True
     self.line = False
+    self.flycam = None
 
     self.renderStages = [RenderStage(render_func=self.main_display)      ,
                          RenderStage(render_func=self.lighting_display   , clear_depth=False) ,
@@ -57,6 +61,11 @@ class MainScene(Scene):
                          ]
 
     self.renderPipeline = RenderPipeline(self.renderStages)
+
+    messaging.add_handler('horse', self.horse_handler)
+    messaging.add_handler('accio', self.accio_handler)
+    messaging.add_handler('add_light', self.add_light_handler)
+    messaging.add_handler('spell', self.spell_handler)
 
   def main_display(self, width, height, **kwargs):
     if self.line:
@@ -110,6 +119,9 @@ class MainScene(Scene):
     self.Forest.update(self.camera.position)
     self.Characters.update()
 
+    if self.flycam:
+      self.flycam.update(self.camera)
+
     p = self.camera.position + np.array([0,Re,0])
     if self.fastMode:
       self.cameraSpeed = max((p.dot(p)**0.5-Re-1000)*3+90,0)
@@ -146,3 +158,42 @@ class MainScene(Scene):
         self.camera.lockObject = None
       else:
         self.camera.lockObject = self.Characters.character
+    if key=='0':
+      messaging.add_message(messaging.Message('add_light',()))
+    if key=='z':
+      messaging.add_message(messaging.Message('spell',('idea',)))
+    if key=='Z':
+      messaging.add_message(messaging.Message('spell',('fountain',)))
+    if key=='y':
+      if self.flycam:
+        flycam = None
+      else:
+        import flyCam
+        self.flycam = flyCam
+
+  def horse(self, i=0):
+    messaging.add_message(messaging.Message('horse',(i,)))
+
+  def accio(self):
+    messaging.add_message(messaging.Message('accio',()))
+
+  def accio_handler(self):
+    self.Characters.character.position = self.camera.position.copy()
+
+  def horse_handler(self, i):
+    self.camera.position = self.Buildings.clumpSpecs[i].position
+    self.camera.update()
+    self.accio()
+    self.Characters.move(0)
+
+  def add_light_handler(self):
+    lighting.addLight(self.Characters.character.position,
+        [random.random()*0.5+0.5, random.random()*0.5+0.5, random.random()*0.5+0.5])
+
+  def spell_handler(self, type):
+    if type == 'idea':
+      self.particles.add_system(spells.IdeaSpellParticles(self.Characters.character.position[:]))
+    elif type == 'fountain':
+      self.particles.add_system(spells.FountainSpellParticles(self.Characters.character.position[:]))
+    else:
+      logging.warn('Unknown spell "{}"'.format(type))
