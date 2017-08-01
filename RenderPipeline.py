@@ -8,7 +8,7 @@ class RenderPipeline(object):
     previous_stage = None
     for stage in self.stages:
       if stage.enabled:
-        stage.load(width, height, clear=False)
+        stage.load(width, height)
         if stage.render:
           stage.render(width=width, height=height, previous_stage=previous_stage)
         previous_stage = stage

@@ -23,9 +23,19 @@ class RectangleObject(object):
     self.model = np.eye(3, dtype=np.float32)
     self.model[0,0] = self.width
     self.model[1,1] = self.height
-    self.model[2,:2] = self.position - 0.5
+    self.model[2,:2] = (self.position - 0.5)*2
     self.shader['model'] = self.model
     self.shader.draw(gl.GL_TRIANGLES, self.renderID, 1)
+
+
+class BlankImageObject(RectangleObject):
+  def __init__(self):
+    super(BlankImageObject, self).__init__('image')
+    self.shader['colormap'] = Texture.COLORMAP_NUM
+
+  def display(self):
+    Texture.getWhiteTexture().load()
+    super(BlankImageObject, self).display()
 
 
 class ImageObject(RectangleObject):
