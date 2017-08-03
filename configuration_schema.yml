@@ -53,4 +53,14 @@ npc_count:
     The number of non-player-characters in the world
   type: integer
   default: 50 
+earth_radius:
+  help:
+    As on the box
+  type: float
+  default: 6.36e6
+atmosphere_radius:
+  help:
+    As on the box
+  type: float
+  default: 6.42e6
 ...

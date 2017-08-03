@@ -59,7 +59,7 @@ def render(scene):
   Shaders.setUniform('sunDirection',sunDirection)
 
   for i in range(3):
-    if count % 5 ** i != 0:
+    if count % 20 ** i != 0:
       continue
     if np.sum(shadowCamera.lockObject.position*shadowCamera.lockObject.position) > 6e4**2 or shadowCamera.lockObject.position[1]>4e3:
       if i<2:

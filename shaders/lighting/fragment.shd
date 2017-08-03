@@ -27,8 +27,8 @@ uniform vec3 lightPositions[100];
 uniform vec3 lightColours[100];
 uniform sampler2D opticaldepthmap;
 
-float Re = 6.30e6;
-float Ra = 6.40e6;
+uniform float Re = 6.30e6;
+uniform float Ra = 6.40e6;
 
 #include shaders/include/SphereOps.shd;
 

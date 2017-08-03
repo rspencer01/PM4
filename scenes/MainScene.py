@@ -16,9 +16,9 @@ class MainScene(Scene):
     super(MainScene, self).__init__()
     import Terrain
     self.Terrain = Terrain
-    self.camera.position = np.array([ 0., 2356.92767998,0])
-#    self.camera.move_hook=lambda x:np.array((x[0],
-#            max(self.Terrain.getAt(x[0],x[2])+0.6,x[1]),x[2]))
+    self.camera.position = np.array([ 0., 1356.92767998,-1000])
+    self.camera.move_hook=lambda x:np.array((x[0],
+            max(self.Terrain.getAt(x[0],x[2])+0.6,x[1]),x[2]))
     self.camera.radiusCentre = np.array([0,-Re,0])
     self.camera.minRadius = Re
 
@@ -63,8 +63,6 @@ class MainScene(Scene):
 
     self.renderPipeline = RenderPipeline(self.renderStages)
 
-    self.heavy = 0 
-
     messaging.add_handler('horse', self.horse_handler)
     messaging.add_handler('accio', self.accio_handler)
     messaging.add_handler('add_light', self.add_light_handler)
@@ -104,7 +102,6 @@ class MainScene(Scene):
 
 
   def sky_display(self, previous_stage, **kwargs):
-    self.Sky.shader['heavy'] = self.heavy
     self.Sky.display(previous_stage)
 
 
@@ -130,11 +127,10 @@ class MainScene(Scene):
       self.flycam.update(self.camera)
 
     p = self.camera.position + np.array([0,Re,0])
-    self.cameraSpeed = 4000
-#    if self.fastMode:
-#      self.cameraSpeed = max((p.dot(p)**0.5-Re-1000)*3+90,0)
-#    else:
-#      self.cameraSpeed = max((p.dot(p)**0.5-Re-1000)*.1+90,0)
+    if self.fastMode:
+      self.cameraSpeed = max((p.dot(p)**0.5-Re-1000)*3+90,0)
+    else:
+      self.cameraSpeed = max((p.dot(p)**0.5-Re-1000)*.1+90,0)
     f = np.clip((p.dot(p)**0.5 - Re*1.03) /(Re*0.3),0,1)
     globUp = np.array([np.array([1.0,0.0,0.0]),
                        p/p.dot(p)**0.5])
@@ -148,13 +144,9 @@ class MainScene(Scene):
 
     self.particles.update(self.Shadows.gameTime)
 
-    self.Shadows.gameTime += 1e-3
-    if self.Shadows.gameTime > 1.9:
-      self.Shadows.gameTime = 0
+    self.Shadows.gameTime += 3e-4
 
   def key(self, key):
-    if key=='3':
-      self.heavy = 1- self.heavy
     if key=='o':
       self.enableAtmosphere = not self.enableAtmosphere
     if key=='f':

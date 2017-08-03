@@ -19,10 +19,11 @@ uniform mat4 shadow3View;
 uniform sampler2D shadowTexture3;
 uniform sampler2D opticaldepthmap;
 
-//play with me
-float rayleighextinctioncoeff = 1.;
+uniform int integrationSteps;
+
+float rayleighextinctioncoeff = 1.4;
 float mieextinctioncoeff = 1.;
-float g= 0.7;
+float g= 0.6;
 
 float PI = 3.1415;
 float INF = 1e20;
@@ -31,7 +32,7 @@ uniform float Re = 6.3e6;
 uniform float Ra = 6.4e6;
 
 uniform vec3 RayleighSct = vec3(5.8, 13.5, 33.1) * 0.000001;
-uniform vec3 MieSct = vec3(1.0, 1.0, 1.0) * 0.00001f;
+uniform vec3 MieSct = vec3(1.0, 1.0, 1.0) * 0.00002f;
 
 uniform vec3 FogSct = vec3(1) * 0.0004*0;
 
@@ -69,19 +70,19 @@ vec2 phase_function(float mu)
               3/(8*PI)*(1+mu2)*(1-g2)/(2+g2)/pow(1+g2-2*g*mu,1.5)) * (4*PI);
 }
 
-vec3 density_function(dvec3 P)
+vec3 density_function(vec3 P)
 {
   return exp(-vec3(length(P+vec3(0,Re,0))-Re) / vec3(8e3, 1.2e3, 6));
 }
 
-vec3 outscatter(dvec3 P)
+vec3 outscatter(vec3 P)
 {
   vec3 density = density_function(P);
   return RayleighSct * density.r * rayleighextinctioncoeff +
          MieSct      * density.g * mieextinctioncoeff;
 }
 
-vec3 inscatter_amount(dvec3 P, vec3 direction, float mu)
+vec3 inscatter_amount(vec3 P, vec3 direction, float mu)
 {
   vec2 phase = phase_function(mu);
   vec3 density = density_function(P);
@@ -103,35 +104,33 @@ vec3 secondary_integration(vec3 position)
   return optical_depth;
 }
 
-vec3 primary_integration(dvec3 position, dvec3 direction, float max_ray_length, vec3 backgroundColor)
+vec3 primary_integration(vec3 position, vec3 direction, float max_ray_length, vec3 backgroundColor)
 {
-  int N = 20;
-  double primary_ray_length = 0;
+  float primary_ray_length = 0;
   if (direction.y < 0)
     primary_ray_length = -position.y / direction.y + 1;
   else
-    primary_ray_length = largestIntersectionDistance(vec3(position)+vec3(0,6.36e6,0), vec3(direction), 6.48e6);
+    primary_ray_length = largestIntersectionDistance(vec3(position)+vec3(0,Re,0), vec3(direction), Ra);
+  if (intersects(vec3(position)+vec3(0,Re,0), direction, Re))
+    if (largestIntersectionDistance(vec3(position)+vec3(0,Re,0), direction, Re) > 0)
+      primary_ray_length = min(primary_ray_length,largestIntersectionDistance(vec3(position)+vec3(0,Re,0), direction, Re));
+
   primary_ray_length = min(primary_ray_length, max_ray_length);
   primary_ray_length = min(primary_ray_length, 120e3);
 
-  double ds = primary_ray_length / N;
-  dvec3 P = position;
+  float ds = primary_ray_length / integrationSteps;
+  vec3 P = position;
   vec3 optical_depth = vec3(0);
   vec3 inscatter = vec3(0);
 
-  for (int i = 0; i<N; ++i)
+  for (int i = 0; i<integrationSteps; ++i)
   {
     optical_depth += outscatter(P) * float(ds);
     if (inShadow(vec3(P)) == false)
-      inscatter     += inscatter_amount(P, vec3(direction), dot(vec3(direction),sunDirection)) * exp(-optical_depth - secondary_integration(vec3(P))) * float(ds);
+      inscatter += inscatter_amount(P, vec3(direction), dot(vec3(direction),sunDirection)) * exp(-optical_depth - secondary_integration(vec3(P))) * ds;
     P += ds * direction;
-
-    if (length(P + vec3(0,Re,0)) < Re)
-    {
-      return vec3(0.1) * exp(-optical_depth-secondary_integration(vec3(P))) + inscatter;
-    }
   }
-  if (primary_ray_length> 115e3)
+  if (primary_ray_length> 65e3)
     if (dot(direction, sunDirection) > 0.999)
       return exp(-optical_depth) + inscatter;
   return exp(-optical_depth)*backgroundColor + inscatter;
@@ -165,7 +164,7 @@ void main()
     objectColor = vec3(0);
   }
 
-//  fragColor = objectColor;
-  fragColor = vec4(primary_integration(dvec3(CameraPosition), dvec3(direction), objectDepth, objectColor), 1);
+  fragColor = vec4(objectColor,1);
+  fragColor = vec4(primary_integration(vec3(CameraPosition), vec3(direction), objectDepth, objectColor), 1);
   fragNorm = vec4(0,1,0,0);
 }

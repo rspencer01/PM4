@@ -42,7 +42,7 @@ aboveGround = 1
 
 def display():
   glut.glutSwapBuffers()
-  global frametime,lastframe, trianglesQuery, frametimes, frametimecount,count
+  global frametime,lastframe, trianglesQuery, frametimes, frametimecount
   thisframetime = time.time()-lastframe
   frametimes[frametimecount % len(frametimes)] = thisframetime
   frametimecount += 1
@@ -73,6 +73,7 @@ def takeScreenshot():
 
 def glut_timer_handler(fps):
   messaging.add_message(messaging.Message('timer', (fps,)))
+
 def timer_handler(fps):
   if 'w' in keys:
     scene.camera.move(scene.cameraSpeed * 1.0/fps)
