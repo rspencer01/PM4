@@ -3,6 +3,7 @@ import OpenGL.GL as gl
 import Shaders
 import transforms
 import numpy as np
+import Texture
 from RenderPipeline import RenderPipeline
 from RenderStage import RenderStage
 import messaging
@@ -121,9 +122,9 @@ class MainScene(Scene):
     super(MainScene, self).render(windowWidth, windowHeight)
 
   def timer(self, fps):
-    #self.Map.update(1.0/fps)
-    #self.Forest.update(self.camera.position)
-    #self.Characters.update()
+    self.Map.update(1.0/fps)
+    self.Forest.update(self.camera.position)
+    self.Characters.update()
 
     if self.flycam:
       self.flycam.update(self.camera)
@@ -143,7 +144,7 @@ class MainScene(Scene):
     self.camera.globalRight = np.cross(t,self.camera.globalUp)
     self.camera.globalRight /= self.camera.globalRight.dot(self.camera.globalRight)**0.5
 
-#    self.Terrain.updatePageTable(self.camera)
+    self.Terrain.updatePageTable(self.camera)
 
     self.particles.update(self.Shadows.gameTime)
 
@@ -171,6 +172,10 @@ class MainScene(Scene):
             Shaders.ShaderFile('shaders/sky/fragment.shd', gl.GL_FRAGMENT_SHADER),
             Shaders.ShaderFile('shaders/sky/vertex.shd', gl.GL_VERTEX_SHADER),
             False)
+        Shaders.shaders['sky']['colormap']        = Texture.COLORMAP_NUM
+        Shaders.shaders['sky']['depthmap']        = Texture.DEPTHMAP_NUM
+        Shaders.shaders['sky']['opticaldepthmap'] = Texture.OPTICAL_DEPTHMAP_NUM
+        Shaders.shaders['sky']['shadowTexture3'] = Texture.SHADOWS3_NUM
         reload(self.Sky)
       except Exception as e:
         print e

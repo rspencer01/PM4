@@ -17,6 +17,7 @@ lightingShader['colormap'] = Texture.COLORMAP_NUM
 lightingShader['normmap'] = Texture.COLORMAP2_NUM
 lightingShader['posmap'] = Texture.COLORMAP3_NUM
 lightingShader['depthmap'] = Texture.DEPTHMAP_NUM
+lightingShader['opticaldepthmap'] = Texture.OPTICAL_DEPTHMAP_NUM
 lightingRenderID = lightingShader.setData(data,indices)
 
 exposure = 1.0

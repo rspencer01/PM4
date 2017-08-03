@@ -17,6 +17,7 @@ uniform int heavy = 0;
 uniform mat4 shadowProjection3;
 uniform mat4 shadow3View;
 uniform sampler2D shadowTexture3;
+uniform sampler2D opticaldepthmap;
 
 //play with me
 float rayleighextinctioncoeff = 1.;
@@ -54,7 +55,7 @@ bool inShadow(vec3 P)
       (shadowPos.z < 1.0) &&
       (shadowPos.z > -1.0))
   {
-    if (shadowPos.z-textureLod(shadowTexture3,shadowPos.xy,0).x > 0.004)
+    if (shadowPos.z-textureLod(shadowTexture3,shadowPos.xy,0).x > 0.001)
       return true;
   }
   return false;
@@ -89,42 +90,22 @@ vec3 inscatter_amount(dvec3 P, vec3 direction, float mu)
     MieSct * density.y * phase.y;
 }
 
-vec3 secondary_integration_2d(vec2 P)
+vec3 secondary_integration(vec3 position)
 {
-  return vec3(0);
-}
-
-vec3 secondary_integration(dvec3 position)
-{
-  int N = 20;
-  if (heavy==0) N = 2;
-  float secondary_ray_length = 1000;
-  secondary_ray_length = largestIntersectionDistance(vec3(position)+vec3(0,Re,0), vec3(sunDirection), Ra);
-  double ds = secondary_ray_length / N;
-  dvec3 P = position;
-  if (intersects(vec3(position) + vec3(0,Re,0), sunDirection, Re))
-    if (largestIntersectionDistance(vec3(position) + vec3(0,Re,0), sunDirection, Re) > 0)
-      return vec3(0);
-  vec3 d = spherePos - vec3(P);
-  if (dot(d, sunDirection) > 0)
-  {
-    d -= sunDirection * dot(d, sunDirection);
-    if (length(d) < 500)
-      return vec3(0);
-  }
-  vec3 optical_depth = vec3(0);
-  for (int i = 0; i<N; ++i)
-  {
-    P += ds * sunDirection;
-    optical_depth += outscatter(P) * float(ds);
-  }
-  return vec3(exp(-optical_depth));
+  vec2 p = vec2((length(position+vec3(0,Re,0))-Re)/(Ra-Re),
+                dot(normalize(position+vec3(0,Re,0)), sunDirection)
+                );
+  p.y += 0.25;
+  p.y /= 1.25;
+  if (p.y < 0)
+    return vec3(100);
+  vec3 optical_depth = textureLod(opticaldepthmap, p, 0).rgb;
+  return optical_depth;
 }
 
 vec3 primary_integration(dvec3 position, dvec3 direction, float max_ray_length, vec3 backgroundColor)
 {
-  int N = 60;
-  if (heavy==0) N=10;
+  int N = 20;
   double primary_ray_length = 0;
   if (direction.y < 0)
     primary_ray_length = -position.y / direction.y + 1;
@@ -142,21 +123,18 @@ vec3 primary_integration(dvec3 position, dvec3 direction, float max_ray_length, 
   {
     optical_depth += outscatter(P) * float(ds);
     if (inShadow(vec3(P)) == false)
-      inscatter     += inscatter_amount(P, vec3(direction), dot(vec3(direction),sunDirection)) * exp(-optical_depth) * secondary_integration(P) * float(ds);
+      inscatter     += inscatter_amount(P, vec3(direction), dot(vec3(direction),sunDirection)) * exp(-optical_depth - secondary_integration(vec3(P))) * float(ds);
     P += ds * direction;
 
     if (length(P + vec3(0,Re,0)) < Re)
     {
-      P.y = 1;
-      vec3 trans = exp(-optical_depth);
-      return trans * vec3(0.1) * secondary_integration(P) + inscatter;
+      return vec3(0.1) * exp(-optical_depth-secondary_integration(vec3(P))) + inscatter;
     }
   }
-  vec3 trans = exp(-optical_depth);
   if (primary_ray_length> 115e3)
     if (dot(direction, sunDirection) > 0.999)
-      return vec3(trans) + inscatter;
-  return trans*secondary_integration(P)*backgroundColor + inscatter;
+      return exp(-optical_depth) + inscatter;
+  return exp(-optical_depth)*backgroundColor + inscatter;
 }
 
 void main()
@@ -182,14 +160,12 @@ void main()
   float objectDepth = 2*projectionNear*projectionFar/(projectionFar+projectionNear-z_n*(projectionFar-projectionNear));
   objectDepth = sqrt(objectDepth*objectDepth + length(objectDepth*screenDirection.xy)*length(objectDepth*screenDirection.xy));
   vec3 objectColor = texture(colormap, pos/2+0.5).rgb*0.3;
-//  objectColor = vec3(0.2);
   if (z_b ==1)
   {
-//    objectDepth = INF;
     objectColor = vec3(0);
   }
-//  vec3 objectColor = vec3(0.2);
 
+//  fragColor = objectColor;
   fragColor = vec4(primary_integration(dvec3(CameraPosition), dvec3(direction), objectDepth, objectColor), 1);
   fragNorm = vec4(0,1,0,0);
 }
