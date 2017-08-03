@@ -9,7 +9,9 @@ uniform float brightness;
 void main()
 {
   float depth = texture(depthmap,pos).r;
-  vec3 inputColor = textureLod(colormap,pos,pow(depth,30)*0.4).rgb;
-  inputColor *= brightness;
-  fragColor = vec4(pow(inputColor, vec3(1/1.2)), 1);
+  vec3 inputColor = texture(colormap,pos).rgb;
+  float brightness = length(textureLod(colormap,vec2(0.5,0.5),9).rgb) * 0.2;
+  brightness = clamp(brightness, 0.4, 1.4);
+  inputColor /= brightness;
+  fragColor = vec4(1-exp(-inputColor),1);
 }

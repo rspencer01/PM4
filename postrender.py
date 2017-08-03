@@ -31,20 +31,20 @@ def display(previousStage,windowWidth,windowHeight):
   previousStage.displayColorTexture.load()
   previousStage.displayColorTexture.makeMipmap()
 
-  data = gl.glGetTexImage(gl.GL_TEXTURE_2D,3,gl.GL_RGBA,gl.GL_FLOAT)
-  s = data.sum(axis=0).sum(axis=0)/(data.shape[0]*data.shape[1])
-  s = s[:3].dot(s[:3])**0.5
-  data = data.max(axis=0).max(axis=0)
-  b = data[:3].dot(data[:3])**0.5
-  b = b*0.8+0.2*s
-  global exposure
-  if b==b:
-    if b!=0:
-      exposure = (1/b + 0.3)* 0.1 + exposure * 0.9
-  exposure = min(10.0,max(0.001,exposure))
-
-  shader.load()
-  shader['brightness'] = exposure
+#  data = gl.glGetTexImage(gl.GL_TEXTURE_2D,3,gl.GL_RGBA,gl.GL_FLOAT)
+#  s = data.sum(axis=0).sum(axis=0)/(data.shape[0]*data.shape[1])
+#  s = s[:3].dot(s[:3])**0.5
+#  data = data.max(axis=0).max(axis=0)
+#  b = data[:3].dot(data[:3])**0.5
+#  b = b*0.8+0.2*s
+#  global exposure
+#  if b==b:
+#    if b!=0:
+#      exposure = (1/b + 0.3)* 0.1 + exposure * 0.9
+#  exposure = min(10.0,max(0.001,exposure))
+#
+#  shader.load()
+#  shader['brightness'] = exposure
   shader.draw(gl.GL_TRIANGLES,renderID,1)
 
 def lighting(previousStage):

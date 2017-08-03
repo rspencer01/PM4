@@ -60,7 +60,7 @@ vec3 lighting(vec4 normal, vec4 position)
 
   float diffuse = max(0, dot(normal.xyz, sunDirection));
   float shadowAmount = 0;
-  float sunLight = max(0,pow(sunDirection.y,0.7));
+  float sunLight = 1;//max(0,pow(sunDirection.y,0.7));
   if (intersects(position.xyz+vec3(0,Re,0),sunDirection,Re+1500) &&
       smallestIntersectionDistance(position.xyz+vec3(0,Re,0),sunDirection,Re+1500) > 0
       )
