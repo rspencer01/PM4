@@ -23,7 +23,7 @@ uniform int integrationSteps;
 
 float rayleighextinctioncoeff = 1.4;
 float mieextinctioncoeff = 1.;
-float g= 0.6;
+float g= 0.7;
 
 float PI = 3.1415;
 float INF = 1e20;
@@ -48,6 +48,8 @@ vec3 getShadowPos(vec3 P)
 }
 bool inShadow(vec3 P)
 {
+  if (length(vec3(0,Re,0) + P) < Re)
+    return false;
   vec3 shadowPos = getShadowPos(P);
   if ((shadowPos.x < 1.0) &&
       (shadowPos.x > 0.0) &&
@@ -159,12 +161,7 @@ void main()
   float objectDepth = 2*projectionNear*projectionFar/(projectionFar+projectionNear-z_n*(projectionFar-projectionNear));
   objectDepth = sqrt(objectDepth*objectDepth + length(objectDepth*screenDirection.xy)*length(objectDepth*screenDirection.xy));
   vec3 objectColor = texture(colormap, pos/2+0.5).rgb*0.3;
-  if (z_b ==1)
-  {
-    objectColor = vec3(0);
-  }
 
-  fragColor = vec4(objectColor,1);
   fragColor = vec4(primary_integration(vec3(CameraPosition), vec3(direction), objectDepth, objectColor), 1);
   fragNorm = vec4(0,1,0,0);
 }

@@ -77,8 +77,6 @@ def constructNightSky():
 
 nightSkyTexture.loadData(assets.getAsset('nightSky', constructNightSky, (), args.args.remake_stars))
 
-
-
 shader = getShader('sky')
 shader['Re']              = Re
 shader['Ra']              = Ra

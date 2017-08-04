@@ -9,7 +9,7 @@ class RectangleObject(object):
 
     data = np.zeros(4, dtype=[("position", np.float32, 3)])
     data['position'] = [(-1, -1, 0.999999), (-1, 1, 0.999999), (1, -1, 0.999999), (1, 1, 0.999999)]
-    I = [0, 1, 2, 1, 2, 3]
+    I = [0, 2, 1, 1, 2, 3]
     indices = np.array(I, dtype=np.int32)
 
     self.renderID = self.shader.setData(data, indices)
