@@ -14,17 +14,20 @@ class RectangleObject(object):
 
     self.renderID = self.shader.setData(data, indices)
 
-    self.model = np.eye(3, dtype=np.float32)
     self.position = np.array([0.5, 0.5])
     self.width = 1.
     self.height = 1.
 
+    self._last_model = np.zeros((3,3), dtype=np.float32)
+
   def display(self):
-    self.model = np.eye(3, dtype=np.float32)
-    self.model[0,0] = self.width
-    self.model[1,1] = self.height
-    self.model[2,:2] = (self.position - 0.5)*2
-    self.shader['model'] = self.model
+    model = np.eye(3, dtype=np.float32)
+    model[0,0] = self.width
+    model[1,1] = self.height
+    model[2,:2] = (self.position - 0.5)*2
+    if not np.allclose(model, self._last_model):
+      self.shader['model'] = model
+      self._last_model = model
     self.shader.draw(gl.GL_TRIANGLES, self.renderID, 1)
 
 

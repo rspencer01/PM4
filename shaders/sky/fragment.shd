@@ -21,7 +21,7 @@ uniform sampler2D opticaldepthmap;
 
 uniform int integrationSteps;
 
-float rayleighextinctioncoeff = 1.4;
+float rayleighextinctioncoeff = 2.4;
 float mieextinctioncoeff = 1.;
 float g= 0.7;
 
@@ -32,7 +32,7 @@ uniform float Re = 6.3e6;
 uniform float Ra = 6.4e6;
 
 uniform vec3 RayleighSct = vec3(5.8, 13.5, 33.1) * 0.000001;
-uniform vec3 MieSct = vec3(1.0, 1.0, 1.0) * 0.00002f;
+uniform vec3 MieSct = vec3(1.0, 1.0, 1.0) * 0.00001f;
 
 uniform vec3 FogSct = vec3(1) * 0.0004*0;
 

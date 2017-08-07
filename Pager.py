@@ -33,6 +33,19 @@ class Pager(object):
       self.remove_oldest()
 
 
+  def minimise_indices(self):
+    """After calling, all the items are guaranteed to be in positions 0 to
+    (n-1), where there are n indices.  Returns a mapping from old indices to new
+    ones. Not guaranteed to use the fewest movements at all."""
+    transfer = {}
+    keys = self.mapping.keys
+    newmapping = {}
+    for n,i in keys:
+      transfer[i] = n
+      newmapping[n] = i
+    self.mapping = newmapping
+
+
   def __getitem__(self, item):
     v = self.mapping[item][1]
     self.mapping[item] = (time.time(),v)

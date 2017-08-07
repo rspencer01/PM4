@@ -18,6 +18,7 @@ def addLight(position, colour):
     indices.add(ID)
   index = indices[ID]
 
+  indices.minimise_indices()
   lightPositions[index] = position
   lightColours[index] = colour
   update()
@@ -28,9 +29,10 @@ def removeLight(ID):
     return
   index = indices[ID]
   lightColours[index] = 0
+  indices.remove(ID)
 
 def update():
-  lightingShader['numLights'] = 100
+  lightingShader['numLights'] = len(indices)
   lightingShader['lightPositions'] = lightPositions
   lightingShader['lightColours'] = lightColours
 

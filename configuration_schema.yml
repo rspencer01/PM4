@@ -26,7 +26,7 @@ sky_integration_steps:
     Indicates the accuracy of the sky integration system.  Typical values are from 
     10 to 100.
   type: integer
-  default: 20
+  default: 10
 building_clump_count:
   help: |
     The number of building clumps or villages in the world.
@@ -52,7 +52,7 @@ npc_count:
   help:
     The number of non-player-characters in the world
   type: integer
-  default: 50 
+  default: 50
 earth_radius:
   help:
     As on the box

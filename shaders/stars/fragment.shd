@@ -33,24 +33,21 @@ vec3 getCelestialColor(vec3 direction)
 
 void main()
 {
-  vec3 right   =  vec3(View[0][0],View[1][0],View[2][0]);
-  vec3 up      =  vec3(View[0][1],View[1][1],View[2][1]);
-  vec3 forward = -vec3(View[0][2],View[1][2],View[2][2]);
-
-  // 0.57735 is tan(60), the field of view
-  vec3 screenDirection = normalize(
-      vec3(0,0,1) +
-      vec3(1,0,0) * pos.x * 0.57735 * aspectRatio +
-      vec3(0,1,0) * pos.y * 0.57735);
-  vec3 direction       = normalize(
-      forward +
-      right * pos.x * 0.57735 * aspectRatio +
-      up    * pos.y * 0.57735);
-
   fragmentColor = vec4(textureLod(colormap, pos/2+0.5,0).rgb, 1);
   gl_FragDepth = textureLod(depthmap, pos/2+0.5,0).r;
+
   if (gl_FragDepth > 0.999999)
   {
+    vec3 right   =  vec3(View[0][0],View[1][0],View[2][0]);
+    vec3 up      =  vec3(View[0][1],View[1][1],View[2][1]);
+    vec3 forward = -vec3(View[0][2],View[1][2],View[2][2]);
+
+    // 0.57735 is tan(60), the field of view
+    vec3 direction       = normalize(
+        forward +
+        right * pos.x * 0.57735 * aspectRatio +
+        up    * pos.y * 0.57735);
+
     fragmentColor = vec4(getCelestialColor(direction),1);
     gl_FragDepth = 0.999999;
   }

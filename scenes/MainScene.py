@@ -171,20 +171,6 @@ class MainScene(Scene):
       self.Map.targetFullScreenAmount = 1-self.Map.targetFullScreenAmount
     if key=='p':
       self.line = not self.line
-    if key=='#':
-      try:
-        Shaders.shaders['sky'] = Shaders.GenericShader(
-            'sky',
-            Shaders.ShaderFile('shaders/sky/fragment.shd', gl.GL_FRAGMENT_SHADER),
-            Shaders.ShaderFile('shaders/sky/vertex.shd', gl.GL_VERTEX_SHADER),
-            False)
-        Shaders.shaders['sky']['colormap']        = Texture.COLORMAP_NUM
-        Shaders.shaders['sky']['depthmap']        = Texture.DEPTHMAP_NUM
-        Shaders.shaders['sky']['opticaldepthmap'] = Texture.OPTICAL_DEPTHMAP_NUM
-        Shaders.shaders['sky']['shadowTexture3'] = Texture.SHADOWS3_NUM
-        reload(self.Sky)
-      except Exception as e:
-        print e
     if key=='l':
       if self.camera.lockObject:
         self.camera.lockObject = None
