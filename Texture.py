@@ -1,5 +1,6 @@
 import OpenGL.GL as gl
 import numpy as np
+import scipy.ndimage
 import Image
 import logging
 import sys
@@ -94,6 +95,13 @@ class Texture:
     """Loads data to the GPU.  Parameter `data` may either be a numpy array of
     shape `(width,height,4)` or `None` (in which case `width` and `height` must
     be specified)."""
+    if data is not None:
+      if data.nbytes > 1024**6:
+        logging.warn("Texture {} is of size {:.2f}M (too big)".format(self.id, data.nbytes/1024**2))
+        if data.nbytes < 1024**2 * 10:
+          logging.warn("Resizing {}".format(self.id))
+          data = scipy.ndimage.zoom(data, (0.5, 0.5, 1))
+
     if width == None:
       width = data.shape[0]
     if height == None:
@@ -155,7 +163,7 @@ class Texture:
     data = assets.getAsset(filename, readFromFile, (filename,), args.args.reload_textures)
 
     def uploadToGPU(data):
-      logging.info("Uploading texture {}".format(self.id))
+      logging.info("Uploading texture {} ({})".format(self.id, filename))
       self.loadData(data/256)
 
     # We have now loaded the image data.  We need to upload it to the GPU.

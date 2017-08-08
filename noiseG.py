@@ -10,7 +10,7 @@ import assets
 logging.info("Loading noise texture")
 
 noiseTexture = Texture.Texture(Texture.NOISE)
-textHeight, textWidth = 2048, 2048
+textHeight, textWidth = 1024, 1024
 
 def generateNoise():
   logging.info("Recreating texture")
