@@ -27,7 +27,7 @@ gl.glTexParameteri(gl.GL_TEXTURE_2D, gl.GL_TEXTURE_MAG_FILTER, gl.GL_NEAREST)
 gl.glTexParameteri(gl.GL_TEXTURE_2D, gl.GL_TEXTURE_MIN_FILTER, gl.GL_NEAREST_MIPMAP_NEAREST)
 pageTableTexture.loadData(np.zeros((1,1,4))-1)
 
-pageRenderStage = RenderStage.RenderStage()
+pageRenderStage = RenderStage.RenderStage(aux_buffer=True)
 pageRenderStage.reshape(pageResoultion*numPages)
 pageNormalTexture = pageRenderStage.displayColorTexture
 pageOffsetTexture = pageRenderStage.displayAuxColorTexture

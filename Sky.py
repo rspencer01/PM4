@@ -31,7 +31,9 @@ optical_depth_render_stage.reshape(2048)
 optical_depth_render_stage.load(2048, 2048)
 renderID = optical_depth_shader.setData(data, indices)
 optical_depth_shader.draw(gl.GL_TRIANGLES,renderID,1)
-optical_depth_render_stage.displayColorTexture.loadAs(Texture.OPTICAL_DEPTHMAP)
+optical_depth_texture = optical_depth_render_stage.displayColorTexture
+del optical_depth_render_stage
+optical_depth_texture.loadAs(Texture.OPTICAL_DEPTHMAP)
 gl.glBindFramebuffer(gl.GL_FRAMEBUFFER, 0)
 
 nightSkyTexture = Texture.Texture(Texture.NIGHTSKY)
@@ -92,6 +94,6 @@ def display(previousStage):
   previousStage.displayColorTexture.load()
   # TODO Is this needed?
   previousStage.displayDepthTexture.load()
-  optical_depth_render_stage.displayColorTexture.loadAs(Texture.OPTICAL_DEPTHMAP)
+  optical_depth_texture.loadAs(Texture.OPTICAL_DEPTHMAP)
   shader.load()
   shader.draw(gl.GL_TRIANGLES,renderID,1)

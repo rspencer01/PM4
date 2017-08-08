@@ -61,9 +61,9 @@ class MainScene(Scene):
     self.line = False
     self.flycam = None
 
-    self.renderStages = [RenderStage(render_func=self.main_display)      ,
-                         RenderStage(render_func=self.lighting_display   , clear_depth=False) ,
-                         RenderStage(render_func=self.stars_display      , clear_depth=False) ,
+    self.renderStages = [RenderStage(render_func=self.main_display       , aux_buffer=True)   ,
+                         RenderStage(render_func=self.lighting_display   , clear_depth=False  , aux_buffer=True)  ,
+                         RenderStage(render_func=self.stars_display      , clear_depth=False  , aux_buffer=True)  ,
                          RenderStage(render_func=self.sky_display        , clear_depth=False) ,
                          RenderStage(render_func=self.postrender_display , clear_depth=False  , final_stage=True)
                          ]
