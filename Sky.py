@@ -5,50 +5,36 @@ import Texture
 import OpenGL.GL as gl
 import logging
 import args
+import RenderStage
 from configuration import config
 import tqdm
 import assets
 
-N = 256
-Re = 6.360e6
-Ra = 6.420e6
-Hr = 8e3
-Hm = 1.2e3
-
-def constructOpticalDepths():
-  logging.info("Constructing optical depths")
-  opdepth = np.zeros((N*16,N,4),dtype=np.float32)
-
-  for j,theta in tqdm.tqdm(enumerate(np.arange(0, np.pi*0.75, np.pi*0.75/N)), leave=False):
-    for k,altitudeP in enumerate(np.arange(0,1,1./(N*16))):
-      altitude = Re + (altitudeP)**3*(Ra-Re)
-      P = altitude * np.array([np.sin(theta), np.cos(theta)])
-      if np.cos(theta)<0:
-        if (P[0] <= Re):
-          opdepth[k][j] = [-1,-1,0,0]
-      r = (Ra**2-P[0]**2)**0.5-P[1]
-      nn = 400
-      dx = r/nn
-      heights = (P[0]**2+(P[1]+np.arange(0,r,dx))**2)**0.5-Re
-      opdepthR = sum(np.exp(-heights/Hr))*dx
-      opdepthM = sum(np.exp(-heights/Hm))*dx
-
-      opdepth[k][j] = [opdepthR,opdepthM,0,0]
-  return opdepth
-
-opdepth = assets.getAsset('opticalDepths', constructOpticalDepths, forceReload=args.args.remake_sky)
+N = config.sky_integration_steps
+Re = config.earth_radius
+Ra = config.atmosphere_radius
 
 opticalDepthmap = Texture.Texture(Texture.OPTICAL_DEPTHMAP)
 opticalDepthmap.load()
 gl.glTexParameteri(gl.GL_TEXTURE_2D, gl.GL_TEXTURE_WRAP_S, gl.GL_CLAMP)
 gl.glTexParameteri(gl.GL_TEXTURE_2D, gl.GL_TEXTURE_WRAP_T, gl.GL_CLAMP)
-opticalDepthmap.loadData(opdepth, height=N*16, width=N)
-del opdepth
 
 data = np.zeros(4,dtype=[("position" , np.float32,3)])
 data['position'] = [(-1,-1,0.999999),(-1,1,0.999999),(1,-1,0.999999),(1,1,0.999999)]
 I = [0,1,2, 1,2,3]
 indices = np.array(I,dtype=np.int32)
+
+logging.info("Precalculating optical depths")
+optical_depth_shader = getShader('optical_depths')
+optical_depth_render_stage = RenderStage.RenderStage()
+optical_depth_render_stage.reshape(2048)
+optical_depth_render_stage.load(2048, 2048)
+renderID = optical_depth_shader.setData(data, indices)
+optical_depth_shader.draw(gl.GL_TRIANGLES,renderID,1)
+optical_depth_texture = optical_depth_render_stage.displayColorTexture
+del optical_depth_render_stage
+optical_depth_texture.loadAs(Texture.OPTICAL_DEPTHMAP)
+gl.glBindFramebuffer(gl.GL_FRAMEBUFFER, 0)
 
 nightSkyTexture = Texture.Texture(Texture.NIGHTSKY)
 def constructNightSky():
@@ -93,28 +79,21 @@ def constructNightSky():
 
 nightSkyTexture.loadData(assets.getAsset('nightSky', constructNightSky, (), args.args.remake_stars))
 
-logging.info("Loading Earth texture")
-earthTexture = Texture.Texture(Texture.EARTHMAP)
-earthTexture.loadFromImage('assets/earthmap.ppm')
-earthTexture.load()
-
 shader = getShader('sky')
+shader['Re']              = Re
+shader['Ra']              = Ra
+shader['integrationSteps'] = N
 shader['colormap']        = Texture.COLORMAP_NUM
 shader['depthmap']        = Texture.DEPTHMAP_NUM
-shader['nightSkymap']     = Texture.NIGHTSKY_NUM
-shader['earthMap']        = Texture.EARTHMAP_NUM
 shader['opticaldepthmap'] = Texture.OPTICAL_DEPTHMAP_NUM
-shader['Re'] = Re
-shader['Ra'] = Ra
-shader['Hr'] = Hr
-shader['Hm'] = Hm
-shader['shadowTexture3'] = Texture.SHADOWS3_NUM
-shader['numInt'] = config.sky_integration_steps
+shader['nightSkyTexture'] = Texture.NIGHTSKY_NUM
+shader['shadowTexture3']  = Texture.SHADOWS3_NUM
 renderID = shader.setData(data,indices)
 
 def display(previousStage):
   previousStage.displayColorTexture.load()
   # TODO Is this needed?
   previousStage.displayDepthTexture.load()
+  optical_depth_texture.loadAs(Texture.OPTICAL_DEPTHMAP)
   shader.load()
   shader.draw(gl.GL_TRIANGLES,renderID,1)

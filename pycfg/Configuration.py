@@ -5,6 +5,7 @@ DEFAULTS = {
     'string' : '',
     'present' : False,
     'integer' : 0,
+    'float' : 0.,
     }
 
 class Configuration(object):
@@ -52,6 +53,8 @@ class Configuration(object):
       return key, True
     if self._schema[key]['type'] == 'integer':
       return key, int(value)
+    if self._schema[key]['type'] == 'float':
+      return key, float(value)
     return key, value
 
   def write_default_file(self, filename):

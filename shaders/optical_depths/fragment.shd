@@ -1,0 +1,37 @@
+#version 400
+in vec2 pos;
+out vec4 fragColor;
+
+uniform float Re = 6.3e6;
+uniform float Ra = 6.4e6;
+uniform vec3 RayleighSct = vec3(5.8, 13.5, 33.1) * 0.000001;
+uniform vec3 MieSct = vec3(1.0, 1.0, 1.0) * 0.00002f;
+
+#include shaders/include/SphereOps.shd;
+
+// P.x is altitude 0 to 1
+// P.y is latitude 0 to 1 (representing dots of -0.25 to 1)
+vec3 secondary_integration_2d(vec2 p)
+{
+  p.y = p.y*1.25-0.25;
+  int N = 400;
+  vec3 P = vec3(sqrt(1-p.y*p.y), p.y, 0) * (Re + (Ra-Re)*p.x);
+  float secondary_ray_length = largestIntersectionDistance(P, vec3(0,1,0), Ra);
+  if (intersects(P, vec3(0,1,0), Re))
+    if (largestIntersectionDistance(P,vec3(0,1,0),Re)>0)
+      return vec3(1000);
+  float ds = secondary_ray_length / N;
+  vec3 optical_depth = vec3(0);
+  for (int i = 0; i<N; ++i)
+  {
+    P += ds * vec3(0,1,0);
+    float h = length(P) - Re;
+    optical_depth += RayleighSct * exp(-h/8e3) * ds + MieSct * exp(-h/1.2e3) * ds;
+  }
+  return optical_depth;
+}
+
+void main()
+{
+  fragColor = vec4(secondary_integration_2d(pos), 1);
+}

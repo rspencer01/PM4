@@ -1,0 +1,54 @@
+#version 400
+in vec2 pos;
+layout(location=0) out vec4 fragmentColor;
+
+uniform sampler2D colormap;
+uniform sampler2D depthmap;
+uniform sampler2D nightSkymap;
+uniform vec3 sunDirection;
+uniform mat4 View;
+uniform float aspectRatio;
+
+vec3 getCelestialColor(vec3 direction)
+{
+  vec3 bitangent = vec3(cos(0.3),-sin(0.3),0);
+  vec3 tangent = normalize(cross(sunDirection, bitangent));
+  vec3 celestialDirection = normalize(vec3(dot(direction, tangent), dot(direction, bitangent), dot(direction,sunDirection)));
+  vec2 celestialMap;
+  if (celestialDirection.y>0)
+  {
+    celestialMap = normalize(vec2(celestialDirection.x,celestialDirection.z))*acos(celestialDirection.y)/3.141592*2;
+    celestialMap = vec2(0.25*celestialMap.x,0.5*celestialMap.y) + vec2(0.25,0.5);
+  }
+  else
+  {
+    celestialMap = normalize(vec2(celestialDirection.x,celestialDirection.z))*acos(-celestialDirection.y)/3.141592*2;
+    celestialMap = vec2(0.25*celestialMap.x,0.5*celestialMap.y) + vec2(0.75,0.5);
+  }
+  vec3 celestialColor = textureLod(nightSkymap,celestialMap,0).rgb*0.03;
+
+  return celestialColor*5;
+}
+
+
+void main()
+{
+  fragmentColor = vec4(textureLod(colormap, pos/2+0.5,0).rgb, 1);
+  gl_FragDepth = textureLod(depthmap, pos/2+0.5,0).r;
+
+  if (gl_FragDepth > 0.999999)
+  {
+    vec3 right   =  vec3(View[0][0],View[1][0],View[2][0]);
+    vec3 up      =  vec3(View[0][1],View[1][1],View[2][1]);
+    vec3 forward = -vec3(View[0][2],View[1][2],View[2][2]);
+
+    // 0.57735 is tan(60), the field of view
+    vec3 direction       = normalize(
+        forward +
+        right * pos.x * 0.57735 * aspectRatio +
+        up    * pos.y * 0.57735);
+
+    fragmentColor = vec4(getCelestialColor(direction),1);
+    gl_FragDepth = 0.999999;
+  }
+}

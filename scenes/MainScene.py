@@ -3,11 +3,13 @@ import OpenGL.GL as gl
 import Shaders
 import transforms
 import numpy as np
+import Texture
 from RenderPipeline import RenderPipeline
 from RenderStage import RenderStage
 import messaging
 import spells
 import lighting
+import RectangleObjects
 Re = 6.360e6
 
 class MainScene(Scene):
@@ -49,13 +51,19 @@ class MainScene(Scene):
     import postrender
     self.postrender = postrender
 
+    self.star_object = RectangleObjects.RectangleObject('stars')
+    self.star_object.shader['colormap'] = Texture.COLORMAP_NUM
+    self.star_object.shader['depthmap'] = Texture.DEPTHMAP_NUM
+    self.star_object.shader['nightSkymap'] = Texture.NIGHTSKY_NUM
+
     self.fastMode = False
     self.enableAtmosphere = True
     self.line = False
     self.flycam = None
 
-    self.renderStages = [RenderStage(render_func=self.main_display)      ,
-                         RenderStage(render_func=self.lighting_display   , clear_depth=False) ,
+    self.renderStages = [RenderStage(render_func=self.main_display       , aux_buffer=True)   ,
+                         RenderStage(render_func=self.lighting_display   , clear_depth=False  , aux_buffer=True)  ,
+                         RenderStage(render_func=self.stars_display      , clear_depth=False  , aux_buffer=True)  ,
                          RenderStage(render_func=self.sky_display        , clear_depth=False) ,
                          RenderStage(render_func=self.postrender_display , clear_depth=False  , final_stage=True)
                          ]
@@ -73,7 +81,7 @@ class MainScene(Scene):
   def main_display(self, width, height, **kwargs):
     if self.line:
       gl.glPolygonMode(gl.GL_FRONT_AND_BACK,gl.GL_LINE)
-    gl.glEnable(gl.GL_CULL_FACE)
+#    gl.glEnable(gl.GL_CULL_FACE)
     self.camera.render()
     projection = transforms.perspective( 60.0, width/float(height), 0.3, 1e7 )
     Shaders.updateUniversalUniform('projectionNear', 0.3)
@@ -98,6 +106,13 @@ class MainScene(Scene):
 
   def lighting_display(self, previous_stage, **kwargs):
     self.postrender.lighting(previous_stage)
+
+
+  def stars_display(self, previous_stage, **kwargs):
+    self.Sky.nightSkyTexture.load()
+    previous_stage.displayColorTexture.loadAs(Texture.COLORMAP)
+    previous_stage.displayDepthTexture.loadAs(Texture.DEPTHMAP)
+    self.star_object.display()
 
 
   def sky_display(self, previous_stage, **kwargs):

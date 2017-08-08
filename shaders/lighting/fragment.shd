@@ -25,8 +25,10 @@ uniform int options;
 uniform int numLights;
 uniform vec3 lightPositions[100];
 uniform vec3 lightColours[100];
+uniform sampler2D opticaldepthmap;
 
-float Re = 6.360e6;
+uniform float Re = 6.30e6;
+uniform float Ra = 6.40e6;
 
 #include shaders/include/SphereOps.shd;
 
@@ -54,13 +56,26 @@ float getShadowAmount(mat4 shadowProjection, mat4 shadowView, vec4 position, sam
   return shadowAmount;
 }
 
+vec3 secondary_integration(vec3 position)
+{
+  vec2 p = vec2((length(position+vec3(0,Re,0))-Re)/(Ra-Re),
+                dot(normalize(position+vec3(0,Re,0)), sunDirection)
+                );
+  p.y += 0.25;
+  p.y /= 1.25;
+  if (p.y < 0)
+    return vec3(100);
+  vec3 optical_depth = textureLod(opticaldepthmap, p, 0).rgb;
+  return optical_depth;
+}
+
 vec3 lighting(vec4 normal, vec4 position)
 {
   vec3 ans;
 
   float diffuse = max(0, dot(normal.xyz, sunDirection));
   float shadowAmount = 0;
-  float sunLight = max(0,pow(sunDirection.y,0.7));
+  float sunLight = 1;//max(0,pow(sunDirection.y,0.7));
   if (intersects(position.xyz+vec3(0,Re,0),sunDirection,Re+1500) &&
       smallestIntersectionDistance(position.xyz+vec3(0,Re,0),sunDirection,Re+1500) > 0
       )
@@ -80,6 +95,8 @@ vec3 lighting(vec4 normal, vec4 position)
     }
   }
   ans = vec3(clamp(ambientLight*sunLight,0.006,1.0) + sunLight * diffuse * (1-shadowAmount*0.8));
+
+  ans *= mix(vec3(1), exp(-secondary_integration(position.xyz)), vec3(0.5));
 
   for (int i = 0; i< numLights; ++i)
   {
