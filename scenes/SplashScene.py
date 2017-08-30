@@ -1,8 +1,8 @@
-from Scene import Scene
-from RenderStage import RenderStage
+from dent.Scene import Scene
+from dent.RenderStage import RenderStage
 import OpenGL.GL as gl
-import messaging
-import RectangleObjects
+import dent.messaging as messaging
+import dent.RectangleObjects as RectangleObjects
 import noiseG
 
 class SplashScene(Scene):

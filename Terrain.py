@@ -1,16 +1,16 @@
 import numpy as np
-import args
+import dent.args as args
 import Image
 import logging
 from Shaders import *
 import OpenGL.GL as gl
-import Texture
+import dent.Texture as Texture
 import noiseG
 from math import *
-from configuration import config
+from dent.configuration import config
 from pagedTextures import *
 import tqdm
-import assets
+import dent.assets as assets
 
 logging.info("Constructing Terrain")
 

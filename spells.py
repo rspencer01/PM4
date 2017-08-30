@@ -1,6 +1,6 @@
 import numpy as np
 import particles
-import transforms
+import dent.transforms as transforms
 import noiseG
 
 class IdeaSpellParticles(particles.ParticleSystem):

@@ -1,11 +1,11 @@
 import numpy as np
 import logging
-import Texture
+import dent.Texture as Texture
 import Shaders
 import noise
-import args
+import dent.args as args
 import tqdm
-import assets
+import dent.assets as assets
 
 logging.info("Loading noise texture")
 

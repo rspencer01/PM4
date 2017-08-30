@@ -1,15 +1,15 @@
-from Scene import Scene
+from dent.Scene import Scene
 import OpenGL.GL as gl
 import Shaders
-import transforms
+import dent.transforms as transforms
 import numpy as np
-import Texture
-from RenderPipeline import RenderPipeline
-from RenderStage import RenderStage
-import messaging
+import dent.Texture as Texture
+from dent.RenderPipeline import RenderPipeline
+from dent.RenderStage import RenderStage
+import dent.messaging as messaging
 import spells
 import lighting
-import RectangleObjects
+import dent.RectangleObjects as RectangleObjects
 Re = 6.360e6
 
 class MainScene(Scene):

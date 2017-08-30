@@ -1,11 +1,11 @@
-from configuration import config
-import Pager
+from dent.configuration import config
+import dent.Pager as Pager
 import OpenGL.GL as gl
 import logging
 from Shaders import *
 import numpy as np
-import Texture
-import RenderStage
+import dent.Texture as Texture
+import dent.RenderStage as RenderStage
 
 pageSize                = config.terrain_page_size
 pagesAcross             = 60000 / pageSize

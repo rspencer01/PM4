@@ -1,6 +1,6 @@
 import postrender
 import numpy as np
-import Pager
+import dent.Pager as Pager
 
 lightingShader = postrender.lightingShader
 

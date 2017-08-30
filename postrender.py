@@ -1,7 +1,7 @@
 import numpy as np
-import Texture
+import dent.Texture as Texture
 from Shaders import *
-from configuration import config
+from dent.configuration import config
 
 Re = config.earth_radius
 Ra = config.atmosphere_radius

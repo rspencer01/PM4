@@ -1,7 +1,7 @@
 import numpy as np
 import OpenGL.GL as gl
 import Shaders
-import Texture
+import dent.Texture as Texture
 
 data = np.zeros(4,dtype=[("position" ,np.float32, 3)])
 data['position'] = [(-1,-1,0.999999),(-1,1,0.999999),(1,-1,0.999999),(1,1,0.999999)]

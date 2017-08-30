@@ -1,14 +1,14 @@
 import numpy as np
 from Shaders import *
 import OpenGL.GL.framebufferobjects as glfbo
-import Texture
+import dent.Texture as Texture
 import OpenGL.GL as gl
 import logging
-import args
-import RenderStage
-from configuration import config
+import dent.args as args
+import dent.RenderStage as RenderStage
+from dent.configuration import config
 import tqdm
-import assets
+import dent.assets as assets
 
 N = config.sky_integration_steps
 Re = config.earth_radius

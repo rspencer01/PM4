@@ -1,10 +1,10 @@
 import numpy as np
 import heapq
-import args
-import assets
+import dent.args as args
+import dent.assets as assets
 import random
 import Shaders
-import transforms
+import dent.transforms as transforms
 import OpenGL.GL as gl
 import logging
 import Terrain

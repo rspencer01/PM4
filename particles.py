@@ -1,7 +1,7 @@
 import Shaders
 import numpy as np
 import OpenGL.GL as gl
-import Texture
+import dent.Texture as Texture
 import lighting
 
 shader = Shaders.getShader('general', instance=True)

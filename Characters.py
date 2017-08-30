@@ -1,11 +1,11 @@
-import Object
-import InstancedObject
+import dent.Object as Object
+import dent.InstancedObject as InstancedObject
 import Terrain
 import numpy as np
-import transforms
+import dent.transforms as transforms
 import Buildings
 import random
-from configuration import config
+from dent.configuration import config
 
 numberNPCs = config.npc_count
 

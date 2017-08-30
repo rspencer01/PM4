@@ -2,13 +2,13 @@ import Terrain
 import logging
 import Shaders
 import numpy as np
-import InstancedObject
+import dent.InstancedObject as InstancedObject
 import random
-import transforms
+import dent.transforms as transforms
 from utils import stepSort
 import OpenGL.GL as gl
 from collections import namedtuple
-from configuration import config
+from dent.configuration import config
 import Road
 import tqdm
 

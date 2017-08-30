@@ -1,10 +1,10 @@
-import Camera
+import dent.Camera as Camera
 import numpy as np
-from RenderStage import RenderStage
+from dent.RenderStage import RenderStage
 import logging
-import Texture
+import dent.Texture as Texture
 import Shaders
-import transforms
+import dent.transforms as transforms
 
 logging.info("Initialising Shadows")
 

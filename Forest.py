@@ -1,7 +1,7 @@
 import numpy as np
-from configuration import config
+from dent.configuration import config
 import logging
-import MultiObject
+import dent.MultiObject as MultiObject
 import Shaders
 import OpenGL.GL as gl
 
