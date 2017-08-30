@@ -21,16 +21,16 @@ def getOptionNumber(meshOptions):
       ans += 2 ** i
   return ans
 
-def getTexturePath(path):
-  """This is a stupid hack required for particular unity assets."""
-  if path[:19] == '..\\..\\..\\..\\..\\tex\\':
-    return 'textures/'+path[19:]
-  return path
-
-def getTextureFile(material, textureType):
-  if ('file', textureType) in material.properties:
-    return material.properties[('file', textureType)]
-  return ''
+def getTextureFile(material, textureType, directory=None):
+  if textureType == pyassimp.material.aiTextureType_DIFFUSE:
+    if os.path.exists(directory+'/{}.diff.png'.format(material.properties[('name', 0)])):
+      return '{}.diff.png'.format(material.properties[('name', 0)])
+  elif textureType == pyassimp.material.aiTextureType_NORMALS:
+    if os.path.exists(directory+'/{}.norm.png'.format(material.properties[('name', 0)])):
+      return '{}.norm.png'.format(material.properties[('name', 0)])
+  elif textureType == pyassimp.material.aiTextureType_SPECULAR:
+    if os.path.exists(directory+'/{}.spec.png'.format(material.properties[('name', 0)])):
+      return '{}.spec.png'.format(material.properties[('name', 0)])
 shader             = Shaders.getShader('general-noninstanced')
 shader['colormap'] = Texture.COLORMAP_NUM
 shader['normalmap'] = Texture.NORMALMAP_NUM
@@ -124,7 +124,7 @@ class Object(object):
     # Transform all the vertex positions.
     for i in xrange(len(vertPos)):
       vertPos[i] = trans.dot(vertPos[i])
-      vertNorm[i] = tinvtrans.dot(vertNorm[i]) * self.scale
+      vertNorm[i] = tinvtrans.dot(vertNorm[i])
     # Splice correctly, killing last components
     vertPos = vertPos[:,0:3] - self.offset
     vertNorm = vertNorm[:,0:3]
@@ -144,13 +144,17 @@ class Object(object):
 
     # Load the texture
     texture = Texture.Texture(Texture.COLORMAP, nonblocking=self.daemon)
-    if getTextureFile(mesh.material, pyassimp.material.aiTextureType_DIFFUSE):
-      texture.loadFromImage(self.directory+'/'+getTexturePath(getTextureFile(mesh.material, pyassimp.material.aiTextureType_DIFFUSE)))
+    if getTextureFile(mesh.material, pyassimp.material.aiTextureType_DIFFUSE, self.directory):
+      logging.info("Getting texture from {}".format(getTextureFile(mesh.material, pyassimp.material.aiTextureType_DIFFUSE, self.directory)))
+      texture.loadFromImage(self.directory+'/'+getTextureFile(mesh.material, pyassimp.material.aiTextureType_DIFFUSE, self.directory))
+    else:
+      texture = Texture.getWhiteTexture();
 
-    if getTextureFile(mesh.material, pyassimp.material.aiTextureType_NORMALS):
+    if getTextureFile(mesh.material, pyassimp.material.aiTextureType_NORMALS, self.directory):
+      logging.info("Getting texture from {}".format(getTextureFile(mesh.material, pyassimp.material.aiTextureType_NORMALS, self.directory)))
       normalTexture = Texture.Texture(Texture.NORMALMAP, nonblocking=self.daemon)
       options = options._replace(has_bumpmap=True)
-      normalTexture.loadFromImage(self.directory+'/'+getTexturePath(getTextureFile(mesh.material, pyassimp.material.aiTextureType_NORMALS)))
+      normalTexture.loadFromImage(self.directory+'/'+getTextureFile(mesh.material, pyassimp.material.aiTextureType_NORMALS, self.directory))
     else:
       normalTexture = None
       options = options._replace(has_bumpmap=False)
