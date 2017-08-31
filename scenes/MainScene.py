@@ -1,6 +1,6 @@
 from dent.Scene import Scene
 import OpenGL.GL as gl
-import Shaders
+import dent.Shaders as Shaders
 import dent.transforms as transforms
 import numpy as np
 import dent.Texture as Texture

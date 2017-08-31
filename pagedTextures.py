@@ -2,7 +2,7 @@ from dent.configuration import config
 import dent.Pager as Pager
 import OpenGL.GL as gl
 import logging
-from Shaders import *
+from dent.Shaders import *
 import numpy as np
 import dent.Texture as Texture
 import dent.RenderStage as RenderStage

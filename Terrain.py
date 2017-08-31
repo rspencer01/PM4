@@ -2,7 +2,7 @@ import numpy as np
 import dent.args as args
 import Image
 import logging
-from Shaders import *
+from dent.Shaders import *
 import OpenGL.GL as gl
 import dent.Texture as Texture
 import noiseG

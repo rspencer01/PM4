@@ -1,6 +1,6 @@
 import Terrain
 import logging
-import Shaders
+import dent.Shaders as Shaders
 import numpy as np
 import dent.InstancedObject as InstancedObject
 import random

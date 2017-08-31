@@ -3,7 +3,7 @@ import heapq
 import dent.args as args
 import dent.assets as assets
 import random
-import Shaders
+import dent.Shaders as Shaders
 import dent.transforms as transforms
 import OpenGL.GL as gl
 import logging

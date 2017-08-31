@@ -1,7 +1,7 @@
 import logging
 import numpy as np
 import dent.Texture as Texture
-from Shaders import *
+from dent.Shaders import *
 
 logging.info("Loading grass")
 

@@ -1,5 +1,5 @@
 import numpy as np
-from Shaders import *
+from dent.Shaders import *
 import OpenGL.GL.framebufferobjects as glfbo
 import dent.Texture as Texture
 import OpenGL.GL as gl

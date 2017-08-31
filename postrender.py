@@ -1,6 +1,6 @@
 import numpy as np
 import dent.Texture as Texture
-from Shaders import *
+from dent.Shaders import *
 from dent.configuration import config
 
 Re = config.earth_radius

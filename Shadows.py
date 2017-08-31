@@ -3,7 +3,7 @@ import numpy as np
 from dent.RenderStage import RenderStage
 import logging
 import dent.Texture as Texture
-import Shaders
+import dent.Shaders as Shaders
 import dent.transforms as transforms
 
 logging.info("Initialising Shadows")

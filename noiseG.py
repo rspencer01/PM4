@@ -1,7 +1,7 @@
 import numpy as np
 import logging
 import dent.Texture as Texture
-import Shaders
+import dent.Shaders as Shaders
 import noise
 import dent.args as args
 import tqdm

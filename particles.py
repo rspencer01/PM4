@@ -1,4 +1,4 @@
-import Shaders
+import dent.Shaders as Shaders
 import numpy as np
 import OpenGL.GL as gl
 import dent.Texture as Texture

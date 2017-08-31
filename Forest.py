@@ -2,7 +2,7 @@ import numpy as np
 from dent.configuration import config
 import logging
 import dent.MultiObject as MultiObject
-import Shaders
+import dent.Shaders as Shaders
 import OpenGL.GL as gl
 
 logging.info("Loading trees")
