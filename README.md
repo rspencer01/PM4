@@ -27,6 +27,13 @@ Future
 ------
 This will hopefully soon be merged with _Taverner_ for an actual game experience.
 
-Note
-----
-We use a custom assimp, available from [here](https://github.com/rspencer01/assimp).
+Assets
+------
+Assets with a project like this are always difficult.  At the moment I am using
+some mixamo animations and models.  These are not allowed to be distributed
+freely.  However, they can be downloaded for free from the [mixamo](mixamo.com)
+webpage.
+
+I understand that this is crummy if you want to download and play this.  I am
+thus working on having a downloadable binary which will allow distribution of
+the assets in an embedded form.  Drop me an email if you want a copy.

@@ -24,7 +24,7 @@ class Character(object):
 
 npcs_object = \
   InstancedObject.InstancedObject(
-    'assets/knight/models/knight.fbx',
+    'assets/paladin/paladin_prop_j_nordstrom.fbx',
     'Knight',
     scale=0.01,
     position=(-183, 0,-2938),
@@ -37,7 +37,7 @@ npcs = [Character(i) for i in xrange(numberNPCs)]
 
 character = \
   Object.Object(
-    'assets/knight/models/knight.fbx',
+    'assets/paladin/paladin_prop_j_nordstrom.fbx',
     'Knight',
     scale=0.01,
     position=(-183, 0,-2938),
