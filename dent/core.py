@@ -1,4 +1,8 @@
+import os
 import sys
+if getattr(sys, 'frozen', False):
+    os.chdir(sys._MEIPASS)
+
 import time
 import logging
 import numpy as np
@@ -30,7 +34,6 @@ windowWidth = 512
 cameraSpeed = 20
 frametime = 0.
 lastframe = time.time()
-enableAtmosphere = not args.args.disable_atmosphere
 hold_mouse = True
 fastMode = False
 trianglesQuery = None
@@ -59,7 +62,7 @@ def display():
   gl.glEndQuery(gl.GL_PRIMITIVES_GENERATED)
   triangleCount = gl.glGetQueryObjectiv(trianglesQuery, gl.GL_QUERY_RESULT)
 
-  glut.glutSetWindowTitle("PM4 {:.2f} ({:.0f}ms) {:.6f} {:,} triangles".format(1./frametime,frametime*1000, time.time()-lastframe, triangleCount))
+  glut.glutSetWindowTitle("{:.2f} ({:.0f}ms) {:.6f} {:,} triangles".format(1./frametime,frametime*1000, time.time()-lastframe, triangleCount))
   glut.glutPostRedisplay()
 
 def takeScreenshot():
@@ -189,6 +192,7 @@ glut.glutInitDisplayMode(glut.GLUT_DOUBLE | glut.GLUT_RGBA | glut.GLUT_DEPTH)
 glut.glutInitWindowSize(512,512);
 glut.glutCreateWindow("PM4")
 glut.glutSetKeyRepeat(glut.GLUT_KEY_REPEAT_OFF)
+glut.glutIgnoreKeyRepeat(1)
 logging.info("Obtained OpenGL "+gl.glGetString(gl.GL_VERSION))
 logging.info("Uniform limit (vertex) {}".format(
   str(gl.glGetIntegerv(gl.GL_MAX_VERTEX_UNIFORM_COMPONENTS))))

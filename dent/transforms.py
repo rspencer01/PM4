@@ -47,6 +47,23 @@ def translate(M, x, y=None, z=None):
     T = np.array(T, dtype=np.float32).T
     M[...] = np.dot(M,T)
 
+def translate2(x, y=None, z=None):
+    """
+    translate produces a translation by (x, y, z) . 
+    
+    Parameters
+    ----------
+    x, y, z
+        Specify the x, y, and z coordinates of a translation vector.
+    """
+    if y is None: y = x
+    if z is None: z = x
+    T = [[ 1, 0, 0, x],
+         [ 0, 1, 0, y],
+         [ 0, 0, 1, z],
+         [ 0, 0, 0, 1]]
+    T = np.array(T, dtype=np.float32).T
+    return T
 
 def scale(M, x, y=None, z=None):
     """

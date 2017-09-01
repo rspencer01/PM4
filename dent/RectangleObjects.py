@@ -32,12 +32,16 @@ class RectangleObject(object):
 
 
 class BlankImageObject(RectangleObject):
-  def __init__(self):
+  def __init__(self, r=1., g=1., b=1.):
     super(BlankImageObject, self).__init__('image')
     self.shader['colormap'] = Texture.COLORMAP_NUM
+    self.r = r
+    self.g = g
+    self.b = b
 
   def display(self):
     Texture.getWhiteTexture().load()
+    self.shader['color'] = np.array([self.r, self.g, self.b])
     super(BlankImageObject, self).display()
 
 
@@ -50,4 +54,5 @@ class ImageObject(RectangleObject):
 
   def display(self):
     self.picture.load()
+    self.shader['color'] = np.array([1.,1.,1.])
     super(ImageObject, self).display()

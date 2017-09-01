@@ -46,6 +46,8 @@ PAGED_TEXTURE_2 = gl.GL_TEXTURE17
 PAGED_TEXTURE_2_NUM = 17
 PAGED_TEXTURE_3 = gl.GL_TEXTURE18
 PAGED_TEXTURE_3_NUM = 18
+SPECULARMAP = gl.GL_TEXTURE19
+SPECULARMAP_NUM = 19
 
 textureUnits = gl.glGetIntegerv(gl.GL_MAX_TEXTURE_IMAGE_UNITS)
 logging.info("Found {} texture units".format(textureUnits))
@@ -210,9 +212,18 @@ class Texture:
 
 
 whiteTexture = None
+blackTexture = None
+
 def getWhiteTexture():
   global whiteTexture
   if whiteTexture is None:
     whiteTexture = Texture(COLORMAP)
     whiteTexture.loadData(np.ones((1,1,4),dtype=np.float32))
   return whiteTexture
+
+def getBlackTexture():
+  global blackTexture
+  if blackTexture is None:
+    blackTexture = Texture(COLORMAP)
+    blackTexture.loadData(np.zeros((1,1,4),dtype=np.float32))
+  return blackTexture

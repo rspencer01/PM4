@@ -35,6 +35,8 @@ def generateControls(start, end):
     endpoint = None
 
     for _ in xrange(300000):
+      if len(heap) == 0:
+        break
       d, ln, curr, pth, lst, ang = heapq.heappop(heap)
       positionTuple = (int(curr[0]), int(curr[1]))
       if positionTuple not in bst:
