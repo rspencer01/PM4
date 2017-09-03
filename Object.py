@@ -10,9 +10,10 @@ import logging
 import taskQueue
 import threading
 from collections import namedtuple
+import Animation
 
-MeshOptions = namedtuple("MeshOptions", ('has_bumpmap'))
-MeshDatum = namedtuple("MeshDatum", ('data', 'indices', 'colormap', 'normalmap', 'options'))
+MeshOptions = namedtuple("MeshOptions", ('has_bumpmap', 'has_bones'))
+MeshDatum = namedtuple("MeshDatum", ('name', 'data', 'indices', 'colormap', 'normalmap', 'specularmap', 'options'))
 
 def getOptionNumber(meshOptions):
   ans = 0
@@ -20,6 +21,16 @@ def getOptionNumber(meshOptions):
     if v:
       ans += 2 ** i
   return ans
+
+def get_node_parent(scene, name):
+  def dfs(node,parent):
+    if node.name == name:
+      return parent
+    for i in node.children:
+      a = dfs(i, node)
+      if a: return a
+    return None
+  return dfs(scene.rootnode, '')
 
 def getTextureFile(material, textureType, directory=None):
   if textureType == pyassimp.material.aiTextureType_DIFFUSE:
@@ -31,9 +42,11 @@ def getTextureFile(material, textureType, directory=None):
   elif textureType == pyassimp.material.aiTextureType_SPECULAR:
     if os.path.exists(directory+'/{}.spec.png'.format(material.properties[('name', 0)])):
       return '{}.spec.png'.format(material.properties[('name', 0)])
+
 shader             = Shaders.getShader('general-noninstanced')
 shader['colormap'] = Texture.COLORMAP_NUM
 shader['normalmap'] = Texture.NORMALMAP_NUM
+shader['specularmap'] = Texture.SPECULARMAP_NUM
 
 class Object(object):
   def __init__(
@@ -43,10 +56,14 @@ class Object(object):
       scale=1,
       position=np.zeros(3),
       offset=np.zeros(3),
+      will_animate=False,
       daemon=True):
 
     if name == None:
       name = os.path.basename(filename)
+
+    if will_animate:
+      daemon = False
 
     self.filename = filename
     self.directory = os.path.dirname(filename)
@@ -56,8 +73,17 @@ class Object(object):
     self.renderIDs = []
     self.textures = []
     self.scale = scale
+    self.bones = {}
+    self.bone_transforms = [np.eye(4, dtype=float) for _ in xrange(60)]
+    self.animation = None
+    self.follow_animation = False
+    self.will_animate = will_animate
     self.position = np.array(position, dtype=np.float32)
-    self.offset = np.array(offset, dtype=np.float32)
+    self.last_unanimated_position = position
+    if self.will_animate:
+      self.offset = np.zeros(3)
+    else:
+      self.offset = np.array(offset, dtype=np.float32)
     self.direction = np.array((0,0,1), dtype=float)
     self.bidirection = np.array((1,0,0), dtype=float)
     self.daemon = daemon
@@ -83,31 +109,32 @@ class Object(object):
         processing=pyassimp.postprocess.aiProcess_CalcTangentSpace|
                    pyassimp.postprocess.aiProcess_Triangulate|
                    pyassimp.postprocess.aiProcess_JoinIdenticalVertices|
-                   pyassimp.postprocess.aiProcess_OptimizeGraph|
-                   pyassimp.postprocess.aiProcess_OptimizeMeshes|
+                   pyassimp.postprocess.aiProcess_LimitBoneWeights |
                    pyassimp.postprocess.aiProcess_GenNormals)
 
-    def addNode(node, trans):
+    def addNode(node, trans, depth = 0):
       newtrans = trans.dot(node.transformation)
       for msh in node.meshes:
-        self.addMesh(msh, newtrans)
+        self.addMesh(node.name, msh, newtrans)
       for nod in node.children:
-        addNode(nod, newtrans)
+        addNode(nod, newtrans, depth+1)
 
     t = np.eye(4)
     t[:3] *= self.scale
     addNode(self.scene.rootnode, t)
 
 
-  def addMesh(self, mesh, trans):
+  def addMesh(self, name, mesh, trans):
     logging.debug("Loading mesh {}".format(mesh.__repr__()))
-    options = MeshOptions(False)
+    options = MeshOptions(False, False)
     data = np.zeros(len(mesh.vertices),
                       dtype=[("position" , np.float32,3),
                              ("normal"   , np.float32,3),
                              ("textcoord", np.float32,2),
                              ("tangent"  , np.float32,3),
-                             ("bitangent", np.float32,3)])
+                             ("bitangent", np.float32,3),
+                             ("bone_ids", np.int32,4),
+                             ("weights", np.float32,4)])
     # Get the vertex positions and add a w=1 component
     vertPos = mesh.vertices
     add = np.ones((vertPos.shape[0], 1),dtype=np.float32)
@@ -137,6 +164,7 @@ class Object(object):
     data["normal"] = vertNorm
     data["textcoord"] = vertUV
     data["tangent"] = vertTangents
+    data["bone_ids"] = 59
     data["bitangent"] = vertBitangents
 
     # Get the indices
@@ -159,16 +187,58 @@ class Object(object):
       normalTexture = None
       options = options._replace(has_bumpmap=False)
 
+    if getTextureFile(mesh.material, pyassimp.material.aiTextureType_SPECULAR, self.directory):
+      logging.info("Getting texture from {}".format(getTextureFile(mesh.material, pyassimp.material.aiTextureType_SPECULAR, self.directory)))
+      specTexture = Texture.Texture(Texture.SPECULARMAP, nonblocking=self.daemon)
+      specTexture.loadFromImage(self.directory+'/'+getTextureFile(mesh.material, pyassimp.material.aiTextureType_SPECULAR, self.directory))
+    else:
+      specTexture = Texture.getBlackTexture()
+
+    # Do skinning
+    if self.will_animate:
+      if len(mesh.bones) > 0:
+        options = options._replace(has_bones=True)
+        data["weights"] = 0
+        for bone in mesh.bones:
+          n = len(self.bones)
+          if bone.name not in self.bones:
+            self.bones[bone.name] = (n, get_node_parent(self.scene, bone.name).name, bone.offsetmatrix)
+            nn =n
+          else:
+            nn = self.bones[bone.name][0]
+          for relationship in bone.weights:
+            bone_vec_number = 0
+            for i in xrange(3):
+              if data["weights"][relationship.vertexid][bone_vec_number] > 0:
+                bone_vec_number += 1
+              else:
+                break
+            data["weights"][relationship.vertexid][bone_vec_number] = relationship.weight
+            data["bone_ids"][relationship.vertexid][bone_vec_number] = nn
+
     # Add the textures and the mesh data
     self.textures.append(texture)
-    self.meshes.append(MeshDatum(data, indices, texture, normalTexture, options))
+    self.meshes.append(MeshDatum(name, data, indices, texture, normalTexture, specTexture, options))
 
     taskQueue.addToMainThreadQueue(self.uploadMesh, (data, indices, mesh))
 
-  
+
   def uploadMesh(self, data, indices, mesh):
     self.renderIDs.append(shader.setData(data, indices))
     logging.info("Loaded mesh {}".format(mesh.__repr__()))
+
+
+  def update(self, time=0):
+    if self.animation is not None:
+      if self.animation.get_state(time) == 'finished':
+        self.last_unanimated_position = self.position
+        self.animation = None
+    if self.animation is not None:
+      self.bone_transforms = self.animation.get_bone_transforms(time, not self.follow_animation)
+
+      if self.follow_animation:
+        self.position = self.last_unanimated_position +\
+                          self.animation.get_root_offset(time)
 
 
   def display(self):
@@ -176,10 +246,12 @@ class Object(object):
     t = np.eye(4, dtype=np.float32)
     t[2,0:3] = self.direction
     t[0,0:3] = self.bidirection
-    transforms.translate(t, self.position[0],self.position[1],self.position[2])
+    transforms.translate(t, self.position[0], self.position[1], self.position[2])
     shader['model'] = t
 
     options = None
+    if self.animation is not None:
+      shader['bones'] = self.bone_transforms
 
     for meshdatum,renderID in zip(self.meshes,self.renderIDs):
       # Set options
@@ -189,9 +261,16 @@ class Object(object):
 
       # Load textures
       meshdatum.colormap.load()
+      meshdatum.specularmap.load()
       if meshdatum.options.has_bumpmap:
         meshdatum.normalmap.load()
       shader.draw(gl.GL_TRIANGLES, renderID)
+
+
+  def add_animation(self, filename, follow_animation=False):
+    self.animation = Animation.Animation(filename, self.bones)
+    self.follow_animation = follow_animation
+    self.last_unanimated_position = self.position
 
 
   def __repr__(self):
