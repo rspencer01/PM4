@@ -41,7 +41,8 @@ character = \
     'Knight',
     scale=0.01,
     position=(-183, 0,-2938),
-    offset=(0, 2, 0))
+    offset=(0, 2, 0),
+    daemon=False)
 
 def move(amount):
   character.position[0] += amount * character.direction[0]
