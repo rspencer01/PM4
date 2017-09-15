@@ -79,6 +79,7 @@ for i in xrange(len(clumpSpecs)):
     instances["model"][j] = np.eye(4, dtype=np.float32)
     instances["model"][j][2,0:3] = b1[j].direction
     instances["model"][j][0,0:3] = b1[j].bidirection
+    instances["model"][j][:3][:3] *= building1.scale
     transforms.translate(instances["model"][j], b1[j].position[0],b1[j].position[1],b1[j].position[2])
   building1.addInstances(instances)
 
@@ -90,6 +91,7 @@ for i in xrange(len(clumpSpecs)):
     instances["model"][j] = np.eye(4, dtype=np.float32)
     instances["model"][j][2,0:3] = b1[j].direction
     instances["model"][j][0,0:3] = b1[j].bidirection
+    instances["model"][j][:3][:3] *= building2.scale
     transforms.translate(instances["model"][j], b1[j].position[0],b1[j].position[1],b1[j].position[2])
   building2.addInstances(instances)
 

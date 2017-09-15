@@ -20,15 +20,14 @@ class Character(object):
     while np.linalg.norm(self.destination - self.position) < 4:
       self.destination = random.choice([i.position for i in self.destination_town.buildings])
     self.position += (self.destination - self.position) / np.linalg.norm(self.destination - self.position)*0.1
-    self.position[1] = Terrain.getAt(self.position[0],self.position[2])+2
+    self.position[1] = Terrain.getAt(self.position[0],self.position[2])
 
 npcs_object = \
   InstancedObject.InstancedObject(
     'assets/paladin/paladin_prop_j_nordstrom.fbx',
     'Knight',
     scale=0.01,
-    position=(-183, 0,-2938),
-    offset=(0, 2, 0))
+    position=(-183, 0,-2938))
 
 instances = np.zeros(numberNPCs, dtype=[("model", np.float32, (4,4))])
 npcs_object.addInstances(instances)
@@ -41,13 +40,12 @@ character = \
     'Knight',
     scale=0.01,
     position=(-183, 0,-2938),
-    offset=(0, 2, 0),
     daemon=False)
 
 def move(amount):
   character.position[0] += amount * character.direction[0]
   character.position[2] += amount * character.direction[2]
-  character.position[1] = Terrain.getAt(character.position[0],character.position[2])+2
+  character.position[1] = Terrain.getAt(character.position[0],character.position[2])
 
 def setCharacterDirection(d):
   character.direction[0] = d[0]
@@ -66,6 +64,7 @@ def update():
 
   for i in xrange(numberNPCs):
     npcs_object.instances['model'][i] = np.eye(4)
+    npcs_object.instances['model'][i][:3][:3] *= npcs_object.scale
     transforms.translate(npcs_object.instances["model"][i], *npcs[i].position)
   npcs_object.refreeze()
 
