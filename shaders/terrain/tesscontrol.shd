@@ -9,6 +9,8 @@ uniform vec3 userCameraDirection;
 uniform vec3 CameraDirection;
 uniform sampler2D heightmap;
 
+uniform int worldSize;
+
 in vec3 pos[];
 out vec3 evaluationpoint_wor[];
 
@@ -22,7 +24,7 @@ int detailLevel(vec3 position)
     return 0;
   if (dist > 4000)
   {
-    float ht = texture(heightmap,position.xz/60000+vec2(0.5)).a;
+    float ht = texture(heightmap,position.xz/worldSize+vec2(0.5)).a;
     return 1 +
     int(ht/1500);
   }

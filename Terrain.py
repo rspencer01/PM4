@@ -60,6 +60,7 @@ def generateHeightmap():
   d = np.zeros((textWidth,textHeight,4), dtype=np.float32)
   logging.info(" + Calculating heightmap")
   im = Image.open("assets/Cederberg Mountains Height Map (Merged).png")
+  imsize = 60000
   im.thumbnail((textHeight,textWidth),Image.ANTIALIAS)
   pix = im.load()
   for i in range(textWidth):
@@ -85,14 +86,19 @@ def generateHeightmap():
     d[0,i] = -1000
     d[-1,i] = -1000
 
+  px = config.world_size * textWidth / imsize
+  d = d[textWidth/2-px/2:textWidth/2+px/2,
+        textWidth/2-px/2:textWidth/2+px/2]
+
   logging.info(" + Calculating normalmap")
-  for i in tqdm.trange(textWidth-1, leave=False):
-    for j in range(textHeight-1):
-      v1= np.array([float(i  )/textWidth*planetSize  , d[i,j][3]   , float(j  )/textWidth*planetSize])
-      v2= np.array([float(i+1)/textWidth*planetSize  , d[i+1,j][3] , float(j  )/textWidth*planetSize])
-      v3= np.array([float(i  )/textWidth*planetSize  , d[i,j+1][3] , float(j+1)/textWidth*planetSize])
+  for i in tqdm.trange(px-1, leave=False):
+    for j in range(px-1):
+      v1= np.array([float(i  )/px*planetSize  , d[i,j][3]   , float(j  )/px*planetSize])
+      v2= np.array([float(i+1)/px*planetSize  , d[i+1,j][3] , float(j  )/px*planetSize])
+      v3= np.array([float(i  )/px*planetSize  , d[i,j+1][3] , float(j+1)/px*planetSize])
       d[i,j][:3] = np.cross(v3-v1,v2-v1)
   del im
+
   return d
 
 d = assets.getAsset('heightmap', generateHeightmap, (), args.args.remake_terrain)

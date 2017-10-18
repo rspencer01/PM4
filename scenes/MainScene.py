@@ -17,7 +17,7 @@ class MainScene(Scene):
     super(MainScene, self).__init__()
     import Terrain
     self.Terrain = Terrain
-    self.camera.position = np.array([ 0., 1356.92767998,-1000])
+    self.camera.position = np.array([ 0., 1356.92767998,0])
     self.camera.move_hook=lambda x:np.array((x[0],
             max(self.Terrain.getAt(x[0],x[2])+0.6,x[1]),x[2]))
     self.camera.radiusCentre = np.array([0,-Re,0])

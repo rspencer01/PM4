@@ -14,6 +14,7 @@ uniform mat4 View;
 uniform mat4 projection;
 uniform vec3 userCameraPosition;
 uniform float patchSize;
+uniform int worldSize;
 
 #include shaders/include/TextureBicubic.shd;
 #include shaders/include/NormalOps.shd;
@@ -35,7 +36,7 @@ void main()
   vec3 offst = getOffset(VertexOut.position.xyz);
   VertexOut.position.xyz += offst;
 
-  vec3 normal = textureBicubic(heightmap,(VertexOut.position.xz/60000)+vec2(0.5)).zyx;
+  vec3 normal = textureBicubic(heightmap,(VertexOut.position.xz/worldSize)+vec2(0.5)).zyx;
   normal = normalize(normal);
 
   VertexOut.up= normal;

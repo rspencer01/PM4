@@ -1,5 +1,6 @@
 #version 400
 uniform vec3 sunDirection;
+uniform int worlSize;
 uniform vec3 CameraPosition;
 uniform sampler2D shadowTexture1; uniform sampler2D shadowTexture2;
 uniform sampler2D shadowTexture3;
@@ -24,7 +25,7 @@ in TesselationData
 
 vec3 averageNormal(vec3 pos)
 {
-  return normalize(textureBicubic(heightmap,pos.xz/60000+vec2(0.5)).zyx);
+  return normalize(textureBicubic(heightmap,pos.xz/worldSize+vec2(0.5)).zyx);
 }
 
 vec3 getNormalmap(vec3 position, vec3 type, vec3 norm, vec3 averageNorm)
