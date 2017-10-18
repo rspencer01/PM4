@@ -21,6 +21,11 @@ terrain_num_pages:
     Thus if this number is `n` the total number of pages is `n^2`.
   type: integer
   default: 3
+world_size:
+  help: |
+    The size of the terrain.  This is the length on the edge in meters.
+  type: integer
+  default: 60000
 sky_integration_steps:
   help: |
     Indicates the accuracy of the sky integration system.  Typical values are from 
@@ -31,7 +36,7 @@ building_clump_count:
   help: |
     The number of building clumps or villages in the world.
   type: integer
-  default: 50
+  default: 5
 building_clump_min_size:
   help: |
     The minimum number of building in a clump.

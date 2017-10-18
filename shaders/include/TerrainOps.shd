@@ -1,19 +1,20 @@
 uniform sampler2D heightmap;
+uniform int worldSize;
 
 float getCurvature(sampler2D tex, vec2 ps)
 {
-  float c = texture(tex,ps/60000).a;
-  float d = texture(tex,(ps+vec2(10,0))/60000).a+
-            texture(tex,(ps+vec2(0,10))/60000).a+
-            texture(tex,(ps+vec2(-10,0))/60000).a+
-            texture(tex,(ps+vec2(0,-10))/60000).a;
+  float c = texture(tex,ps/worldSize).a;
+  float d = texture(tex,(ps+vec2(10,0))/worldSize).a+
+            texture(tex,(ps+vec2(0,10))/worldSize).a+
+            texture(tex,(ps+vec2(-10,0))/worldSize).a+
+            texture(tex,(ps+vec2(0,-10))/worldSize).a;
   d/=4;
   return abs(c-d);
 }
 
 float getFineAmount(vec2 ps)
 {
-  float theta = acos(normalize(texture(heightmap,ps/60000).xyz).y);
+  float theta = acos(normalize(texture(heightmap,ps/worldSize).xyz).y);
   if (theta<0.4)
     return 20.;
   return (20+(theta-0.4)*100 + 40*(theta-0.4)*getCurvature(heightmap, ps));
@@ -30,14 +31,14 @@ vec4 getFineValue(vec2 ps)
 
 vec3 getDisplacement(vec2 ps)
 {
-  vec3 displacement = vec3(0,1,0) * texture(heightmap, ps/60000).a;
+  vec3 displacement = vec3(0,1,0) * texture(heightmap, ps/worldSize).a;
   displacement.y += getFineValue(ps).a;
   return displacement;
 }
 
 vec3 getNormal(vec2 ps)
 {
-  vec3 n = normalize(texture(heightmap, ps/60000).zyx);
+  vec3 n = normalize(texture(heightmap, ps/worldSize).zyx);
   vec3 t = cross(vec3(1,0,0),n);
   vec3 b = cross(t,n);
   mat3 mt = mat3(t, n, b);

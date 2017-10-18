@@ -11,19 +11,20 @@ uniform int villageCount;
 uniform vec3 villagePosition[100];
 uniform vec3 roadcontrols[800];
 uniform int roadcontrolscount;
+uniform int worldSize;
 uniform float fullscreen;
 
 bool getContour(vec2 pos, float lineDiff, float lineThick)
 {
-  float p = texture2D(heightmap,pos/60000+0.5).a;
-  float pr = texture2D(heightmap,(vec2(lineThick,0)+pos)/60000+0.5).a;
-  float pl = texture2D(heightmap,(vec2(-lineThick,0)+pos)/60000+0.5).a;
-  float pu = texture2D(heightmap,(vec2(0,lineThick)+pos)/60000+0.5).a;
-  float pd = texture2D(heightmap,(vec2(0,-lineThick)+pos)/60000+0.5).a;
-  float pul = texture2D(heightmap,(vec2(-lineThick,lineThick)*.7+pos)/60000+0.5).a;
-  float pur = texture2D(heightmap,(vec2(lineThick,lineThick)*.7+pos)/60000+0.5).a;
-  float pdl = texture2D(heightmap,(vec2(-lineThick,-lineThick)*.7+pos)/60000+0.5).a;
-  float pdr = texture2D(heightmap,(vec2(lineThick,-lineThick)*.7+pos)/60000+0.5).a;
+  float p = texture2D(heightmap,pos/worldSize+0.5).a;
+  float pr = texture2D(heightmap,(vec2(lineThick,0)+pos)/worldSize+0.5).a;
+  float pl = texture2D(heightmap,(vec2(-lineThick,0)+pos)/worldSize+0.5).a;
+  float pu = texture2D(heightmap,(vec2(0,lineThick)+pos)/worldSize+0.5).a;
+  float pd = texture2D(heightmap,(vec2(0,-lineThick)+pos)/worldSize+0.5).a;
+  float pul = texture2D(heightmap,(vec2(-lineThick,lineThick)*.7+pos)/worldSize+0.5).a;
+  float pur = texture2D(heightmap,(vec2(lineThick,lineThick)*.7+pos)/worldSize+0.5).a;
+  float pdl = texture2D(heightmap,(vec2(-lineThick,-lineThick)*.7+pos)/worldSize+0.5).a;
+  float pdr = texture2D(heightmap,(vec2(lineThick,-lineThick)*.7+pos)/worldSize+0.5).a;
 
   pr = lineDiff * int(pr/lineDiff);
   pu = lineDiff * int(pu/lineDiff);
@@ -61,9 +62,9 @@ void main()
 {
   fragColor = vec4(0);
   float alpha = 1-0.05*fullscreen;
-  vec2 worldPos = pos.xy*30000;
+  vec2 worldPos = pos.xy*worldSize/2;
   worldPos.y *= -1;
-  if (length(worldPos - CameraPosition.xz) < 700)
+  if (length(worldPos - CameraPosition.xz) < worldSize/80)
   {
     if (dot(normalize(worldPos-CameraPosition.xz), CameraDirection.xz) > 0.6*fullscreen)
     {

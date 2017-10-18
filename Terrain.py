@@ -14,17 +14,19 @@ import dent.assets as assets
 
 logging.info("Constructing Terrain")
 
-planetSize              = 60000
+planetSize              = config.world_size
 patches                 = config.terrain_num_patches
 patchSize               = planetSize/patches
-logging.info(" + {:d} (={:d}x{:d}) patches at {:d}m on a side".format((patches-1)**2,patches-1,patches-1,patchSize))
+logging.info(" World side length: {}".format(planetSize))
+logging.info(" Geometry patch count: {} x {}".format(patches-1,patches-1))
+logging.info(" Geometry patch size: {}m x {}m".format(patchSize,patchSize))
 
 updateUniversalUniform('heightmap', Texture.HEIGHTMAP_NUM)
 updateUniversalUniform('worldSize', planetSize)
 
 # Construct patches
-logging.info("Constructing geometry")
 def getPatchData():
+  logging.info("Constructing geometry")
   patchData = np.zeros((patches-1)**2*6,dtype=[("position" , np.float32,3)])
   for i in range(patches-1):
     for j in range(patches-1):
@@ -51,7 +53,7 @@ renderID = shader.setData(patchData, patchIndices)
 heightmap = Texture.Texture(Texture.HEIGHTMAP)
 textWidth = 800
 textRes = float(planetSize) / textWidth
-logging.info(" + Heightmap texture size {:d}x{:d} for a resolution of {:.1f}m per pixel".format(textWidth,textWidth,textRes))
+logging.info(" Heightmap texture size {:d}x{:d} for a resolution of {:.1f}m per pixel".format(textWidth,textWidth,textRes))
 textHeight = textWidth
 sign = lambda x: 1 if x>0 else -1
 def generateHeightmap():

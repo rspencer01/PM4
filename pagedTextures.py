@@ -8,7 +8,7 @@ import dent.Texture as Texture
 import dent.RenderStage as RenderStage
 
 pageSize                = config.terrain_page_size
-pagesAcross             = 60000 / pageSize
+pagesAcross             = config.world_size / pageSize
 pageResoultion          = config.terrain_page_resolution
 numPages                = config.terrain_num_pages
 pageMapping             = Pager.Pager(numPages**2)
@@ -43,7 +43,7 @@ pagingShader = getShader('pagingShader')
 pagingShader['pageSize']    = pageSize
 pagingShader['numPages']    = numPages
 pagingShader['pagesAcross'] = pagesAcross
-pagingShader['worldSize']   = 60000
+pagingShader['worldSize']   = config.world_size
 data = np.zeros(4,dtype=[("position" , np.float32,3)])
 data['position'] = [(-1,-1,0.999999),(-1,1,0.999999),(1,-1,0.999999),(1,1,0.999999)]
 I = [0,1,2, 1,2,3]
