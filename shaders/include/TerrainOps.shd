@@ -15,7 +15,7 @@ float getFineAmount(vec2 ps)
 {
   float theta = acos(normalize(texture(heightmap,ps/60000).xyz).y);
   if (theta<0.4)
-    return 20;
+    return 20.;
   return (20+(theta-0.4)*100 + 40*(theta-0.4)*getCurvature(heightmap, ps));
 }
 

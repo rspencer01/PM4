@@ -5,7 +5,7 @@ def stepSort(name, x, key=lambda x:x):
   if name not in stepSortIndices:
     stepSortIndices[name] = 1
 
-  if len(x) == 1: return
+  if len(x) <= 1: return
   i = stepSortIndices[name]
 
   if key(x[i]) < key(x[i-1]):

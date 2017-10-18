@@ -1,6 +1,6 @@
 import numpy as np
 import dent.args as args
-import Image
+from PIL import Image
 import logging
 from dent.Shaders import *
 import OpenGL.GL as gl
