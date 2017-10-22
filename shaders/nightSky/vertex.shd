@@ -1,4 +1,4 @@
-#version 140
+#version 400
 uniform mat4 projection;
 uniform vec3 CameraPosition;
 uniform mat4 View;
