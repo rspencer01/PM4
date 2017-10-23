@@ -7,12 +7,18 @@ out mat4 outValue;
 
 #include shaders/include/TerrainPagedTexture.shd;
 
+uniform int worldSize;
+
 float rand(vec2 co){
     return fract(sin(dot(co.xy ,vec2(12.9898,78.233))) * 43758.5453);
 }
 
 void main()
 {
+  if (abs(geoValue[0].x) > worldSize/2)
+    return;
+  if (abs(geoValue[0].y) > worldSize/2)
+    return;
   if (texture(noise, 5 * geoValue[0] / worldSize / 6).a > 0.05)
   {
     if (getNormal(geoValue[0] + worldSize/2).y > 0.96)
