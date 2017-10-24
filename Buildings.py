@@ -28,8 +28,8 @@ Shaders.updateUniversalUniform('villageCount', clumpCount)
 def getFlatArea():
   gr = [100,100]
   while gr[0]**2 + gr[1]**2 >1:
-    clumpPosition = np.array([random.randint(-30000,30000), 0,
-                     random.randint(-30000,30000)])
+    clumpPosition = np.array([random.randint(-config.world_size/2,config.world_size/2), 0,
+                     random.randint(-config.world_size/2,config.world_size/2)])
     clumpPosition[1] = Terrain.getAt(clumpPosition[0], clumpPosition[2])
     gr = Terrain.getGradAt(clumpPosition[0], clumpPosition[2])
   return clumpPosition
@@ -135,6 +135,5 @@ Terrain.registerCallback(flattenGround)
 
 def display(camera):
   stepSort('buildingsClumpDistance', clumpSpecs, key=lambda x: np.linalg.norm(x.position-camera.position))
-  for clump in clumpSpecs[:1]:
-    building1.display(*clump.buildings1buffer)
-    building2.display(*clump.buildings2buffer)
+  building1.display(*clumpSpecs[0].buildings1buffer)
+  building2.display(*clumpSpecs[0].buildings2buffer)
