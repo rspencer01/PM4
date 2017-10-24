@@ -68,4 +68,9 @@ atmosphere_radius:
     As on the box
   type: float
   default: 6.42e6
+grass_amount:
+  help:
+    A measure of the amount of grass to render
+  type: float
+  default: 1.
 ...
