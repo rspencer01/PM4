@@ -39,7 +39,7 @@ character = \
     'assets/paladin/paladin_prop_j_nordstrom.fbx',
     'Knight',
     scale=0.01,
-    position=(-183, 0,-2938),
+    position=(0, 0, 0),
     daemon=False)
 
 def move(amount):
