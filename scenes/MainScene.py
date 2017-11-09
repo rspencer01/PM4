@@ -6,6 +6,7 @@ import numpy as np
 import dent.Texture as Texture
 from dent.RenderPipeline import RenderPipeline
 from dent.RenderStage import RenderStage
+from Pointer import Pointer
 import dent.messaging as messaging
 import spells
 import lighting
@@ -22,6 +23,8 @@ class MainScene(Scene):
             max(self.Terrain.getAt(x[0],x[2])+0.6,x[1]),x[2]))
     self.camera.radiusCentre = np.array([0,-Re,0])
     self.camera.minRadius = Re
+
+    self.pointer = Pointer()
 
     import Sky
     self.Sky = Sky
@@ -225,3 +228,9 @@ class MainScene(Scene):
       self.particles.add_system(spells.FountainSpellParticles(self.Characters.character.position[:]))
     else:
       logging.warn('Unknown spell "{}"'.format(type))
+
+  def mouse_motion_handler(self, x, y):
+    self.pointer.update(self.camera.position, self.camera.direction)
+    self.Marker.moveMarker(0, self.pointer.position)
+    self.Marker.refreeze()
+

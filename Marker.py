@@ -39,9 +39,17 @@ def addMarker(pos):
   translate(b,pos[0],Terrain.getAt(pos[0],pos[2])+3,pos[2])
   markers['model'][-1] = b
 
+def moveMarker(i, pos):
+  b = np.eye(4,dtype=np.float32)
+  translate(b,pos[0],Terrain.getAt(pos[0],pos[2])+3,pos[2])
+  markers['model'][i] = b
+
 def freeze():
   global renderID
   renderID = shader.setData(data,indices,markers)
+
+def refreeze():
+  shader.updateInstances(markers, renderID)
 
 def display():
   Texture.getWhiteTexture().load()
