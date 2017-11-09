@@ -51,6 +51,11 @@ class MainScene(Scene):
     import postrender
     self.postrender = postrender
 
+    import Marker
+    self.Marker = Marker
+    self.Marker.addMarker([0,0,0])
+    self.Marker.freeze()
+
     self.star_object = RectangleObjects.RectangleObject('stars')
     self.star_object.shader['colormap'] = Texture.COLORMAP_NUM
     self.star_object.shader['depthmap'] = Texture.DEPTHMAP_NUM
@@ -96,6 +101,7 @@ class MainScene(Scene):
     self.camera.render('user')
 
     self.Terrain.display(self.camera)
+    self.Marker.display()
     self.grass.display(self.camera)
     self.Forest.display(self.camera.position)
     self.Characters.display(self.camera)
