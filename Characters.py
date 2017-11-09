@@ -40,7 +40,11 @@ character = \
     'Knight',
     scale=0.01,
     position=(0, 0, 0),
-    daemon=False)
+    will_animate=True)
+
+character.add_animation('./assets/animations/sword_and_shield_run.yaml')
+character.add_animation('./assets/animations/sword_and_shield_idle.yaml')
+character.action_controller.chaining = True
 
 def move(amount):
   character.position[0] += amount * character.direction[0]
@@ -58,7 +62,10 @@ move(0)
 
 npcs_object.freeze()
 
-def update():
+def update(t):
+  character.update(t)
+  character.last_unanimated_position[1] = Terrain.getAt(character.position[0],character.position[2])
+  character.update(t)
   for i in xrange(numberNPCs):
     npcs[i].update()
 

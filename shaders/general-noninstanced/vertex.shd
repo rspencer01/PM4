@@ -5,6 +5,8 @@ in vec4 color;
 in vec2 textcoord;
 in vec3 tangent;
 in vec3 bitangent;
+in ivec4 bone_ids;
+in vec4 weights;
 
 out VertexData
 {
@@ -19,13 +21,29 @@ out VertexData
 uniform mat4 View;
 uniform mat4 projection;
 uniform mat4 model;
+uniform int options;
+uniform mat4 bones[60];
 
 void main()
 {
-  VertexOut.position = model * vec4(position,1.0);
-  VertexOut.normal = transpose(inverse(model)) * vec4(normal, 1);
-  VertexOut.tangent = (transpose(inverse(model)) * vec4(tangent, 1)).xyz;
-  VertexOut.bitangent = (transpose(inverse(model)) * vec4(bitangent, 1)).xyz;
+  if ((options/2) % 2 == 1)
+  {
+    mat4 skeleton = bones[bone_ids.x] * weights.x +
+                    bones[bone_ids.y] * weights.y +
+                    bones[bone_ids.z] * weights.z +
+                    bones[bone_ids.a] * weights.a;
+    VertexOut.position = model * skeleton * vec4(position,1.0);
+    VertexOut.normal = transpose(inverse(model* skeleton)) * vec4(normal, 0);
+    VertexOut.tangent = (transpose(inverse(model* skeleton)) * vec4(tangent, 0)).xyz;
+    VertexOut.bitangent = (transpose(inverse(model* skeleton)) * vec4(bitangent, 0)).xyz;
+  }
+  else
+  {
+    VertexOut.position = model*vec4(position,1.0);
+    VertexOut.normal = transpose(inverse(model)) * vec4(normal, 0);
+    VertexOut.tangent = (transpose(inverse(model)) * vec4(tangent, 0)).xyz;
+    VertexOut.bitangent = (transpose(inverse(model)) * vec4(bitangent, 0)).xyz;
+  }
   VertexOut.color = color;
   VertexOut.uv = textcoord;
 

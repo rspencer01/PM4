@@ -61,6 +61,8 @@ class MainScene(Scene):
     self.line = False
     self.flycam = None
 
+    self.time = 0.
+
     self.renderStages = [RenderStage(render_func=self.main_display       , aux_buffer=True)   ,
                          RenderStage(render_func=self.lighting_display   , clear_depth=False  , aux_buffer=True)  ,
                          RenderStage(render_func=self.stars_display      , clear_depth=False  , aux_buffer=True)  ,
@@ -133,9 +135,11 @@ class MainScene(Scene):
     super(MainScene, self).render(windowWidth, windowHeight)
 
   def timer(self, fps):
+    self.time += 1./fps
+
     self.Map.update(1.0/fps)
     self.Forest.update(self.camera.position)
-    self.Characters.update()
+    self.Characters.update(self.time)
 
     if self.flycam:
       self.flycam.update(self.camera)
