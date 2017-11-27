@@ -31,7 +31,7 @@ idd = shaderObj.setData(ips)
 # On average one out of four trees is placed.
 tbo = shaderObj.getOutputBufferObject(idd, 16*N*N*4)
 
-count = shaderObj.draw(gl.GL_POINTS, idd, N*N)
+count = shaderObj.draw(gl.GL_POINTS, idd, tbo, N*N)
 logging.info("Generated {}K/{}K trees".format(count/1000, N**2/1000))
 
 # Sample for the output format
@@ -54,7 +54,7 @@ def update(position):
   lastPosition = ps.copy()
 
   shaderObj['center'] = ps
-  count = shaderObj.draw(gl.GL_POINTS, idd, N*N)
+  count = shaderObj.draw(gl.GL_POINTS, idd, tbo, N*N)
   logging.info("Generated {}K/{}K trees".format(count/1000, N**2/1000))
   tree.numInstances = count
 
