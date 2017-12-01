@@ -57,6 +57,7 @@ class MainScene(Scene):
     import Marker
     self.Marker = Marker
     self.Marker.addMarker([0,0,0])
+    self.Marker.addMarker([0,0,0])
     self.Marker.freeze()
 
     self.star_object = RectangleObjects.RectangleObject('stars')
@@ -87,6 +88,7 @@ class MainScene(Scene):
 
     messaging.add_handler('keyboard', self.key)
     messaging.add_handler('timer', self.timer)
+    messaging.add_handler('mouse', self.mouse_handler)
 
   def main_display(self, width, height, **kwargs):
     if self.line:
@@ -173,6 +175,10 @@ class MainScene(Scene):
 
     self.Shadows.gameTime += 3e-4
 
+    self.pointer.update(self.camera.position, self.camera.direction)
+    self.Marker.moveMarker(0, self.pointer.position)
+    self.Marker.refreeze()
+
   def key(self, key):
     if key=='o':
       self.enableAtmosphere = not self.enableAtmosphere
@@ -229,8 +235,8 @@ class MainScene(Scene):
     else:
       logging.warn('Unknown spell "{}"'.format(type))
 
-  def mouse_motion_handler(self, x, y):
-    self.pointer.update(self.camera.position, self.camera.direction)
-    self.Marker.moveMarker(0, self.pointer.position)
+  def mouse_handler(self, button, state, x, y):
+    self.Marker.moveMarker(1, self.pointer.position)
     self.Marker.refreeze()
+    self.Characters.character.target_position = self.pointer.position
 
