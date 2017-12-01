@@ -1,13 +1,17 @@
 import logging
 import numpy as np
 import dent.Texture as Texture
+from dent.args import args
 from dent.Shaders import *
 from dent.configuration import config
 
 logging.info("Loading grass")
 
 texture = Texture.Texture(Texture.COLORMAP)
-texture.loadFromImage('assets/grass.png')
+if not args.whitewash:
+  texture.loadFromImage('assets/grass.png')
+else:
+  texture = Texture.getWhiteTexture()
 
 numberOfPatches = int(100 * config.grass_amount)
 patchSize = .3

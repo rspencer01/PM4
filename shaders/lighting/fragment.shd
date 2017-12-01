@@ -21,6 +21,7 @@ uniform sampler2D shadowTexture3;
 
 uniform float ambientLight;
 uniform int options;
+uniform int whitewash;
 
 uniform int numLights;
 uniform vec3 lightPositions[100];
@@ -109,6 +110,8 @@ vec3 lighting(vec4 normal, vec4 position)
 void main()
 {
   vec3 inputColor = texture(colormap,pos).rgb;
+  if (whitewash == 1)
+    inputColor = vec3(1);
   vec4 inputPos   = texture(posmap,pos);
   vec4 inputNorm  = vec4(normalize(texture(normmap,pos).rgb),1);
   gl_FragDepth    = texture(depthmap,pos).r;

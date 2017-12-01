@@ -9,5 +9,6 @@ dent.args.parser.add_argument('--remake-terrain', action='store_true')
 dent.args.parser.add_argument('--disable-atmosphere', action='store_true')
 dent.args.parser.add_argument('--remake-roads', action='store_true')
 dent.args.parser.add_argument('--monolith', action='store_true')
+dent.args.parser.add_argument('--whitewash', '-w', action='store_true')
 
 import dent.core

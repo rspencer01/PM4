@@ -1,6 +1,6 @@
 #version 400
 uniform vec3 sunDirection;
-uniform int worlSize;
+uniform int whitewash = 0;
 uniform vec3 CameraPosition;
 uniform sampler2D shadowTexture1; uniform sampler2D shadowTexture2;
 uniform sampler2D shadowTexture3;
@@ -116,6 +116,15 @@ void main()
   vec3 averageNorm = averageNormal(TesselationOut.origPosition.xyz);
   vec3 norm        = getPagedNormal(TesselationOut.origPosition.xyz);
   vec3 type        = getPagedType(TesselationOut.origPosition.xyz);
+
+  if (whitewash > 0)
+  {
+    fragColor = vec4(1);
+    fragNorm = vec4(averageNorm,1);
+    fragPos  = vec4(TesselationOut.position);
+    return;
+  }
+
   fragColor = vec4(
     color(norm,TesselationOut.position.xyz,averageNorm, type),
     1);

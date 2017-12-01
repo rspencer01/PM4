@@ -1,8 +1,11 @@
 import postrender
 import numpy as np
 import dent.Pager as Pager
+import dent.args
 
 lightingShader = postrender.lightingShader
+if dent.args.args.whitewash:
+  lightingShader['whitewash'] = 1
 
 lightID = 0
 lightPositions = np.zeros((100, 3), dtype=np.float32)

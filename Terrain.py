@@ -106,86 +106,91 @@ heightmap.loadData(d, keep_copy=True)
 
 logging.info("Loading textures")
 
-texture = Texture.Texture(Texture.COLORMAP)
-normalTexture = Texture.Texture(Texture.NORMALMAP)
+if not args.args.whitewash:
+  texture = Texture.Texture(Texture.COLORMAP)
+  normalTexture = Texture.Texture(Texture.NORMALMAP)
 
-def getTexData():
-  colorMapSize = 1000
-  texData = np.zeros((colorMapSize,colorMapSize,4),dtype=np.float32)
+  def getTexData():
+    colorMapSize = 1000
+    texData = np.zeros((colorMapSize,colorMapSize,4),dtype=np.float32)
 
-  a = Image.open('textures/grass.jpg')
-  a.thumbnail((colorMapSize/2,colorMapSize/2),Image.ANTIALIAS)
-  forest = np.array(a.getdata()).astype(np.float32)
-  add = np.zeros((forest.shape[0],1),dtype=np.float32)
-  forest = np.append(forest,add,axis=1)
-  forest = np.array([forest[i*a.size[0]:(i+1)*a.size[0]] for i in xrange(a.size[1])])/256
+    a = Image.open('textures/grass.jpg')
+    a.thumbnail((colorMapSize/2,colorMapSize/2),Image.ANTIALIAS)
+    forest = np.array(a.getdata()).astype(np.float32)
+    add = np.zeros((forest.shape[0],1),dtype=np.float32)
+    forest = np.append(forest,add,axis=1)
+    forest = np.array([forest[i*a.size[0]:(i+1)*a.size[0]] for i in xrange(a.size[1])])/256
 
-  a = Image.open('textures/clay.jpg')
-  a.thumbnail((colorMapSize/2,colorMapSize/2),Image.ANTIALIAS)
-  clay = np.array(a.getdata()).astype(np.float32)
-  add = np.zeros((clay.shape[0],1),dtype=np.float32)
-  clay = np.append(clay,add,axis=1)
-  clay = np.array([clay[i*a.size[0]:(i+1)*a.size[0]] for i in xrange(a.size[1])])/256
+    a = Image.open('textures/clay.jpg')
+    a.thumbnail((colorMapSize/2,colorMapSize/2),Image.ANTIALIAS)
+    clay = np.array(a.getdata()).astype(np.float32)
+    add = np.zeros((clay.shape[0],1),dtype=np.float32)
+    clay = np.append(clay,add,axis=1)
+    clay = np.array([clay[i*a.size[0]:(i+1)*a.size[0]] for i in xrange(a.size[1])])/256
 
-  a = Image.open('textures/stone.jpg')
-  a.thumbnail((colorMapSize/2,colorMapSize/2),Image.ANTIALIAS)
-  stone = np.array(a.getdata()).astype(np.float32)
-  add = np.zeros((stone.shape[0],1),dtype=np.float32)
-  stone = np.append(stone,add,axis=1)
-  stone = np.array([stone[i*a.size[0]:(i+1)*a.size[0]] for i in xrange(a.size[1])])/256
+    a = Image.open('textures/stone.jpg')
+    a.thumbnail((colorMapSize/2,colorMapSize/2),Image.ANTIALIAS)
+    stone = np.array(a.getdata()).astype(np.float32)
+    add = np.zeros((stone.shape[0],1),dtype=np.float32)
+    stone = np.append(stone,add,axis=1)
+    stone = np.array([stone[i*a.size[0]:(i+1)*a.size[0]] for i in xrange(a.size[1])])/256
 
-  a = Image.open('textures/cobblestones.jpg')
-  a.thumbnail((colorMapSize/2,colorMapSize/2),Image.ANTIALIAS)
-  cobblestone = np.array(a.getdata()).astype(np.float32)
-  add = np.zeros((cobblestone.shape[0],1),dtype=np.float32)
-  cobblestone = np.append(cobblestone,add,axis=1)
-  cobblestone = np.array([cobblestone[i*a.size[0]:(i+1)*a.size[0]] for i in xrange(a.size[1])])/256
+    a = Image.open('textures/cobblestones.jpg')
+    a.thumbnail((colorMapSize/2,colorMapSize/2),Image.ANTIALIAS)
+    cobblestone = np.array(a.getdata()).astype(np.float32)
+    add = np.zeros((cobblestone.shape[0],1),dtype=np.float32)
+    cobblestone = np.append(cobblestone,add,axis=1)
+    cobblestone = np.array([cobblestone[i*a.size[0]:(i+1)*a.size[0]] for i in xrange(a.size[1])])/256
 
-  texData[0:colorMapSize/2,0:colorMapSize/2] = forest
-  texData[0:colorMapSize/2,colorMapSize/2:] = stone
-  texData[colorMapSize/2:,0:colorMapSize/2] = clay
-  texData[colorMapSize/2:,colorMapSize/2:] = cobblestone
+    texData[0:colorMapSize/2,0:colorMapSize/2] = forest
+    texData[0:colorMapSize/2,colorMapSize/2:] = stone
+    texData[colorMapSize/2:,0:colorMapSize/2] = clay
+    texData[colorMapSize/2:,colorMapSize/2:] = cobblestone
 
-  return texData
+    return texData
 
-def getTexNormData():
-  colorMapSize = 1000
-  texNormData = np.zeros((colorMapSize,colorMapSize,4),dtype=np.float32) +0.5
-  texNormData[:,:,2:] = 1
+  def getTexNormData():
+    colorMapSize = 1000
+    texNormData = np.zeros((colorMapSize,colorMapSize,4),dtype=np.float32) +0.5
+    texNormData[:,:,2:] = 1
 
-  a = Image.open('textures/forest-normal.jpg')
-  a.thumbnail((colorMapSize/2,colorMapSize/2),Image.ANTIALIAS)
-  forest_normal = np.array(a.getdata()).astype(np.float32)
-  add = np.zeros((forest_normal.shape[0],1),dtype=np.float32)
-  forest_normal = np.append(forest_normal,add,axis=1)
-  forest_normal = np.array([forest_normal[i*a.size[0]:(i+1)*a.size[0]] for i in xrange(a.size[1])])/256
+    a = Image.open('textures/forest-normal.jpg')
+    a.thumbnail((colorMapSize/2,colorMapSize/2),Image.ANTIALIAS)
+    forest_normal = np.array(a.getdata()).astype(np.float32)
+    add = np.zeros((forest_normal.shape[0],1),dtype=np.float32)
+    forest_normal = np.append(forest_normal,add,axis=1)
+    forest_normal = np.array([forest_normal[i*a.size[0]:(i+1)*a.size[0]] for i in xrange(a.size[1])])/256
 
-  a = Image.open('textures/clay-normal.jpg')
-  a.thumbnail((colorMapSize/2,colorMapSize/2),Image.ANTIALIAS)
-  clay_normal = np.array(a.getdata()).astype(np.float32)
-  add = np.zeros((clay_normal.shape[0],1),dtype=np.float32)
-  clay_normal = np.append(clay_normal,add,axis=1)
-  clay_normal = np.array([clay_normal[i*a.size[0]:(i+1)*a.size[0]] for i in xrange(a.size[1])])/256
+    a = Image.open('textures/clay-normal.jpg')
+    a.thumbnail((colorMapSize/2,colorMapSize/2),Image.ANTIALIAS)
+    clay_normal = np.array(a.getdata()).astype(np.float32)
+    add = np.zeros((clay_normal.shape[0],1),dtype=np.float32)
+    clay_normal = np.append(clay_normal,add,axis=1)
+    clay_normal = np.array([clay_normal[i*a.size[0]:(i+1)*a.size[0]] for i in xrange(a.size[1])])/256
 
-  a = Image.open('textures/cobblestones-normal.jpg')
-  a.thumbnail((colorMapSize/2,colorMapSize/2),Image.ANTIALIAS)
-  cobblestone_normal = np.array(a.getdata()).astype(np.float32)
-  add = np.zeros((cobblestone_normal.shape[0],1),dtype=np.float32)
-  cobblestone_normal = np.append(cobblestone_normal,add,axis=1)
-  cobblestone_normal = np.array([cobblestone_normal[i*a.size[0]:(i+1)*a.size[0]] for i in xrange(a.size[1])])/256
+    a = Image.open('textures/cobblestones-normal.jpg')
+    a.thumbnail((colorMapSize/2,colorMapSize/2),Image.ANTIALIAS)
+    cobblestone_normal = np.array(a.getdata()).astype(np.float32)
+    add = np.zeros((cobblestone_normal.shape[0],1),dtype=np.float32)
+    cobblestone_normal = np.append(cobblestone_normal,add,axis=1)
+    cobblestone_normal = np.array([cobblestone_normal[i*a.size[0]:(i+1)*a.size[0]] for i in xrange(a.size[1])])/256
 
-#  texNormData[0:colorMapSize/2,0:colorMapSize/2] = forest_normal
-  texNormData[colorMapSize/2:,:colorMapSize/2] = clay_normal
-  texNormData[colorMapSize/2:,colorMapSize/2:] = cobblestone_normal
+  #  texNormData[0:colorMapSize/2,0:colorMapSize/2] = forest_normal
+    texNormData[colorMapSize/2:,:colorMapSize/2] = clay_normal
+    texNormData[colorMapSize/2:,colorMapSize/2:] = cobblestone_normal
 
-  return texNormData
+    return texNormData
 
-texData = assets.getAsset('terrain_diffuse', getTexData)
-texNormData = assets.getAsset('terrain_normal', getTexNormData)
+  texData = assets.getAsset('terrain_diffuse', getTexData)
+  texNormData = assets.getAsset('terrain_normal', getTexNormData)
 
-texture.loadData(texData)
-normalTexture.loadData(texNormData)
-del texData
+  texture.loadData(texData)
+  normalTexture.loadData(texNormData)
+  del texData
+else:
+  texture = Texture.getWhiteTexture()
+  normalTexture = Texture.getBlueTexture()
+  shader['whitewash'] = 1
 
 def display(camera):
   if np.sum(camera.position*camera.position) > 6e6**2:
