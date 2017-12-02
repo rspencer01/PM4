@@ -14,7 +14,7 @@ uniform sampler2D noise;
 void main()
 {
   vec2 ps = ((pos.xy/(2*0.8)+0.5) + pagePosition.zx) * pageSize;
-  ps.y = - ps.y;
+  ps.y = worldSize-ps.y;
 
   offst = vec4(getDisplacement(ps), 1);
   normal = vec4(getNormal(ps),1);

@@ -51,6 +51,8 @@ renderID = shader.setData(patchData, patchIndices)
 
 # Texture sizes
 heightmap = Texture.Texture(Texture.HEIGHTMAP)
+gl.glTexParameteri(gl.GL_TEXTURE_2D, gl.GL_TEXTURE_WRAP_S, gl.GL_CLAMP_TO_EDGE)
+gl.glTexParameteri(gl.GL_TEXTURE_2D, gl.GL_TEXTURE_WRAP_T, gl.GL_CLAMP_TO_EDGE)
 textWidth = 800
 textRes = float(planetSize) / textWidth
 logging.info(" Heightmap texture size {:d}x{:d} for a resolution of {:.1f}m per pixel".format(textWidth,textWidth,textRes))
