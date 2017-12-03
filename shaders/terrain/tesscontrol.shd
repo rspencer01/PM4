@@ -1,8 +1,7 @@
 #version 410 core
 
 // define the number of CPs in the output patch
-layout (vertices = 3) out;
-
+layout (vertices = 4) out;
 // The user camera
 uniform vec3 userCameraPosition;
 uniform vec3 userCameraDirection;
@@ -10,32 +9,28 @@ uniform vec3 CameraDirection;
 uniform sampler2D heightmap;
 
 uniform int worldSize;
+uniform int patchSize;
 
 in vec3 pos[];
 out vec3 evaluationpoint_wor[];
 
+#include shaders/include/TerrainPagedTexture.shd;
+
 int detailLevel(vec3 position)
 {
+  position += getOffset(position.xyz) + vec3(0,1e3,0);
   vec3 dir = position - userCameraPosition;
   float dist = length(dir.xz);
-  if (dist < 400)
-    return 100;
   if (dist > 40000)
     return 0;
-  if (dist > 4000)
-  {
-    float ht = texture(heightmap,position.xz/worldSize+vec2(0.5)).a;
-    return 1 +
-    int(ht/1500);
-  }
-  if (dist > 1000)
-    if (dot(normalize(dir.xyz),normalize(CameraDirection.xyz)) < 0.0)
+  if (dist < patchSize)
+    return 100;
+  if (dist < patchSize*2)
+    return 30;
+  if (dot(normalize(dir.xyz),normalize(CameraDirection.xyz)) < 0.0)
       return 0;
-  if (dist < 1000)
-    return 1 +
-      int(exp(-(dist-300)/700)*8);
-  if (dist < 4000)
-    return 2;
+  if (dist < patchSize*4)
+    return 10;
   return 1;
 }
 
@@ -44,8 +39,13 @@ void main()
   // Set the control points of the output patch
   evaluationpoint_wor[gl_InvocationID] = pos[gl_InvocationID];
 
-  gl_TessLevelInner[0] = detailLevel((pos[0] + pos[1] + pos[2]) / 3.0);
-  gl_TessLevelOuter[0] = detailLevel((pos[1] + pos[2]) / 2.0);
-  gl_TessLevelOuter[1] = detailLevel((pos[0] + pos[2]) / 2.0);
-  gl_TessLevelOuter[2] = detailLevel((pos[1] + pos[0]) / 2.0);
+  vec3 centre = (pos[0] + pos[1] + pos[2] + pos[3])/4;
+
+  gl_TessLevelInner[0] = detailLevel(centre);
+  gl_TessLevelInner[1] = detailLevel(centre);
+
+  gl_TessLevelOuter[0] = detailLevel((pos[0]+pos[1])/2);
+  gl_TessLevelOuter[1] = detailLevel((pos[0]+pos[2])/2);
+  gl_TessLevelOuter[2] = detailLevel((pos[2]+pos[3])/2);
+  gl_TessLevelOuter[3] = detailLevel((pos[1]+pos[3])/2);
 }

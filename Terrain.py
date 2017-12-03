@@ -27,15 +27,13 @@ updateUniversalUniform('worldSize', planetSize)
 # Construct patches
 def getPatchData():
   logging.info("Constructing geometry")
-  patchData = np.zeros((patches-1)**2*6,dtype=[("position" , np.float32,3)])
+  patchData = np.zeros((patches-1)**2*4,dtype=[("position" , np.float32,3)])
   for i in range(patches-1):
     for j in range(patches-1):
-      patchData['position'][(i*(patches-1)+j)*6] = (i,0,j)
-      patchData['position'][(i*(patches-1)+j)*6+1] = (i,0,j+1)
-      patchData['position'][(i*(patches-1)+j)*6+2] = (i+1,0,j)
-      patchData['position'][(i*(patches-1)+j)*6+3] = (i+1,0,j)
-      patchData['position'][(i*(patches-1)+j)*6+4] = (i,0,j+1)
-      patchData['position'][(i*(patches-1)+j)*6+5] = (i+1,0,j+1)
+      patchData['position'][(i*(patches-1)+j)*4] = (i,0,j)
+      patchData['position'][(i*(patches-1)+j)*4+1] = (i+1,0,j)
+      patchData['position'][(i*(patches-1)+j)*4+2] = (i,0,j+1)
+      patchData['position'][(i*(patches-1)+j)*4+3] = (i+1,0,j+1)
   patchData['position']=(patchData['position']-np.array([patches/2,0,patches/2]))*patchSize
   return patchData
 
@@ -47,6 +45,7 @@ shader = getShader('terrain',tess=True,geom=False)
 shader['colormap'] = Texture.COLORMAP_NUM
 shader['normalmap'] = Texture.NORMALMAP_NUM
 shader['noisemap'] = Texture.NOISE_NUM
+shader['patchSize'] = patchSize
 renderID = shader.setData(patchData, patchIndices)
 
 # Texture sizes
@@ -201,7 +200,7 @@ def display(camera):
   texture.load()
   normalTexture.load()
   heightmap.load()
-  shader.draw((patches-1)**2*6,renderID)
+  shader.draw((patches-1)**2*4, renderID, patchVertices=4)
 
 def getCurvature(x, y):
   x,y = float(x), float(y)
