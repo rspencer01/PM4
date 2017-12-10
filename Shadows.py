@@ -70,6 +70,7 @@ def render(scene):
 
     scene.Terrain.display(shadowCamera.lockObject)
     scene.Characters.display(shadowCamera.lockObject)
+    scene.Marker.display()
     scene.Buildings.display(shadowCamera.lockObject)
     scene.grass.display(shadowCamera.lockObject)
     scene.Forest.display(shadowCamera.lockObject.position,i)

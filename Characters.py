@@ -42,15 +42,17 @@ character = \
     position=(0, 0, 0),
     will_animate=True)
 
-character.add_animation('./assets/animations/sword_and_shield_run.yaml')
 character.add_animation('./assets/animations/sword_and_shield_idle.yaml')
+character.add_animation('./assets/animations/move_forward.yaml')
+character.add_animation('./assets/animations/rotate_1.yaml')
+character.add_animation('./assets/animations/rotate_2.yaml')
 character.action_controller.chaining = True
 character.target_position = np.array([0.,0.,0.])
 
 def action_weight_function(x):
   p = character.position.copy()
-  p[0] += x.get_end_position()[0]*np.cos(character.angle) - x.get_end_position()[2]*np.sin(character.angle)
-  p[2] += x.get_end_position()[2]*np.cos(character.angle) + x.get_end_position()[0]*np.sin(character.angle)
+  p[0] += x.get_end_position()[0]*character.scale*np.cos(character.angle) - x.get_end_position()[2]*character.scale*np.sin(character.angle)
+  p[2] += x.get_end_position()[2]*character.scale*np.cos(character.angle) + x.get_end_position()[0]*character.scale*np.sin(character.angle)
   d = np.linalg.norm((p-character.target_position)[np.array((0,2))])
 
   er = character.angle + x.get_end_rotation()
